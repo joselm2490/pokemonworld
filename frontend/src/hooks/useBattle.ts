@@ -18,6 +18,11 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    if (!roomCode) {
+      setBattleState(null);
+      return;
+    }
+
     // Determine backend WebSocket host
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     // Use window.location.host for dev proxy, or environment variable for production (e.g. Render backend)
@@ -47,13 +52,15 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
         if (data.type === 'BATTLE_INIT') {
           setBattleState(data.state);
           setIsWaitingForTurn(false);
-          setCurrentMessage(`Battle started in Room ${roomCode}!`);
+          setCurrentMessage('');
         } else if (data.type === 'TURN_RESOLVED') {
-          setIsWaitingForTurn(false);
           await playTurnSequence(data.events, data.state);
+          setIsWaitingForTurn(false);
+          setCurrentMessage('');
         } else if (data.type === 'FAINT_SWITCH_RESOLVED') {
           setBattleState(data.state);
-          setCurrentMessage(data.message || 'Pokémon switched!');
+          setCurrentMessage('');
+          setIsWaitingForTurn(false);
         }
       } catch (err) {
         console.error('WebSocket message parsing error:', err);
@@ -189,7 +196,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
       p1: { name: 'Player 1', active_index: 0, team: p1Team as any },
       p2: { name: 'AI Opponent', active_index: 0, team: p2Team as any },
     });
-    setCurrentMessage('Local offline simulation active.');
+    setCurrentMessage('');
   };
 
   return {

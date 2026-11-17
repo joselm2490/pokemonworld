@@ -2,65 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Power Clear';
+  src: url('/fonts/power-clear.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Power Clear';
+  src: url('/fonts/power-clear-bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   body {
-    background-color: #0b0f19;
-    color: #1a1a1a;
-    font-family: 'Press Start 2P', monospace, sans-serif;
+    background-color: #101418;
+    color: #f1f5f9;
+    font-family: 'Power Clear', 'Press Start 2P', monospace, sans-serif;
   }
 }
 
-/* Pixel art rendering */
+.font-pkmn {
+  font-family: 'Power Clear', 'Press Start 2P', monospace;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  font-smooth: never;
+}
+
 .pixelated {
   image-rendering: -moz-crisp-edges;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
-/* Authentic text shadows for retro fonts */
-.text-shadow-retro {
-  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7);
+/* Official Essentials text shadow (dark text with light grey drop shadow) */
+.pkmn-text-dark {
+  color: #484848;
+  text-shadow: 2px 0 0 #d0d0c8, 0 2px 0 #d0d0c8, 2px 2px 0 #d0d0c8;
 }
 
-.text-shadow-heavy {
-  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8), -1px -1px 0px rgba(0, 0, 0, 0.4);
+.pkmn-text-message {
+  color: #484848;
+  text-shadow: 2px 0 0 #d0d0c8, 0 2px 0 #d0d0c8, 2px 2px 0 #d0d0c8;
 }
 
-.text-shadow-white {
-  text-shadow: 1px 1px 0px #ffffff, -1px -1px 0px #ffffff;
+.pkmn-text-move {
+  color: #484848;
+  text-shadow: 2px 0 0 #d0d0c8, 0 2px 0 #d0d0c8, 2px 2px 0 #d0d0c8;
 }
 
-/* Slanted trapezoid databox shapes (Gen 5 / Essentials style) */
-.databox-opponent {
-  clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+.pkmn-text-male {
+  color: #3050c8;
+  text-shadow: 1px 1px 0 #a0b8f0;
 }
 
-.databox-player {
-  clip-path: polygon(10% 0, 100% 0, 100% 100%, 0 100%);
+.pkmn-text-female {
+  color: #e00808;
+  text-shadow: 1px 1px 0 #f0a0a0;
+}
+
+.pkmn-text-key {
+  color: #f8f8f8;
+  text-shadow: 1px 1px 0 #181818, -1px -1px 0 #181818, 1px -1px 0 #181818, -1px 1px 0 #181818;
 }
 
 /* Battle animations */
 @keyframes attack-lunge-p1 {
   0% { transform: translate(0, 0); }
-  40% { transform: translate(50px, -30px); }
+  40% { transform: translate(24px, -14px); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes attack-lunge-p2 {
   0% { transform: translate(0, 0); }
-  40% { transform: translate(-50px, 30px); }
+  40% { transform: translate(-24px, 14px); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes damage-flash {
   0%, 100% { opacity: 1; filter: none; }
-  25%, 75% { opacity: 0.3; filter: brightness(3) saturate(0.2); }
-  50% { opacity: 0.9; filter: brightness(2.5); }
+  25%, 75% { opacity: 0.25; filter: brightness(2.5) saturate(0.2); }
+  50% { opacity: 0.9; filter: brightness(2.2); }
 }
 
 @keyframes faint-drop {
   0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(60px); opacity: 0; }
+  100% { transform: translateY(36px); opacity: 0; }
 }
 
 .anim-attack-p1 {
@@ -72,9 +103,9 @@
 }
 
 .anim-damage {
-  animation: damage-flash 0.5s ease-in-out;
+  animation: damage-flash 0.45s ease-in-out;
 }
 
 .anim-faint {
-  animation: faint-drop 0.7s ease-in forwards;
+  animation: faint-drop 0.65s ease-in forwards;
 }

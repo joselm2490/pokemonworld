@@ -7,6 +7,7 @@ interface AnimatedPokemonSpriteProps {
   isAttacking?: boolean;
   isHit?: boolean;
   isFainted?: boolean;
+  showShadow?: boolean;
   scale?: number;
   className?: string;
   apiBaseUrl?: string;
@@ -19,7 +20,8 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   isAttacking = false,
   isHit = false,
   isFainted = false,
-  scale = 2.5,
+  showShadow = true,
+  scale = 2,
   className = '',
   apiBaseUrl = import.meta.env.VITE_BACKEND_API_URL || '',
 }) => {
@@ -150,14 +152,16 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   }
 
   return (
-    <div className={`relative flex flex-col items-center justify-center select-none ${className}`}>
-      {/* Dynamic Battle Shadow */}
-      <div
-        className="absolute bottom-1 w-28 h-6 bg-black/40 rounded-[100%] blur-[2px] transition-transform duration-300"
-        style={{
-          transform: isFainted ? 'scale(0)' : 'scale(1)',
-        }}
-      />
+    <div className={`relative inline-flex flex-col items-center justify-end select-none ${className}`}>
+      {/* Authentic Ground Shadow (Foe side by default) */}
+      {showShadow && (
+        <div
+          className="absolute bottom-1 w-20 h-4 bg-black/45 rounded-[100%] transition-transform duration-300"
+          style={{
+            transform: isFainted ? 'scale(0)' : 'scale(1)',
+          }}
+        />
+      )}
 
       {/* Animated Canvas */}
       {!hasError ? (
