@@ -5,6 +5,12 @@ PBS_DATA_DIR = Path(__file__).resolve().parent / 'pbs_data'
 
 _MOVES_CACHE: Optional[Dict[str, dict]] = None
 _POKEMON_CACHE: Optional[Dict[str, dict]] = None
+_RANDOM_POOL_CACHE: Optional[List[str]] = None
+
+EXCLUDED_RANDOM_SPECIES = {
+    'UNOWN', 'DITTO', 'SMEARGLE', 'WOBBUFFET', 'SHEDINJA', 'PYUKUMUKU', 'COSMOG', 'COSMOEM',
+}
+FORBIDDEN_LEGENDARY_FLAGS = {'Legendary', 'Mythical', 'UltraBeast'}
 
 
 def _parse_pbs_sections(filepath: Path) -> Dict[str, Dict[str, str]]:
@@ -97,6 +103,8 @@ def get_all_pokemon() -> Dict[str, dict]:
                 learnset.append(m_id)
 
         tutor_moves = [m.strip().upper() for m in fields.get('TutorMoves', '').split(',') if m.strip()]
+        flags = [fl.strip() for fl in fields.get('Flags', '').split(',') if fl.strip()]
+        has_evolutions = bool(fields.get('Evolutions', '').strip())
 
         pokemon_map[species_id] = {
             'species': species_id,
@@ -107,10 +115,67 @@ def get_all_pokemon() -> Dict[str, dict]:
             'gender_ratio': fields.get('GenderRatio', 'Female50Percent'),
             'learnset': learnset,
             'tutor_moves': tutor_moves,
+            'flags': flags,
+            'has_evolutions': has_evolutions,
         }
 
     _POKEMON_CACHE = pokemon_map
     return _POKEMON_CACHE
+
+
+def get_random_battle_pool(sprites_dir: Optional[Path] = None) -> List[str]:
+    """
+    Returns all fully-evolved (final stage), non-legendary / non-mythical / non-UltraBeast
+    Pokémon species that have animated Front & Back sprites available.
+    """
+    global _RANDOM_POOL_CACHE
+    if _RANDOM_POOL_CACHE is not None:
+        return _RANDOM_POOL_CACHE
+
+    all_pkmn = get_all_pokemon()
+
+    front_sprites = None
+    back_sprites = None
+    if sprites_dir:
+        front_dir = sprites_dir / 'Graphics' / 'Pokemon' / 'Front'
+        back_dir = sprites_dir / 'Graphics' / 'Pokemon' / 'Back'
+        if front_dir.exists() and back_dir.exists():
+            front_sprites = {p.stem.upper() for p in front_dir.glob('*.png')}
+            back_sprites = {p.stem.upper() for p in back_dir.glob('*.png')}
+
+    pool: List[str] = []
+    for species_id, data in all_pkmn.items():
+        if data.get('has_evolutions', False):
+            continue
+        if set(data.get('flags', [])) & FORBIDDEN_LEGENDARY_FLAGS:
+            continue
+        if species_id in EXCLUDED_RANDOM_SPECIES:
+            continue
+        bst = sum(data.get('base_stats', {}).values())
+        if bst < 380:
+            continue
+        if front_sprites is not None and back_sprites is not None:
+            if species_id not in front_sprites or species_id not in back_sprites:
+                continue
+        pool.append(species_id)
+
+    _RANDOM_POOL_CACHE = pool
+    return _RANDOM_POOL_CACHE
+
+
+def generate_random_teams(team_size: int = 6, sprites_dir: Optional[Path] = None) -> tuple[List[str], List[str]]:
+    """Generates two distinct random teams of fully-evolved, non-legendary Pokémon."""
+    import random
+    pool = get_random_battle_pool(sprites_dir=sprites_dir)
+    needed = team_size * 2
+    if len(pool) >= needed:
+        picked = random.sample(pool, needed)
+        return picked[:team_size], picked[team_size:]
+    # Fallback if pool smaller than needed
+    fallback = ['CHARIZARD', 'BLASTOISE', 'VENUSAUR', 'RAICHU', 'GENGAR', 'LUCARIO',
+                'GARCHOMP', 'DRAGONITE', 'TYRANITAR', 'GRENINJA', 'SCIZOR', 'SYLVEON']
+    random.shuffle(fallback)
+    return fallback[:team_size], fallback[team_size:team_size * 2]
 
 
 def build_moveset_for_species(species_data: dict) -> List[dict]:

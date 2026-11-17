@@ -68,9 +68,9 @@ export const Lobby: React.FC<LobbyProps> = ({
         {/* Animated Battle Lineup */}
         <div className="flex items-center justify-center gap-6 sm:gap-12 mb-6">
           <div className="flex flex-col items-center">
-            <AnimatedPokemonSprite species={selectedTeam[0] || 'CHARIZARD'} scale={2.6} />
+            <AnimatedPokemonSprite species="CHARIZARD" scale={2.4} />
             <span className="text-[10px] font-bold text-white text-shadow-heavy uppercase mt-1">
-              {selectedTeam[0] || 'CHARIZARD'}
+              RANDOM TEAM
             </span>
           </div>
 
@@ -78,12 +78,15 @@ export const Lobby: React.FC<LobbyProps> = ({
             <span className="text-2xl sm:text-3xl font-black text-rose-600 text-shadow-white tracking-widest">
               VS
             </span>
+            <span className="text-[9px] font-sans font-bold text-zinc-900 bg-amber-300/90 px-2 py-0.5 rounded-full mt-1">
+              Final Stage • No Legendaries
+            </span>
           </div>
 
           <div className="flex flex-col items-center">
-            <AnimatedPokemonSprite species={selectedTeam[1] || 'PIKACHU'} scale={2.6} />
+            <AnimatedPokemonSprite species="GENGAR" scale={2.4} />
             <span className="text-[10px] font-bold text-white text-shadow-heavy uppercase mt-1">
-              {selectedTeam[1] || 'PIKACHU'}
+              RANDOM TEAM
             </span>
           </div>
         </div>
@@ -100,8 +103,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                     Battle vs AI
                   </h3>
                 </div>
-                <p className="text-[9px] text-zinc-200 leading-relaxed font-sans font-medium mb-4">
-                  Quick match against the Battle Bot using authentic damage formulas and animated sprites.
+                <p className="text-[10px] text-zinc-200 leading-relaxed font-sans font-medium mb-4">
+                  Random 6v6 final-evolution battle (no legendaries) against the Battle Bot.
                 </p>
               </div>
 
@@ -125,8 +128,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                     Online 1v1 PvP
                   </h3>
                 </div>
-                <p className="text-[9px] text-zinc-200 leading-relaxed font-sans font-medium mb-3">
-                  Battle online in real-time with a friend using room codes.
+                <p className="text-[10px] text-zinc-200 leading-relaxed font-sans font-medium mb-3">
+                  Random 6v6 final-evolution versus battle (no legendaries) with a friend.
                 </p>
 
                 {/* Join input */}

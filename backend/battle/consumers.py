@@ -1,5 +1,6 @@
 import json
 import random
+from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .battle_engine import (
@@ -8,6 +9,7 @@ from .battle_engine import (
     execute_turn,
     choose_ai_move,
 )
+from .pbs_loader import generate_random_teams
 from .models import BattleRoom
 
 # In-memory storage for active room turn actions to ensure instant synchronization
@@ -58,9 +60,11 @@ class BattleConsumer(AsyncWebsocketConsumer):
         room, created = await self.get_or_create_room(self.room_code, player_name, is_ai)
 
         if not room.state_data or payload.get("force_reset", False):
-            # Initialize fresh battle state
-            p1_species = custom_team if custom_team and player_role == "p1" else ["CHARIZARD", "PIKACHU", "BLASTOISE", "LUCARIO", "GENGAR", "GARCHOMP"]
-            p2_species = custom_team if custom_team and player_role == "p2" else ["MEWTWO", "VENUSAUR", "DRAGONITE", "GRENINJA", "TYRANITAR", "SYLVEON"]
+            # Both AI battles and 1v1 PvP Versus use random fully-evolved, non-legendary teams
+            p1_species, p2_species = generate_random_teams(
+                team_size=6,
+                sprites_dir=settings.SPRITES_DIR,
+            )
 
             initial_state = {
                 "turn": 1,
@@ -69,12 +73,12 @@ class BattleConsumer(AsyncWebsocketConsumer):
                 "p1": {
                     "name": room.player1_name,
                     "active_index": 0,
-                    "team": create_default_party(p1_species[:6])
+                    "team": create_default_party(p1_species)
                 },
                 "p2": {
                     "name": room.player2_name or ("AI Bot" if is_ai else "Player 2"),
                     "active_index": 0,
-                    "team": create_default_party(p2_species[:6])
+                    "team": create_default_party(p2_species)
                 }
             }
             await self.save_room_state(room, initial_state)
@@ -179,21 +183,26 @@ class BattleConsumer(AsyncWebsocketConsumer):
         if not room:
             return
 
-        # Restore all Pokémon to full HP and reset turn
-        state = room.state_data
-        for p in ["p1", "p2"]:
-            state[p]["active_index"] = 0
-            for pk in state[p]["team"]:
-                pk["current_hp"] = pk["max_hp"]
-                pk["is_fainted"] = False
-                pk["status"] = None
-                pk["sleep_turns"] = 0
-                pk["stages"] = {"attack": 0, "defense": 0, "sp_attack": 0, "sp_defense": 0, "speed": 0}
-                for mv in pk.get("moves", []):
-                    mv["current_pp"] = mv.get("pp", 15)
-        state["turn"] = 1
-        state["is_game_over"] = False
-        state["winner"] = None
+        # Generate fresh random fully-evolved, non-legendary teams for both players
+        p1_species, p2_species = generate_random_teams(
+            team_size=6,
+            sprites_dir=settings.SPRITES_DIR,
+        )
+        state = {
+            "turn": 1,
+            "is_game_over": False,
+            "winner": None,
+            "p1": {
+                "name": room.player1_name,
+                "active_index": 0,
+                "team": create_default_party(p1_species),
+            },
+            "p2": {
+                "name": room.player2_name or ("AI Bot" if room.is_ai_match else "Player 2"),
+                "active_index": 0,
+                "team": create_default_party(p2_species),
+            },
+        }
 
         ACTIVE_ROOM_ACTIONS[self.room_code] = {"p1": None, "p2": None}
         await self.save_room_state(room, state)
