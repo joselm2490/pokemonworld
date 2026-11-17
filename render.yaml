@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: pokemon-battle-server
+    runtime: python
+    rootDir: backend
+    buildCommand: ./build.sh
+    startCommand: daphne -b 0.0.0.0 -p $PORT pokemon_server.asgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: SECRET_KEY
+        generateValue: true
