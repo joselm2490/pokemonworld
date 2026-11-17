@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Swords, Bot, Users, Sparkles, Shield, Copy, Check } from 'lucide-react';
+import { Swords, Bot, Users, Sparkles, Shield, Play } from 'lucide-react';
 import { AnimatedPokemonSprite } from '../battle/AnimatedPokemonSprite';
 
 interface LobbyProps {
@@ -14,7 +14,6 @@ export const Lobby: React.FC<LobbyProps> = ({
   selectedTeam,
 }) => {
   const [joinCode, setJoinCode] = useState('');
-  const [copied, setCopied] = useState(false);
 
   const generateRoomCode = () => {
     return 'ROOM-' + Math.floor(1000 + Math.random() * 9000);
@@ -38,133 +37,141 @@ export const Lobby: React.FC<LobbyProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950 text-slate-100 flex flex-col justify-between p-6">
-      {/* Top Banner */}
-      <div className="max-w-5xl mx-auto w-full flex items-center justify-between pb-6 border-b border-slate-800">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-[#4bb896] via-[#75d4b1] to-[#3f8c36] text-zinc-900 flex flex-col justify-between p-4 sm:p-6 select-none font-game">
+      {/* Top Header Bar */}
+      <div className="max-w-4xl mx-auto w-full flex items-center justify-between bg-zinc-900/80 backdrop-blur-xs p-3 px-5 rounded-2xl border-2 border-zinc-700 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/50">
-            <Swords className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-full bg-red-600 border-2 border-white flex items-center justify-center shadow-md">
+            <div className="w-2.5 h-2.5 rounded-full bg-white border border-zinc-800" />
           </div>
           <div>
-            <h1 className="text-lg md:text-xl font-bold font-game tracking-wider text-white">
-              Pokémon World PvP
+            <h1 className="text-xs sm:text-sm font-bold text-white tracking-widest uppercase">
+              Pokémon Battle Arena
             </h1>
-            <p className="text-[11px] text-slate-400">
-              Online Deluxe Battle Kit Engine
+            <p className="text-[8px] text-zinc-400">
+              Deluxe Battle Kit • Gen 9 Rules
             </p>
           </div>
         </div>
 
         <button
           onClick={onOpenTeamBuilder}
-          className="flex items-center gap-2 py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition-colors"
+          className="flex items-center gap-1.5 py-1.5 px-3 rounded-full bg-gradient-to-b from-amber-400 to-amber-600 border-2 border-white text-zinc-900 text-[9px] font-bold shadow-md hover:brightness-110 active:scale-95 transition-all"
         >
-          <Sparkles className="w-4 h-4 text-amber-400" />
-          <span>Edit Team ({selectedTeam.length}/6)</span>
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Party ({selectedTeam.length}/6)</span>
         </button>
       </div>
 
-      {/* Main Center Content */}
-      <div className="max-w-4xl mx-auto w-full my-auto py-10 flex flex-col items-center">
-        {/* Animated Roster Showcase */}
-        <div className="flex items-center justify-center gap-6 mb-8 flex-wrap">
-          <AnimatedPokemonSprite species={selectedTeam[0] || 'CHARIZARD'} scale={2.8} />
-          <div className="text-center">
-            <span className="text-3xl font-game text-rose-500 text-shadow-md block mb-1">
+      {/* Main Center Battle Arena Preview */}
+      <div className="max-w-3xl mx-auto w-full my-auto py-4 flex flex-col items-center">
+        {/* Animated Battle Lineup */}
+        <div className="flex items-center justify-center gap-6 sm:gap-12 mb-6">
+          <div className="flex flex-col items-center">
+            <AnimatedPokemonSprite species={selectedTeam[0] || 'CHARIZARD'} scale={2.6} />
+            <span className="text-[10px] font-bold text-white text-shadow-heavy uppercase mt-1">
+              {selectedTeam[0] || 'CHARIZARD'}
+            </span>
+          </div>
+
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-2xl sm:text-3xl font-black text-rose-600 text-shadow-white tracking-widest">
               VS
             </span>
-            <span className="text-xs font-mono text-slate-400">
-              Competitive Gen 9 Online Rules
+          </div>
+
+          <div className="flex flex-col items-center">
+            <AnimatedPokemonSprite species={selectedTeam[1] || 'PIKACHU'} scale={2.6} />
+            <span className="text-[10px] font-bold text-white text-shadow-heavy uppercase mt-1">
+              {selectedTeam[1] || 'PIKACHU'}
             </span>
           </div>
-          <AnimatedPokemonSprite species={selectedTeam[1] || 'BLASTOISE'} scale={2.8} />
         </div>
 
-        {/* Game Mode Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-2xl">
-          {/* Option 1: Play vs AI Bot */}
-          <div className="p-6 rounded-3xl bg-slate-900/90 border-2 border-slate-800 hover:border-blue-500/80 shadow-xl transition-all flex flex-col justify-between">
-            <div>
-              <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center mb-4">
-                <Bot className="w-6 h-6 text-blue-400" />
+        {/* Action Cards (Styled like authentic battle dialogue / menus) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
+          {/* Card 1: Single Player AI Battle */}
+          <div className="bg-[#2e5234] border-3 border-[#1b3620] rounded-2xl p-3 shadow-2xl">
+            <div className="border-2 border-[#d6b24a] rounded-xl p-4 bg-[#38613e]/90 flex flex-col justify-between h-full">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Bot className="w-5 h-5 text-amber-300" />
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Battle vs AI
+                  </h3>
+                </div>
+                <p className="text-[9px] text-zinc-200 leading-relaxed font-sans font-medium mb-4">
+                  Quick match against the Battle Bot using authentic damage formulas and animated sprites.
+                </p>
               </div>
-              <h3 className="text-base font-bold font-game text-white mb-1">
-                Battle vs AI
-              </h3>
-              <p className="text-xs text-slate-400 mb-6">
-                Instant match against the Battle Bot to test your team synergy and damage calculations.
-              </p>
-            </div>
 
-            <button
-              onClick={handlePlayAi}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 font-game text-xs text-white uppercase tracking-wider shadow-lg shadow-blue-950/50 active:scale-95 transition-all"
-            >
-              Start AI Match
-            </button>
+              <button
+                onClick={handlePlayAi}
+                className="w-full h-11 rounded-full bg-gradient-to-b from-[#5ec05e] via-[#4bae4b] to-[#349434] border-3 border-white text-white font-game text-[11px] font-bold tracking-widest uppercase shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                <Play className="w-4 h-4 fill-white" />
+                <span>Start Match</span>
+              </button>
+            </div>
           </div>
 
-          {/* Option 2: Online 1v1 PvP Room */}
-          <div className="p-6 rounded-3xl bg-slate-900/90 border-2 border-slate-800 hover:border-rose-500/80 shadow-xl transition-all flex flex-col justify-between">
-            <div>
-              <div className="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-rose-400" />
+          {/* Card 2: 1v1 Online PvP Room */}
+          <div className="bg-[#2e5234] border-3 border-[#1b3620] rounded-2xl p-3 shadow-2xl">
+            <div className="border-2 border-[#d6b24a] rounded-xl p-4 bg-[#38613e]/90 flex flex-col justify-between h-full">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-5 h-5 text-amber-300" />
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Online 1v1 PvP
+                  </h3>
+                </div>
+                <p className="text-[9px] text-zinc-200 leading-relaxed font-sans font-medium mb-3">
+                  Battle online in real-time with a friend using room codes.
+                </p>
+
+                {/* Join input */}
+                <form onSubmit={handleJoinRoom} className="flex gap-1.5 mb-2.5">
+                  <input
+                    type="text"
+                    placeholder="ROOM CODE"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value)}
+                    className="flex-1 bg-white border-2 border-zinc-800 rounded-lg px-2.5 py-1.5 text-[10px] font-game uppercase text-zinc-900 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!joinCode.trim()}
+                    className="px-3 py-1.5 rounded-lg bg-zinc-800 text-white text-[9px] font-game hover:bg-zinc-700 disabled:opacity-40"
+                  >
+                    Join
+                  </button>
+                </form>
               </div>
-              <h3 className="text-base font-bold font-game text-white mb-1">
-                Online PvP (1v1)
-              </h3>
-              <p className="text-xs text-slate-400 mb-4">
-                Create a private room or enter a friend's room code to battle in real-time.
-              </p>
 
-              {/* Join Room Form */}
-              <form onSubmit={handleJoinRoom} className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  placeholder="Enter Room Code"
-                  value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value)}
-                  className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono uppercase tracking-wider text-white focus:outline-none focus:border-rose-500"
-                />
-                <button
-                  type="submit"
-                  disabled={!joinCode.trim()}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 disabled:opacity-40 transition-colors"
-                >
-                  Join
-                </button>
-              </form>
+              <button
+                onClick={handleCreateRoom}
+                className="w-full h-11 rounded-full bg-gradient-to-b from-[#f25d5d] via-[#e54545] to-[#c42828] border-3 border-white text-white font-game text-[11px] font-bold tracking-widest uppercase shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                <Swords className="w-4 h-4" />
+                <span>Create Room</span>
+              </button>
             </div>
-
-            <button
-              onClick={handleCreateRoom}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 font-game text-xs text-white uppercase tracking-wider shadow-lg shadow-rose-950/50 active:scale-95 transition-all"
-            >
-              Create PvP Room
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Bottom Footer & Admin Note */}
-      <div className="max-w-5xl mx-auto w-full pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-        <div className="flex items-center gap-2">
-          <span>Backend: Django 6.1 (ASGI Channels)</span>
-          <span>•</span>
-          <span>Frontend: React + Vite (Vercel Ready)</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <a
-            href="http://127.0.0.1:8080/admin/"
-            target="_blank"
-            rel="noreferrer"
-            className="text-slate-400 hover:text-amber-400 underline transition-colors"
-          >
-            Django Admin Panel (joselm2490)
-          </a>
-        </div>
+      {/* Bottom Footer */}
+      <div className="max-w-4xl mx-auto w-full pt-2 flex flex-col sm:flex-row items-center justify-between text-[9px] text-zinc-800 gap-1">
+        <span>Deluxe Battle Kit Web Adaptation</span>
+        <a
+          href="https://pokemon-battle-server-cid8.onrender.com/admin/"
+          target="_blank"
+          rel="noreferrer"
+          className="text-zinc-900 font-bold underline hover:text-red-700"
+        >
+          Django Admin (joselm2490)
+        </a>
       </div>
     </div>
   );
 };
-

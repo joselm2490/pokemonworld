@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { BattleState, BattleEvent } from '../../types/pokemon';
+import { BattleState } from '../../types/pokemon';
 import { AnimatedPokemonSprite } from './AnimatedPokemonSprite';
 import { PokemonStatusCard } from './PokemonStatusCard';
 import { BattleActionPanel } from './BattleActionPanel';
 import { SwitchModal } from './SwitchModal';
-import { Trophy, RefreshCw, Home } from 'lucide-react';
+import { Trophy, Home } from 'lucide-react';
 
 interface BattleArenaProps {
   battleState: BattleState;
@@ -37,7 +37,6 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
 }) => {
   const [isSwitchOpen, setIsSwitchOpen] = useState(false);
 
-  // Determine Player vs Opponent sides
   const isP1 = playerRole === 'p1';
   const playerSide = isP1 ? battleState.p1 : battleState.p2;
   const opponentSide = isP1 ? battleState.p2 : battleState.p1;
@@ -46,59 +45,59 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
   const opponentActivePkmn = opponentSide.team[opponentSide.active_index];
 
   const mustSwitch = playerActivePkmn.is_fainted && !battleState.is_game_over;
-
   const isWinner = battleState.winner === playerRole;
 
   return (
-    <div className="relative w-full h-[100dvh] flex flex-col justify-between overflow-hidden bg-gradient-to-b from-sky-900 via-indigo-950 to-slate-950 select-none">
-      {/* Top Navigation Bar with Room & Status */}
-      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-2.5 bg-slate-950/70 backdrop-blur-md border-b border-slate-800">
-        <div className="flex items-center gap-3">
+    <div className="relative w-full h-[100dvh] flex flex-col justify-between overflow-hidden select-none bg-black">
+      {/* ================= AUTHENTIC BATTLE SCENE FIELD (IMAGES 2, 3, 4, 5) ================= */}
+      <div className="relative flex-1 w-full overflow-hidden flex flex-col justify-between">
+        {/* Sky Gradient (Mint-Cyan to Pale Horizon) */}
+        <div className="absolute inset-x-0 top-0 h-[48%] bg-gradient-to-b from-[#4bb896] via-[#75d4b1] to-[#b8f0d5]" />
+
+        {/* Grass Field (Horizon to Foreground) */}
+        <div className="absolute inset-x-0 top-[48%] bottom-0 bg-gradient-to-b from-[#76cb52] via-[#5db839] to-[#429a24]" />
+
+        {/* Subtle horizontal scanline / atmospheric stripes */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.03)_51%)] bg-[length:100%_4px] pointer-events-none" />
+
+        {/* Top Minimal Room Pill (Discreet, authentic) */}
+        <div className="absolute top-2 right-3 z-30 flex items-center gap-2 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/20">
           <button
             onClick={onLeaveRoom}
-            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors"
+            className="text-[9px] font-game text-zinc-300 hover:text-white flex items-center gap-1 transition-colors"
           >
-            <Home className="w-3.5 h-3.5" />
+            <Home className="w-3 h-3" />
             <span>Lobby</span>
           </button>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-game">Room:</span>
-            <span className="text-xs font-mono font-bold text-amber-400 tracking-wider bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-              {roomCode}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-slate-300">
-            Turn {battleState.turn}
+          <span className="text-white/40 text-[9px]">•</span>
+          <span className="text-[9px] font-game text-amber-300">
+            {roomCode}
           </span>
-          {isWaitingForTurn && (
-            <span className="flex items-center gap-1.5 text-[11px] font-bold text-blue-400 bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-800 animate-pulse">
-              <RefreshCw className="w-3 h-3 animate-spin" />
-              Waiting for Opponent...
-            </span>
-          )}
         </div>
-      </div>
 
-      {/* Main 3D Battlefield Arena */}
-      <div className="relative flex-1 w-full max-w-5xl mx-auto flex flex-col justify-between p-4 pt-14 pb-2">
-        {/* Opponent Area (Top Right) */}
-        <div className="relative flex flex-col md:flex-row items-center justify-between w-full mt-4">
-          {/* Opponent Status Card (Top Left) */}
-          <div className="self-start md:self-auto mb-2 md:mb-0">
-            <PokemonStatusCard
-              pokemon={opponentActivePkmn}
-              isPlayer={false}
-              party={opponentSide.team}
-            />
+        {/* ================= OPPONENT STAGE (TOP-RIGHT) ================= */}
+        {/* Opponent Databox (Top-Left, Slanted) */}
+        <div className="relative z-20 pt-3 pl-3 sm:pt-5 sm:pl-6 self-start">
+          <PokemonStatusCard
+            pokemon={opponentActivePkmn}
+            isPlayer={false}
+          />
+        </div>
+
+        {/* Opponent Circular Platform & Sprite */}
+        <div className="absolute top-[28%] right-[10%] sm:right-[15%] md:right-[20%] z-10 flex flex-col items-center">
+          {/* Opponent Base (Circular Grass + Dirt Rim, Image 4) */}
+          <div className="relative w-52 sm:w-64 h-20 sm:h-24">
+            {/* Dirt / Soil Lower Rim */}
+            <div className="absolute inset-x-0 bottom-0 h-10 rounded-[100%] bg-gradient-to-b from-[#875529] via-[#6d401a] to-[#45240c] border-2 border-[#361a06] shadow-2xl" />
+            {/* Top Grass Surface */}
+            <div className="absolute inset-x-1.5 top-0 h-16 rounded-[100%] bg-gradient-to-b from-[#8ce85c] via-[#68be3a] to-[#4ea028] border-2 border-[#347818]" />
+            {/* Soft inner highlight */}
+            <div className="absolute inset-x-6 top-2 h-10 rounded-[100%] bg-[#a4f276]/30 blur-[1px]" />
           </div>
 
-          {/* Opponent Platform & Sprite (Top Right) */}
-          <div className="relative flex flex-col items-center justify-center mr-0 md:mr-12">
-            {/* Battle Platform (Opponent) */}
-            <div className="w-56 h-20 bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-900 rounded-[100%] border-4 border-emerald-950 shadow-2xl transform rotate-x-60 -mb-10 scale-90" />
+          {/* Opponent Animated Sprite (Positioned right on top of base) */}
+          <div className="absolute bottom-8 z-15">
             <AnimatedPokemonSprite
               species={opponentActivePkmn.species}
               isBack={false}
@@ -110,54 +109,67 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
           </div>
         </div>
 
-        {/* Player Area (Bottom Left) */}
-        <div className="relative flex flex-col-reverse md:flex-row items-center justify-between w-full mb-2">
-          {/* Player Platform & Sprite (Bottom Left - Back View) */}
-          <div className="relative flex flex-col items-center justify-center ml-0 md:ml-12">
-            {/* Battle Platform (Player) */}
-            <div className="w-72 h-28 bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-800 rounded-[100%] border-4 border-emerald-950 shadow-2xl transform rotate-x-60 -mb-14" />
-            <AnimatedPokemonSprite
-              species={playerActivePkmn.species}
-              isBack={true}
-              isAttacking={activeAttacker === (isP1 ? 'p1' : 'p2')}
-              isHit={activeHitTarget === (isP1 ? 'p1' : 'p2')}
-              isFainted={playerActivePkmn.is_fainted}
-              scale={3.0}
-            />
+        {/* ================= PLAYER STAGE (BOTTOM-LEFT) ================= */}
+        {/* Player Lush Grass Ridge (Extending from bottom-left corner, Image 4) */}
+        <div className="absolute bottom-0 left-0 w-[60%] sm:w-[50%] h-32 sm:h-36 z-10 pointer-events-none">
+          {/* Jagged Grass Bank */}
+          <div className="w-full h-full bg-gradient-to-t from-[#3d9120] via-[#52ab30] to-[#70c746] rounded-tr-[120px] border-t-3 border-r-3 border-[#286a14] shadow-xl relative overflow-hidden">
+            {/* Grass texture tufts */}
+            <div className="absolute -top-1 left-8 w-4 h-3 bg-[#88db58] rotate-45" />
+            <div className="absolute -top-1 left-20 w-4 h-3 bg-[#88db58] rotate-45" />
+            <div className="absolute -top-1 left-36 w-5 h-3 bg-[#88db58] rotate-45" />
+            <div className="absolute -top-1 left-52 w-4 h-3 bg-[#88db58] rotate-45" />
           </div>
+        </div>
 
-          {/* Player Status Card (Bottom Right) */}
-          <div className="self-end md:self-auto mb-2 md:mb-0">
-            <PokemonStatusCard
-              pokemon={playerActivePkmn}
-              isPlayer={true}
-              party={playerSide.team}
-            />
+        {/* Authentic Left Badges: INFO [A], MOVE [S] (Image 4 & 5) */}
+        <div className="absolute bottom-4 left-3 z-20 flex flex-col gap-1 font-game text-[9px]">
+          <div className="bg-black/90 px-1.5 py-0.5 rounded-xs border border-zinc-700 flex items-center gap-1 shadow-md">
+            <span className="text-[#f8b820] font-bold">INFO</span>
+            <span className="text-white font-bold">[A]</span>
           </div>
+          <div className="bg-black/90 px-1.5 py-0.5 rounded-xs border border-zinc-700 flex items-center gap-1 shadow-md">
+            <span className="text-[#f8b820] font-bold">BALL</span>
+            <span className="text-white font-bold">[S]</span>
+          </div>
+        </div>
+
+        {/* Player Animated Sprite (Back View, anchored on the bottom-left grass ridge) */}
+        <div className="absolute bottom-0 left-[8%] sm:left-[12%] md:left-[16%] z-15">
+          <AnimatedPokemonSprite
+            species={playerActivePkmn.species}
+            isBack={true}
+            isAttacking={activeAttacker === (isP1 ? 'p1' : 'p2')}
+            isHit={activeHitTarget === (isP1 ? 'p1' : 'p2')}
+            isFainted={playerActivePkmn.is_fainted}
+            scale={3.2}
+          />
+        </div>
+
+        {/* Player Databox (Bottom-Right, Slanted) */}
+        <div className="relative z-20 pb-4 pr-3 sm:pb-6 sm:pr-6 self-end">
+          <PokemonStatusCard
+            pokemon={playerActivePkmn}
+            isPlayer={true}
+          />
         </div>
       </div>
 
-      {/* Battle Narrative Dialogue Bar */}
-      <div className="w-full bg-slate-950/90 border-t-2 border-slate-800 py-3 px-6 shadow-inner">
-        <div className="max-w-4xl mx-auto flex items-center min-h-[36px]">
-          <p className="font-game text-xs md:text-sm text-slate-100 tracking-wide leading-relaxed text-shadow-sm">
-            {currentMessage || `What will ${playerActivePkmn.name} do?`}
-          </p>
-        </div>
+      {/* ================= AUTHENTIC BOTTOM HUD (IMAGES 4 & 5) ================= */}
+      <div className="relative z-30">
+        <BattleActionPanel
+          activePokemon={playerActivePkmn}
+          disabled={isWaitingForTurn || battleState.is_game_over || mustSwitch}
+          dialogueMessage={currentMessage}
+          onSelectMove={(moveIndex) => onSelectAction({ type: 'MOVE', move_index: moveIndex })}
+          onOpenSwitch={() => setIsSwitchOpen(true)}
+          onForfeit={() => {
+            if (confirm("Are you sure you want to forfeit this battle?")) {
+              onLeaveRoom();
+            }
+          }}
+        />
       </div>
-
-      {/* Action Controls Panel */}
-      <BattleActionPanel
-        activePokemon={playerActivePkmn}
-        disabled={isWaitingForTurn || battleState.is_game_over || mustSwitch}
-        onSelectMove={(moveIndex) => onSelectAction({ type: 'MOVE', move_index: moveIndex })}
-        onOpenSwitch={() => setIsSwitchOpen(true)}
-        onForfeit={() => {
-          if (confirm("Are you sure you want to forfeit this match?")) {
-            onLeaveRoom();
-          }
-        }}
-      />
 
       {/* Switch Party Modal */}
       <SwitchModal
@@ -175,33 +187,33 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
         }}
       />
 
-      {/* Game Over Victory / Defeat Modal */}
+      {/* Victory / Defeat Modal */}
       {battleState.is_game_over && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-slate-900 border-2 border-slate-700 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center">
-              <Trophy className={`w-10 h-10 ${isWinner ? 'text-amber-400' : 'text-slate-400'}`} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-gradient-to-b from-zinc-100 to-zinc-300 border-4 border-zinc-800 rounded-2xl p-6 text-center shadow-2xl">
+            <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-amber-400 border-2 border-zinc-800 flex items-center justify-center shadow-md">
+              <Trophy className={`w-8 h-8 ${isWinner ? 'text-amber-950' : 'text-zinc-600'}`} />
             </div>
 
-            <h2 className="text-2xl font-bold font-game uppercase tracking-wider mb-2 text-white">
-              {isWinner ? 'Victory!' : 'Defeated!'}
+            <h2 className="text-lg font-bold font-game uppercase tracking-wider mb-2 text-zinc-900">
+              {isWinner ? 'YOU WON!' : 'YOU LOST!'}
             </h2>
-            <p className="text-sm text-slate-300 mb-6">
+            <p className="text-xs text-zinc-700 font-game leading-relaxed mb-6">
               {isWinner
-                ? 'Congratulations! You defeated the opposing trainer!'
-                : 'All your Pokémon fainted! Better luck next time!'}
+                ? 'All opposing Pokémon were defeated!'
+                : 'All your Pokémon fainted!'}
             </p>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2.5">
               <button
                 onClick={onRematch}
-                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 font-game text-xs text-white uppercase tracking-wider shadow-lg active:scale-95 transition-all"
+                className="w-full py-3 rounded-full bg-gradient-to-b from-[#f25d5d] to-[#c42828] border-2 border-white font-game text-xs text-white uppercase tracking-widest shadow-md hover:brightness-110 active:scale-95 transition-all"
               >
                 Rematch
               </button>
               <button
                 onClick={onLeaveRoom}
-                className="w-full py-3 px-6 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition-colors"
+                className="w-full py-2.5 rounded-full bg-zinc-700 hover:bg-zinc-800 font-game text-[10px] text-white transition-colors"
               >
                 Return to Lobby
               </button>
@@ -212,4 +224,3 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
     </div>
   );
 };
-
