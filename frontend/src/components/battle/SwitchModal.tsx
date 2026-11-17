@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pokemon } from '../../types/pokemon';
-import { TYPE_COLORS } from '../../utils/typeColors';
-import { X, Check } from 'lucide-react';
+import { battleAudio } from '../../utils/battleAudio';
 
 interface SwitchModalProps {
   party: Pokemon[];
@@ -20,115 +19,274 @@ export const SwitchModal: React.FC<SwitchModalProps> = ({
   onSelectPokemon,
   isForcedSwitch = false,
 }) => {
+  const [hoveredIdx, setHoveredIdx] = useState<number>(activeIndex);
+  const [cancelHover, setCancelHover] = useState(false);
+
   if (!isOpen) return null;
 
+  const apiBaseUrl = import.meta.env.VITE_BACKEND_API_URL || '';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-          <div>
-            <h3 className="text-lg font-bold text-white font-game">
-              {isForcedSwitch ? 'Choose Next Pokémon!' : 'Switch Pokémon'}
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Select an available team member to send into battle.
-            </p>
-          </div>
-          {!isForcedSwitch && (
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+    <div
+      className="absolute inset-0 select-none pixelated"
+      style={{
+        width: '512px',
+        height: '384px',
+        zIndex: 45,
+        backgroundImage: 'url(/battle-ui/party/bg.png)',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* 6 Official Party Panels (2 cols x 3 rows, right column offset +16px just like Essentials) */}
+      {Array.from({ length: 6 }).map((_, idx) => {
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
+        const left = col * 256;
+        const top = row * 96 + (col === 1 ? 16 : 0);
+
+        const pokemon = party[idx];
+        if (!pokemon) {
+          return (
+            <div
+              key={idx}
+              className="absolute pixelated"
+              style={{
+                left: `${left}px`,
+                top: `${top}px`,
+                width: '256px',
+                height: '98px',
+                backgroundImage: 'url(/battle-ui/party/panel_blank.png)',
+                backgroundRepeat: 'no-repeat',
+              }}
+            />
+          );
+        }
+
+        const isActive = idx === activeIndex;
+        const isFainted = pokemon.is_fainted || pokemon.current_hp <= 0;
+        const isSelected = hoveredIdx === idx && !cancelHover;
+
+        const shape = idx === 0 ? 'round' : 'rect';
+        const panelFile = isFainted
+          ? isSelected
+            ? `panel_${shape}_faint_sel.png`
+            : `panel_${shape}_faint.png`
+          : isSelected
+          ? `panel_${shape}_sel.png`
+          : `panel_${shape}.png`;
+
+        const hpRatio = Math.max(0, Math.min(1, pokemon.current_hp / Math.max(1, pokemon.max_hp)));
+        const hpWidth = pokemon.current_hp > 0 ? Math.max(2, Math.round(96 * hpRatio)) : 0;
+        const hpRowOffset = hpRatio <= 0.2 ? -16 : hpRatio <= 0.5 ? -8 : 0;
+
+        const isFemale = pokemon.gender === 'F' || (!pokemon.gender && pokemon.name.length % 2 === 0);
+        const iconUrl = `${apiBaseUrl}/sprites/Graphics/Pokemon/Icons/${pokemon.species.toUpperCase()}.png`;
+
+        return (
+          <button
+            key={idx}
+            type="button"
+            disabled={isActive || isFainted}
+            onMouseEnter={() => {
+              setCancelHover(false);
+              if (hoveredIdx !== idx) {
+                setHoveredIdx(idx);
+                battleAudio.playSE('cursor', 0.45);
+              }
+            }}
+            onClick={() => {
+              battleAudio.playSE('decision', 0.6);
+              onSelectPokemon(idx);
+              onClose();
+            }}
+            className="absolute border-0 p-0 text-left cursor-pointer pixelated disabled:cursor-not-allowed"
+            style={{
+              left: `${left}px`,
+              top: `${top}px`,
+              width: '256px',
+              height: '98px',
+              backgroundImage: `url(/battle-ui/party/${panelFile})`,
+              backgroundRepeat: 'no-repeat',
+            }}
+          >
+            {/* Official Pokéball indicator */}
+            <div
+              className="absolute pixelated"
+              style={{
+                left: '10px',
+                top: '10px',
+                width: '44px',
+                height: '56px',
+                backgroundImage: `url(/battle-ui/party/${isSelected ? 'icon_ball_sel.png' : 'icon_ball.png'})`,
+                backgroundRepeat: 'no-repeat',
+                opacity: 0.35,
+              }}
+            />
+
+            {/* Official Pokémon Party Icon (cropped to first 64x64 frame of the 2-frame icon strip) */}
+            <div
+              className="absolute overflow-hidden pixelated"
+              style={{
+                left: '12px',
+                top: '4px',
+                width: '64px',
+                height: '64px',
+                filter: isFainted ? 'grayscale(1) opacity(0.6)' : 'none',
+              }}
             >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
+              <img
+                src={iconUrl}
+                alt={pokemon.name}
+                draggable={false}
+                className="pixelated max-w-none"
+                style={{ height: '64px', width: 'auto' }}
+              />
+            </div>
 
-        {/* Pokémon Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-5 max-h-[60vh] overflow-y-auto pr-1">
-          {party.map((pokemon, idx) => {
-            const isActive = idx === activeIndex;
-            const isFainted = pokemon.is_fainted || pokemon.current_hp <= 0;
-            const hpPercent = Math.max(0, Math.min(100, Math.round((pokemon.current_hp / pokemon.max_hp) * 100)));
+            {/* Name */}
+            <span
+              className="absolute font-pkmn font-bold text-white truncate leading-none"
+              style={{
+                left: '96px',
+                top: '18px',
+                maxWidth: '120px',
+                fontSize: '20px',
+                textShadow: '2px 2px 0 #383838',
+              }}
+            >
+              {pokemon.name}
+            </span>
 
-            let hpColor = 'bg-emerald-500';
-            if (hpPercent <= 20) hpColor = 'bg-rose-500';
-            else if (hpPercent <= 50) hpColor = 'bg-amber-400';
+            {/* Gender */}
+            <span
+              className="absolute font-pkmn font-bold leading-none"
+              style={{
+                right: '18px',
+                top: '18px',
+                fontSize: '18px',
+                color: isFemale ? '#ff8888' : '#88ccff',
+                textShadow: '1px 1px 0 #282828',
+              }}
+            >
+              {isFemale ? '♀' : '♂'}
+            </span>
 
-            return (
-              <button
-                key={idx}
-                disabled={isActive || isFainted}
-                onClick={() => {
-                  onSelectPokemon(idx);
-                  onClose();
+            {/* Active Tag */}
+            {isActive && (
+              <span
+                className="absolute font-pkmn font-bold leading-none px-1.5 py-0.5 rounded-xs bg-amber-400 text-zinc-900"
+                style={{
+                  left: '18px',
+                  top: '50px',
+                  fontSize: '11px',
                 }}
-                className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left relative overflow-hidden group ${isActive
-                  ? 'bg-blue-950/40 border-blue-500/80 shadow-md ring-1 ring-blue-500/30'
-                  : isFainted
-                    ? 'bg-slate-900/60 border-slate-800 opacity-45 cursor-not-allowed'
-                    : 'bg-slate-800/80 hover:bg-slate-750 border-slate-700 hover:border-blue-400 hover:shadow-lg active:scale-95'
-                  }`}
               >
-                {/* Active Indicator Badge */}
-                {isActive && (
-                  <span className="absolute top-2 right-2 text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-blue-500 text-white font-game">
-                    Active
-                  </span>
-                )}
+                OUT
+              </span>
+            )}
 
-                {/* Pokeball Avatar / Placeholder */}
-                <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
-                  <span className="text-xl">⚡</span>
-                </div>
+            {/* Official HP Bar Back (138x14) */}
+            <div
+              className="absolute pixelated"
+              style={{
+                left: '96px',
+                top: '48px',
+                width: '138px',
+                height: '14px',
+                backgroundImage: `url(/battle-ui/party/${isFainted ? 'overlay_hp_back_faint.png' : 'overlay_hp_back.png'})`,
+                backgroundRepeat: 'no-repeat',
+              }}
+            >
+              {/* Official HP Fill (96x8 slice inside overlay_hp.png) */}
+              <div
+                className="absolute pixelated"
+                style={{
+                  left: '34px',
+                  top: '2px',
+                  width: `${hpWidth}px`,
+                  height: '8px',
+                  backgroundImage: 'url(/battle-ui/party/overlay_hp.png)',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: `0px ${hpRowOffset}px`,
+                }}
+              />
+            </div>
 
-                {/* Pokémon Details */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-white text-sm truncate uppercase tracking-wide">
-                      {pokemon.name}
-                    </span>
-                    <span className="text-xs text-amber-300 font-mono font-semibold">
-                      Lv.{pokemon.level}
-                    </span>
-                  </div>
+            {/* Level (bottom-left) */}
+            <span
+              className="absolute font-pkmn font-bold text-white leading-none"
+              style={{
+                left: '20px',
+                top: '68px',
+                fontSize: '17px',
+                textShadow: '2px 2px 0 #383838',
+              }}
+            >
+              Lv.{pokemon.level}
+            </span>
 
-                  {/* Types */}
-                  <div className="flex items-center gap-1.5 mb-2">
-                    {pokemon.types.map((type, tIdx) => {
-                      const color = TYPE_COLORS[type] || TYPE_COLORS.NORMAL;
-                      return (
-                        <span
-                          key={tIdx}
-                          className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${color.bg} ${color.text}`}
-                        >
-                          {type}
-                        </span>
-                      );
-                    })}
-                  </div>
+            {/* Numerical HP (bottom-right) */}
+            <span
+              className="absolute font-pkmn font-bold text-white leading-none"
+              style={{
+                right: '20px',
+                top: '68px',
+                fontSize: '17px',
+                textShadow: '2px 2px 0 #383838',
+              }}
+            >
+              {isFainted ? 'FNT' : `${pokemon.current_hp}/${pokemon.max_hp}`}
+            </span>
+          </button>
+        );
+      })}
 
-                  {/* HP Bar */}
-                  <div className="space-y-1">
-                    <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                      <div
-                        className={`h-full transition-all duration-300 rounded-full ${hpColor}`}
-                        style={{ width: `${hpPercent}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-                      <span>{isFainted ? 'Fainted' : 'HP'}</span>
-                      <span>{pokemon.current_hp} / {pokemon.max_hp}</span>
-                    </div>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+      {/* Bottom Prompt Box */}
+      <div
+        className="absolute bg-[#f8f8f8] border-4 border-[#383848] rounded-lg px-4 py-2 flex items-center"
+        style={{
+          left: '12px',
+          top: '322px',
+          width: isForcedSwitch ? '488px' : '372px',
+          height: '52px',
+        }}
+      >
+        <span className="font-pkmn pkmn-text-message leading-none" style={{ fontSize: '21px' }}>
+          {isForcedSwitch ? 'Send out which Pokémon?' : 'Choose a Pokémon to switch in.'}
+        </span>
       </div>
+
+      {/* Official Cancel Button (112x48) */}
+      {!isForcedSwitch && (
+        <button
+          type="button"
+          onMouseEnter={() => {
+            setCancelHover(true);
+            battleAudio.playSE('cursor', 0.45);
+          }}
+          onMouseLeave={() => setCancelHover(false)}
+          onClick={() => {
+            battleAudio.playSE('cancel', 0.55);
+            onClose();
+          }}
+          className="absolute border-0 p-0 cursor-pointer pixelated flex items-center justify-center"
+          style={{
+            left: '392px',
+            top: '324px',
+            width: '112px',
+            height: '48px',
+            backgroundImage: `url(/battle-ui/party/${cancelHover ? 'icon_cancel_sel.png' : 'icon_cancel.png'})`,
+            backgroundRepeat: 'no-repeat',
+          }}
+        >
+          <span
+            className="font-pkmn font-bold text-white leading-none"
+            style={{ fontSize: '19px', textShadow: '2px 2px 0 #303030' }}
+          >
+            CANCEL
+          </span>
+        </button>
+      )}
     </div>
   );
 };
-

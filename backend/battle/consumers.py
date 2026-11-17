@@ -5,7 +5,8 @@ from asgiref.sync import sync_to_async
 from .battle_engine import (
     create_pokemon_instance,
     create_default_party,
-    execute_turn
+    execute_turn,
+    choose_ai_move,
 )
 from .models import BattleRoom
 
@@ -111,15 +112,9 @@ class BattleConsumer(AsyncWebsocketConsumer):
 
         state = room.state_data
 
-        # If playing against AI, generate AI action immediately
+        # If playing against AI, generate smart AI action immediately
         if room.is_ai_match and player == "p1":
-            p2_active = state["p2"]["team"][state["p2"]["active_index"]]
-            # AI randomly picks one of its 4 moves
-            move_idx = random.randint(0, len(p2_active["moves"]) - 1)
-            ACTIVE_ROOM_ACTIONS[self.room_code]["p2"] = {
-                "type": "MOVE",
-                "move_index": move_idx
-            }
+            ACTIVE_ROOM_ACTIONS[self.room_code]["p2"] = choose_ai_move(state)
 
         # Check if both players have submitted actions
         p1_act = ACTIVE_ROOM_ACTIONS[self.room_code].get("p1")
@@ -127,7 +122,7 @@ class BattleConsumer(AsyncWebsocketConsumer):
 
         if p1_act and p2_act:
             # Execute turn
-            result = execute_turn(state, p1_act, p2_act)
+            result = execute_turn(state, p1_act, p2_act, is_ai_match=room.is_ai_match)
             new_state = result["state"]
             events = result["events"]
 
@@ -192,6 +187,10 @@ class BattleConsumer(AsyncWebsocketConsumer):
                 pk["current_hp"] = pk["max_hp"]
                 pk["is_fainted"] = False
                 pk["status"] = None
+                pk["sleep_turns"] = 0
+                pk["stages"] = {"attack": 0, "defense": 0, "sp_attack": 0, "sp_defense": 0, "speed": 0}
+                for mv in pk.get("moves", []):
+                    mv["current_pp"] = mv.get("pp", 15)
         state["turn"] = 1
         state["is_game_over"] = False
         state["winner"] = None

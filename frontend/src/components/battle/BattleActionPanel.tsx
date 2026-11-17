@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Pokemon, PokemonMove } from '../../types/pokemon';
 import { COMMAND_SPRITE_ROW, TYPE_SPRITE_INDEX } from '../../utils/battleSprites';
+import { battleAudio } from '../../utils/battleAudio';
 
 interface BattleActionPanelProps {
   activePokemon: Pokemon;
@@ -11,6 +12,7 @@ interface BattleActionPanelProps {
   messageBgUrl: string;
   showMoves: boolean;
   onShowMovesChange: (show: boolean) => void;
+  onHoverMoveChange?: (moveIndex: number) => void;
   disabled?: boolean;
 }
 
@@ -25,10 +27,26 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
   messageBgUrl,
   showMoves,
   onShowMovesChange,
+  onHoverMoveChange,
   disabled = false,
 }) => {
   const [hoveredCmd, setHoveredCmd] = useState<CommandKey>('FIGHT');
   const [hoveredMoveIdx, setHoveredMoveIdx] = useState<number>(0);
+
+  const selectHoveredCmd = (cmd: CommandKey) => {
+    if (hoveredCmd !== cmd) {
+      setHoveredCmd(cmd);
+      battleAudio.playSE('cursor', 0.45);
+    }
+  };
+
+  const selectHoveredMove = (idx: number) => {
+    if (hoveredMoveIdx !== idx) {
+      setHoveredMoveIdx(idx);
+      onHoverMoveChange?.(idx);
+      battleAudio.playSE('cursor', 0.45);
+    }
+  };
 
   // Allow Escape or Right-click to return from Move Menu to Command Menu
   useEffect(() => {
@@ -123,9 +141,13 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
             type="button"
             aria-label="Fight"
             disabled={disabled || activePokemon.is_fainted}
-            onMouseEnter={() => setHoveredCmd('FIGHT')}
-            onFocus={() => setHoveredCmd('FIGHT')}
-            onClick={() => onShowMovesChange(true)}
+            onMouseEnter={() => selectHoveredCmd('FIGHT')}
+            onFocus={() => selectHoveredCmd('FIGHT')}
+            onClick={() => {
+              battleAudio.playSE('decision', 0.6);
+              battleAudio.ensureBgmPlaying();
+              onShowMovesChange(true);
+            }}
             className="absolute border-0 p-0 cursor-pointer pixelated disabled:opacity-50"
             style={{
               left: '252px',
@@ -143,9 +165,12 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
             type="button"
             aria-label="Bag"
             disabled={disabled}
-            onMouseEnter={() => setHoveredCmd('BAG')}
-            onFocus={() => setHoveredCmd('BAG')}
-            onClick={() => alert('Competitive PvP rules: Bag items are disabled during trainer matches.')}
+            onMouseEnter={() => selectHoveredCmd('BAG')}
+            onFocus={() => selectHoveredCmd('BAG')}
+            onClick={() => {
+              battleAudio.playSE('cancel', 0.55);
+              alert('Competitive PvP rules: Bag items are disabled during trainer matches.');
+            }}
             className="absolute border-0 p-0 cursor-pointer pixelated disabled:opacity-50"
             style={{
               left: '382px',
@@ -163,9 +188,13 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
             type="button"
             aria-label="Pokemon"
             disabled={disabled}
-            onMouseEnter={() => setHoveredCmd('POKEMON')}
-            onFocus={() => setHoveredCmd('POKEMON')}
-            onClick={onOpenSwitch}
+            onMouseEnter={() => selectHoveredCmd('POKEMON')}
+            onFocus={() => selectHoveredCmd('POKEMON')}
+            onClick={() => {
+              battleAudio.playSE('decision', 0.6);
+              battleAudio.ensureBgmPlaying();
+              onOpenSwitch();
+            }}
             className="absolute border-0 p-0 cursor-pointer pixelated disabled:opacity-50"
             style={{
               left: '252px',
@@ -183,9 +212,12 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
             type="button"
             aria-label="Run"
             disabled={disabled}
-            onMouseEnter={() => setHoveredCmd('RUN')}
-            onFocus={() => setHoveredCmd('RUN')}
-            onClick={onForfeit}
+            onMouseEnter={() => selectHoveredCmd('RUN')}
+            onFocus={() => selectHoveredCmd('RUN')}
+            onClick={() => {
+              battleAudio.playSE('cancel', 0.55);
+              onForfeit();
+            }}
             className="absolute border-0 p-0 cursor-pointer pixelated disabled:opacity-50"
             style={{
               left: '382px',
@@ -220,9 +252,10 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
                 key={idx}
                 type="button"
                 disabled={disabled || isOutOfPP}
-                onMouseEnter={() => setHoveredMoveIdx(idx)}
-                onFocus={() => setHoveredMoveIdx(idx)}
+                onMouseEnter={() => selectHoveredMove(idx)}
+                onFocus={() => selectHoveredMove(idx)}
                 onClick={() => {
+                  battleAudio.playSE('decision', 0.65);
                   onShowMovesChange(false);
                   onSelectMove(idx);
                 }}

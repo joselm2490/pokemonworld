@@ -61,6 +61,7 @@ export const App: React.FC = () => {
         isWaitingForTurn={battle.isWaitingForTurn}
         activeAttacker={battle.activeAttacker}
         activeHitTarget={battle.activeHitTarget}
+        activeEffect={battle.activeEffect}
         onSelectAction={battle.selectAction}
         onSwitchFainted={battle.switchFainted}
         onRematch={battle.rematch}

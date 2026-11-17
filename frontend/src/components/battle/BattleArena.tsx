@@ -4,8 +4,11 @@ import { AnimatedPokemonSprite } from './AnimatedPokemonSprite';
 import { PokemonStatusCard } from './PokemonStatusCard';
 import { BattleActionPanel } from './BattleActionPanel';
 import { SwitchModal } from './SwitchModal';
+import { BattleEffectOverlay, ActiveEffect } from './BattleEffectOverlay';
+import { EnhancedInfoOverlay } from './EnhancedInfoOverlay';
 import { BATTLEBACK_THEMES } from '../../utils/battleSprites';
-import { Trophy, Home, Copy, Check, RefreshCw, Map } from 'lucide-react';
+import { battleAudio } from '../../utils/battleAudio';
+import { Trophy, Home, Copy, Check, RefreshCw, Map, Volume2, VolumeX } from 'lucide-react';
 
 interface BattleArenaProps {
   battleState: BattleState;
@@ -20,6 +23,7 @@ interface BattleArenaProps {
   isWaitingForTurn: boolean;
   activeAttacker: 'p1' | 'p2' | null;
   activeHitTarget: 'p1' | 'p2' | null;
+  activeEffect: ActiveEffect | null;
 }
 
 const NATIVE_WIDTH = 512;
@@ -38,10 +42,14 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
   isWaitingForTurn,
   activeAttacker,
   activeHitTarget,
+  activeEffect,
 }) => {
   const [isSwitchOpen, setIsSwitchOpen] = useState(false);
   const [showMoves, setShowMoves] = useState(false);
+  const [hoveredMoveIdx, setHoveredMoveIdx] = useState(0);
+  const [infoMode, setInfoMode] = useState<'battler' | 'move' | null>(null);
   const [themeId, setThemeId] = useState<string>('grass');
+  const [muted, setMuted] = useState<boolean>(battleAudio.isMuted());
   const [copied, setCopied] = useState(false);
   const [viewportScale, setViewportScale] = useState(1.5);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -69,6 +77,25 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
     };
   }, []);
 
+  // Wire official Enhanced Battle UI hotkeys: A = Battler Info, S = Move Info
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (isWaitingForTurn || battleState.is_game_over || isSwitchOpen) return;
+      const key = e.key.toLowerCase();
+      if (key === 'a') {
+        battleAudio.playSE('decision', 0.45);
+        setInfoMode((prev) => (prev === 'battler' ? null : 'battler'));
+      } else if (key === 's' && showMoves) {
+        battleAudio.playSE('decision', 0.45);
+        setInfoMode((prev) => (prev === 'move' ? null : 'move'));
+      } else if (key === 'escape' && infoMode) {
+        setInfoMode(null);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isWaitingForTurn, battleState.is_game_over, isSwitchOpen, showMoves, infoMode]);
+
   const theme = BATTLEBACK_THEMES[themeId] || BATTLEBACK_THEMES.grass;
 
   const isP1 = playerRole === 'p1';
@@ -87,11 +114,19 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
     setTimeout(() => setCopied(false), 1800);
   };
 
-  // Cycle through official Essentials battlebacks
   const cycleTheme = () => {
+    battleAudio.playSE('cursor', 0.5);
     const keys = Object.keys(BATTLEBACK_THEMES);
     const nextIdx = (keys.indexOf(themeId) + 1) % keys.length;
     setThemeId(keys[nextIdx]);
+  };
+
+  const handleToggleAudio = () => {
+    const nowMuted = battleAudio.toggleMute();
+    setMuted(nowMuted);
+    if (!nowMuted) {
+      battleAudio.ensureBgmPlaying();
+    }
   };
 
   return (
@@ -117,20 +152,29 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {isWaitingForTurn && (
             <span className="flex items-center gap-1.5 text-xs font-sans text-sky-400 bg-sky-950/70 px-2.5 py-1 rounded-full border border-sky-800">
               <RefreshCw className="w-3 h-3 animate-spin" />
-              <span>Waiting...</span>
+              <span className="hidden sm:inline">Animating...</span>
             </span>
           )}
 
           <button
             onClick={cycleTheme}
+            title="Switch official battle arena"
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-sans text-slate-200 transition-colors"
           >
             <Map className="w-3.5 h-3.5 text-emerald-400" />
             <span className="hidden sm:inline">{theme.label}</span>
+          </button>
+
+          <button
+            onClick={handleToggleAudio}
+            title={muted ? 'Unmute Battle Audio' : 'Mute Battle Audio'}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-sans text-slate-200 transition-colors"
+          >
+            {muted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-amber-400" />}
           </button>
 
           <span className="text-xs font-mono text-slate-400">
@@ -224,7 +268,7 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                 />
               </div>
 
-              {/* Player Animated Sprite (Back, Scale 3x per DBK Settings.rb) */}
+              {/* Player Animated Sprite (Back, Scale 2.6x) */}
               <div
                 className="absolute pointer-events-none"
                 style={{
@@ -245,6 +289,9 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                 />
               </div>
 
+              {/* Official Attack Animations & Pokéball Throw/Burst Canvas */}
+              <BattleEffectOverlay effect={activeEffect} />
+
               {/* Official Foe Databox (Top-Left, x:0 y:36) */}
               <div
                 className="absolute"
@@ -261,10 +308,10 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                 <PokemonStatusCard pokemon={playerActivePkmn} isPlayer={true} />
               </div>
 
-              {/* Official Enhanced Battle UI Menu Prompts (menu_prompts.png at x:0 y:236) */}
+              {/* Clickable Enhanced Battle UI Menu Prompts (menu_prompts.png at x:0 y:236) */}
               {!isWaitingForTurn && !battleState.is_game_over && (
                 <div
-                  className="absolute pointer-events-none pixelated"
+                  className="absolute pixelated"
                   style={{
                     left: '0px',
                     top: '236px',
@@ -273,21 +320,46 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                     backgroundImage: 'url(/battle-ui/enhanced/menu_prompts.png)',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: `0px ${showMoves ? -52 : 0}px`,
-                    zIndex: 22,
+                    zIndex: 26,
                   }}
                 >
-                  <span
-                    className="absolute font-pkmn font-bold pkmn-text-key leading-none"
-                    style={{ left: '76px', top: '4px', fontSize: '20px' }}
+                  {/* Top prompt: INFO [A] */}
+                  <button
+                    type="button"
+                    title="Inspect Battler Stats (A)"
+                    onClick={() => {
+                      battleAudio.playSE('decision', 0.45);
+                      setInfoMode('battler');
+                    }}
+                    className="absolute left-0 top-0 w-[110px] h-[26px] bg-transparent border-0 cursor-pointer"
                   >
-                    A
-                  </span>
-                  <span
-                    className="absolute font-pkmn font-bold pkmn-text-key leading-none"
-                    style={{ left: '76px', top: '30px', fontSize: '20px' }}
+                    <span
+                      className="absolute font-pkmn font-bold pkmn-text-key leading-none"
+                      style={{ left: '76px', top: '4px', fontSize: '20px' }}
+                    >
+                      A
+                    </span>
+                  </button>
+
+                  {/* Bottom prompt: BALL / MOVE [S] */}
+                  <button
+                    type="button"
+                    title={showMoves ? 'Inspect Move Details (S)' : 'Move Info available in Fight menu'}
+                    onClick={() => {
+                      if (showMoves) {
+                        battleAudio.playSE('decision', 0.45);
+                        setInfoMode('move');
+                      }
+                    }}
+                    className="absolute left-0 top-[26px] w-[110px] h-[26px] bg-transparent border-0 cursor-pointer"
                   >
-                    S
-                  </span>
+                    <span
+                      className="absolute font-pkmn font-bold pkmn-text-key leading-none"
+                      style={{ left: '76px', top: '4px', fontSize: '20px' }}
+                    >
+                      S
+                    </span>
+                  </button>
                 </div>
               )}
             </div>
@@ -301,7 +373,11 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                 activePokemon={playerActivePkmn}
                 messageBgUrl={theme.message}
                 showMoves={showMoves}
-                onShowMovesChange={setShowMoves}
+                onShowMovesChange={(val) => {
+                  setShowMoves(val);
+                  if (!val) setInfoMode(null);
+                }}
+                onHoverMoveChange={setHoveredMoveIdx}
                 disabled={isWaitingForTurn || battleState.is_game_over || mustSwitch}
                 dialogueMessage={currentMessage}
                 onSelectMove={(moveIndex) =>
@@ -315,25 +391,34 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                 }}
               />
             </div>
+
+            {/* ================= ENHANCED INFO OVERLAY (A / S) ================= */}
+            <EnhancedInfoOverlay
+              mode={infoMode}
+              playerPokemon={playerActivePkmn}
+              opponentPokemon={opponentActivePkmn}
+              selectedMove={playerActivePkmn.moves[hoveredMoveIdx] || playerActivePkmn.moves[0]}
+              onClose={() => setInfoMode(null)}
+            />
+
+            {/* ================= OFFICIAL 512x384 PARTY SWITCH SCREEN ================= */}
+            <SwitchModal
+              isOpen={isSwitchOpen || mustSwitch}
+              isForcedSwitch={mustSwitch}
+              activeIndex={playerSide.active_index}
+              party={playerSide.team}
+              onClose={() => setIsSwitchOpen(false)}
+              onSelectPokemon={(newIndex) => {
+                if (mustSwitch) {
+                  onSwitchFainted(newIndex);
+                } else {
+                  onSelectAction({ type: 'SWITCH', target_index: newIndex });
+                }
+              }}
+            />
           </div>
         </div>
       </div>
-
-      {/* Switch Party Modal */}
-      <SwitchModal
-        isOpen={isSwitchOpen || mustSwitch}
-        isForcedSwitch={mustSwitch}
-        activeIndex={playerSide.active_index}
-        party={playerSide.team}
-        onClose={() => setIsSwitchOpen(false)}
-        onSelectPokemon={(newIndex) => {
-          if (mustSwitch) {
-            onSwitchFainted(newIndex);
-          } else {
-            onSelectAction({ type: 'SWITCH', target_index: newIndex });
-          }
-        }}
-      />
 
       {/* Victory / Defeat Modal */}
       {battleState.is_game_over && (
