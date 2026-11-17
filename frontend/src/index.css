@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0b0f19;
+    color: #f1f5f9;
+  }
+}
+
+/* Custom retro pixel scanline and battle styles */
+.pixelated {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.text-shadow-sm {
+  text-shadow: 1px 1px 0px #000;
+}
+
+.text-shadow-md {
+  text-shadow: 2px 2px 0px #000, -1px -1px 0px #000;
+}
+
+@keyframes attack-lunge-p1 {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  40% {
+    transform: translate(60px, -40px);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes attack-lunge-p2 {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  40% {
+    transform: translate(-60px, 40px);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes damage-flash {
+
+  0%,
+  100% {
+    opacity: 1;
+    filter: none;
+  }
+
+  25%,
+  75% {
+    opacity: 0.3;
+    filter: brightness(2.5) saturate(0.2);
+  }
+
+  50% {
+    opacity: 0.8;
+    filter: brightness(3);
+  }
+}
+
+@keyframes faint-drop {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(70px);
+    opacity: 0;
+  }
+}
+
+.anim-attack-p1 {
+  animation: attack-lunge-p1 0.4s ease-in-out;
+}
+
+.anim-attack-p2 {
+  animation: attack-lunge-p2 0.4s ease-in-out;
+}
+
+.anim-damage {
+  animation: damage-flash 0.5s ease-in-out;
+}
+
+.anim-faint {
+  animation: faint-drop 0.8s ease-in forwards;
+}

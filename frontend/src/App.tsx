@@ -1,0 +1,82 @@
+import React, { useState } from 'react';
+import { Lobby } from './components/matchmaking/Lobby';
+import { TeamBuilder } from './components/team/TeamBuilder';
+import { BattleArena } from './components/battle/BattleArena';
+import { useBattle } from './hooks/useBattle';
+
+type AppView = 'lobby' | 'team-builder' | 'battle';
+
+export const App: React.FC = () => {
+  const [view, setView] = useState<AppView>('lobby');
+  const [selectedTeam, setSelectedTeam] = useState<string[]>([
+    'CHARIZARD',
+    'PIKACHU',
+    'BLASTOISE',
+    'LUCARIO',
+    'GENGAR',
+    'GARCHOMP',
+  ]);
+
+  const [activeMatch, setActiveMatch] = useState<{
+    roomCode: string;
+    isAi: boolean;
+    role: 'p1' | 'p2';
+  } | null>(null);
+
+  const battle = useBattle({
+    roomCode: activeMatch?.roomCode || '',
+    isAi: activeMatch?.isAi || false,
+    playerRole: activeMatch?.role || 'p1',
+    customTeam: selectedTeam,
+  });
+
+  const handleStartMatch = (roomCode: string, isAi: boolean, role: 'p1' | 'p2') => {
+    setActiveMatch({ roomCode, isAi, role });
+    setView('battle');
+  };
+
+  const handleLeaveBattle = () => {
+    setActiveMatch(null);
+    setView('lobby');
+  };
+
+  if (view === 'team-builder') {
+    return (
+      <TeamBuilder
+        selectedTeam={selectedTeam}
+        onSaveTeam={(newTeam) => setSelectedTeam(newTeam)}
+        onBack={() => setView('lobby')}
+      />
+    );
+  }
+
+  if (view === 'battle' && activeMatch && battle.battleState) {
+    return (
+      <BattleArena
+        battleState={battle.battleState}
+        playerRole={activeMatch.role}
+        isAiMatch={activeMatch.isAi}
+        roomCode={activeMatch.roomCode}
+        currentMessage={battle.currentMessage}
+        isWaitingForTurn={battle.isWaitingForTurn}
+        activeAttacker={battle.activeAttacker}
+        activeHitTarget={battle.activeHitTarget}
+        onSelectAction={battle.selectAction}
+        onSwitchFainted={battle.switchFainted}
+        onRematch={battle.rematch}
+        onLeaveRoom={handleLeaveBattle}
+      />
+    );
+  }
+
+  return (
+    <Lobby
+      selectedTeam={selectedTeam}
+      onOpenTeamBuilder={() => setView('team-builder')}
+      onStartMatch={handleStartMatch}
+    />
+  );
+};
+
+export default App;
+
