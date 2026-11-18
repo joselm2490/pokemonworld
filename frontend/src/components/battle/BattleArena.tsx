@@ -263,7 +263,7 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                   key={`foe-${opponentSide.active_index}-${opponentActivePkmn.species}`}
                   species={opponentActivePkmn.species}
                   isBack={false}
-                  showShadow={true}
+                  showShadow={false} // Hidden for now (shadow code kept in AnimatedPokemonSprite for later use)
                   isAttacking={activeAttacker === (isP1 ? 'p2' : 'p1')}
                   isHit={activeHitTarget === (isP1 ? 'p2' : 'p1')}
                   isFainted={opponentActivePkmn.is_fainted}

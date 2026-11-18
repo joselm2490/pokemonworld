@@ -291,13 +291,14 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
                 height: '88px',
               }}
             >
-              {/* Official Type Icon from types.png */}
+              {/* Official Type Icon (Spanish) from types-espanol.png */}
               <div
                 className="pixelated"
                 style={{
                   width: '64px',
                   height: '28px',
-                  backgroundImage: 'url(/battle-ui/ui/types.png)',
+                  backgroundImage: 'url(/battle-ui/ui/types-espanol.png)',
+                  backgroundSize: '64px 532px',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: `0px -${hoveredTypeRow * 28}px`,
                 }}

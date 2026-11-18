@@ -85,7 +85,8 @@ export const EnhancedInfoOverlay: React.FC<EnhancedInfoOverlayProps> = ({
                       style={{
                         width: '64px',
                         height: '28px',
-                        backgroundImage: 'url(/battle-ui/ui/types.png)',
+                        backgroundImage: 'url(/battle-ui/ui/types-espanol.png)',
+                        backgroundSize: '64px 532px',
                         backgroundRepeat: 'no-repeat',
                         backgroundPosition: `0px -${(TYPE_SPRITE_INDEX[t] ?? 0) * 28}px`,
                         transform: 'scale(0.82)',
@@ -139,7 +140,8 @@ export const EnhancedInfoOverlay: React.FC<EnhancedInfoOverlayProps> = ({
               style={{
                 width: '64px',
                 height: '28px',
-                backgroundImage: 'url(/battle-ui/ui/types.png)',
+                backgroundImage: 'url(/battle-ui/ui/types-espanol.png)',
+                backgroundSize: '64px 532px',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: `0px -${(TYPE_SPRITE_INDEX[selectedMove.type] ?? 0) * 28}px`,
               }}
