@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { StadiumPokemonDetail } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
-import { AnimatedPokemonSprite } from '../battle/AnimatedPokemonSprite';
+import { StaticPokemonImage } from '../common/StaticPokemonImage';
 
 interface PokedexDetailModalProps {
   pokemonIdOrName: number | string;
@@ -129,9 +129,11 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
             {/* Sprites (Front & Back) */}
             <div className="sm:col-span-5 flex flex-col items-center justify-center gap-2">
               <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center bg-radial from-white/10 to-transparent rounded-2xl p-2">
-                <AnimatedPokemonSprite
+                <StaticPokemonImage
+                  dexNumber={pokemon.numero_pokedex}
                   species={pokemon.species}
-                  className="w-full h-full drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
+                  alt={pokemon.nombre}
+                  className="w-36 h-36 sm:w-44 sm:h-44 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
                 />
               </div>
               {/* Type Pills */}

@@ -3,6 +3,7 @@ import { BattleState, BattleEvent } from '../types/pokemon';
 import { ActiveEffect } from '../components/battle/BattleEffectOverlay';
 import { battleAudio } from '../utils/battleAudio';
 import { battleLogger } from '../utils/logger';
+import { preloadBattleAssets } from '../utils/battlePreloader';
 
 interface UseBattleProps {
   roomCode: string;
@@ -110,6 +111,8 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
           setCurrentMessage('');
           triggerEffect('pokeball', 'burst', true);
           battleAudio.playSE('throw', 0.55);
+          // Preload ONLY the animated sprites & attack animation sheets needed for THIS duel
+          void preloadBattleAssets(data.state, playerRoleRef.current);
         } else if (data.type === 'TURN_RESOLVED') {
           clearTurnTimeout();
           setIsWaitingForTurn(true);

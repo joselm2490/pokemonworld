@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { RoomDetailData, RoomMessage } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
-import { AnimatedPokemonSprite } from '../battle/AnimatedPokemonSprite';
+import { StaticPokemonImage } from '../common/StaticPokemonImage';
 
 interface RoomLobbyModalProps {
   roomCode: string;
@@ -190,7 +190,7 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
                         key={i}
                         className="w-10 h-10 bg-zinc-900 border border-zinc-700/80 rounded-xl flex items-center justify-center p-1 overflow-hidden"
                       >
-                        <AnimatedPokemonSprite species={sp} className="w-full h-full" />
+                        <StaticPokemonImage species={sp} alt={sp} className="w-full h-full" />
                       </div>
                     )
                   )}
@@ -239,7 +239,7 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
                         key={i}
                         className="w-10 h-10 bg-zinc-900 border border-zinc-700/80 rounded-xl flex items-center justify-center p-1 overflow-hidden"
                       >
-                        <AnimatedPokemonSprite species={sp} className="w-full h-full" />
+                        <StaticPokemonImage species={sp} alt={sp} className="w-full h-full" />
                       </div>
                     ))
                   ) : (

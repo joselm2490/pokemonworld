@@ -16,8 +16,8 @@ interface AnimatedPokemonSpriteProps {
   apiBaseUrl?: string;
 }
 
-// Global decoded image cache to prevent redundant network requests to Render
-const SPRITE_CACHE = new Map<string, HTMLImageElement>();
+// Global decoded image cache shared with battlePreloader to prevent redundant network fetches
+export const SPRITE_CACHE = new Map<string, HTMLImageElement>();
 
 export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   species,

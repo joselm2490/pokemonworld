@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AnimatedPokemonSprite } from '../battle/AnimatedPokemonSprite';
+import { StaticPokemonImage } from '../common/StaticPokemonImage';
 import { TYPE_SPRITE_INDEX } from '../../utils/battleSprites';
 import { PokemonType } from '../../types/pokemon';
 import { Check, Trash2, ArrowLeft, Search } from 'lucide-react';
@@ -164,7 +164,7 @@ export const TeamBuilder: React.FC<TeamBuilderProps> = ({
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                    <AnimatedPokemonSprite species={species} scale={1.6} showShadow={false} className="my-auto" />
+                    <StaticPokemonImage species={species} alt={species} className="w-20 h-20 my-auto" />
                     <span className="text-sm font-bold text-white uppercase truncate font-pkmn mt-1">
                       {species}
                     </span>
@@ -217,12 +217,10 @@ export const TeamBuilder: React.FC<TeamBuilderProps> = ({
               )}
 
               <div className="w-24 h-24 flex items-center justify-center my-1">
-                <AnimatedPokemonSprite
+                <StaticPokemonImage
                   species={pkmn.species}
-                  scale={1.6}
-                  showShadow={false}
-                  animate={false}
-                  animateOnHover={true}
+                  alt={pkmn.name}
+                  className="w-20 h-20 drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)]"
                 />
               </div>
 

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { StadiumPokemonSummary, TypeDetail } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
-import { AnimatedPokemonSprite } from '../battle/AnimatedPokemonSprite';
+import { StaticPokemonImage } from '../common/StaticPokemonImage';
 import { PokedexDetailModal } from './PokedexDetailModal';
 
 interface PokedexViewProps {
@@ -254,13 +254,11 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack }) => {
                 {/* Animated Sprite */}
                 <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center my-1 relative">
                   <div className="absolute inset-0 bg-radial from-white/5 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <AnimatedPokemonSprite
+                  <StaticPokemonImage
+                    dexNumber={pkmn.numero_pokedex}
                     species={pkmn.species}
-                    animate={false}
-                    animateOnHover={true}
-                    showShadow={false}
-                    scale={1.5}
-                    className="w-full h-full object-contain filter group-hover:scale-105 transition-transform"
+                    alt={pkmn.nombre}
+                    className="w-24 h-24 sm:w-28 sm:h-28 drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)] group-hover:scale-110 transition-transform"
                   />
                 </div>
 

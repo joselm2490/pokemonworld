@@ -12,7 +12,7 @@ import {
   Shield,
   Layers,
 } from 'lucide-react';
-import { AnimatedPokemonSprite } from '../battle/AnimatedPokemonSprite';
+import { StaticPokemonImage } from '../common/StaticPokemonImage';
 import { CreateRoomModal } from './CreateRoomModal';
 import { RoomLobbyModal } from './RoomLobbyModal';
 import { PokedexService } from '../../services/pokedexService';
@@ -166,7 +166,11 @@ export const Lobby: React.FC<LobbyProps> = ({
         {/* Animated Battle Lineup */}
         <div className="flex items-center justify-center gap-6 sm:gap-14">
           <div className="flex flex-col items-center">
-            <AnimatedPokemonSprite species={selectedTeam[0] || 'CHARIZARD'} scale={2.4} />
+            <StaticPokemonImage
+              species={selectedTeam[0] || 'CHARIZARD'}
+              alt={selectedTeam[0] || 'CHARIZARD'}
+              className="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
+            />
             <span className="text-[10px] font-bold text-white text-shadow-heavy uppercase mt-1">
               {selectedTeam[0] || 'CHARIZARD'}
             </span>
@@ -182,7 +186,11 @@ export const Lobby: React.FC<LobbyProps> = ({
           </div>
 
           <div className="flex flex-col items-center">
-            <AnimatedPokemonSprite species={selectedTeam[1] || 'GENGAR'} scale={2.4} />
+            <StaticPokemonImage
+              species={selectedTeam[1] || 'GENGAR'}
+              alt={selectedTeam[1] || 'GENGAR'}
+              className="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
+            />
             <span className="text-[10px] font-bold text-white text-shadow-heavy uppercase mt-1">
               {selectedTeam[1] || 'GENGAR'}
             </span>
