@@ -154,7 +154,7 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
               top: '2px',
               width: '130px',
               height: '46px',
-              backgroundImage: 'url(/battle-ui/ui/cursor_command.png)',
+              backgroundImage: 'url(/battle-ui/ui/cursor_command-espanol.png)',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: `${hoveredCmd === 'FIGHT' ? -130 : 0}px -${COMMAND_SPRITE_ROW.FIGHT * 46}px`,
             }}
@@ -177,7 +177,7 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
               top: '2px',
               width: '130px',
               height: '46px',
-              backgroundImage: 'url(/battle-ui/ui/cursor_command.png)',
+              backgroundImage: 'url(/battle-ui/ui/cursor_command-espanol.png)',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: `${hoveredCmd === 'BAG' ? -130 : 0}px -${COMMAND_SPRITE_ROW.BAG * 46}px`,
             }}
@@ -201,7 +201,7 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
               top: '48px',
               width: '130px',
               height: '46px',
-              backgroundImage: 'url(/battle-ui/ui/cursor_command.png)',
+              backgroundImage: 'url(/battle-ui/ui/cursor_command-espanol.png)',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: `${hoveredCmd === 'POKEMON' ? -130 : 0}px -${COMMAND_SPRITE_ROW.POKEMON * 46}px`,
             }}
@@ -224,7 +224,7 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
               top: '48px',
               width: '130px',
               height: '46px',
-              backgroundImage: 'url(/battle-ui/ui/cursor_command.png)',
+              backgroundImage: 'url(/battle-ui/ui/cursor_command-espanol.png)',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: `${hoveredCmd === 'RUN' ? -130 : 0}px -${COMMAND_SPRITE_ROW.RUN * 46}px`,
             }}
