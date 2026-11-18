@@ -125,41 +125,38 @@ def get_all_pokemon() -> Dict[str, dict]:
 
 def get_random_battle_pool(sprites_dir: Optional[Path] = None) -> List[str]:
     """
-    Returns all fully-evolved (final stage), non-legendary / non-mythical / non-UltraBeast
-    Pokémon species that have animated Front & Back sprites available.
+    Devuelve exclusivamente especies de Pokémon Campeones (fase final/campeón=True)
+    que cuenten con sprites animados oficiales.
     """
     global _RANDOM_POOL_CACHE
-    if _RANDOM_POOL_CACHE is not None:
+    if _RANDOM_POOL_CACHE is not None and len(_RANDOM_POOL_CACHE) > 0:
         return _RANDOM_POOL_CACHE
 
-    all_pkmn = get_all_pokemon()
-
     front_sprites = None
-    back_sprites = None
     if sprites_dir:
         front_dir = sprites_dir / 'Graphics' / 'Pokemon' / 'Front'
-        back_dir = sprites_dir / 'Graphics' / 'Pokemon' / 'Back'
-        if front_dir.exists() and back_dir.exists():
+        if front_dir.exists():
             front_sprites = {p.stem.upper() for p in front_dir.glob('*.png')}
-            back_sprites = {p.stem.upper() for p in back_dir.glob('*.png')}
 
     pool: List[str] = []
-    for species_id, data in all_pkmn.items():
-        if data.get('has_evolutions', False):
-            continue
-        if set(data.get('flags', [])) & FORBIDDEN_LEGENDARY_FLAGS:
-            continue
-        if species_id in EXCLUDED_RANDOM_SPECIES:
-            continue
-        bst = sum(data.get('base_stats', {}).values())
-        if bst < 380:
-            continue
-        if front_sprites is not None and back_sprites is not None:
-            if species_id not in front_sprites or species_id not in back_sprites:
-                continue
-        pool.append(species_id)
+    try:
+        from pokedex.models import Pokemon
+        champs = Pokemon.objects.filter(campeon=True)
+        for p in champs:
+            sp = p.nombre_ingles.upper().replace(' ', '_').replace('-', '_')
+            if not front_sprites or sp in front_sprites:
+                pool.append(sp)
+    except Exception as e:
+        print("Error al consultar Pokémon campeones en base de datos:", e)
 
-    _RANDOM_POOL_CACHE = pool
+    if not pool:
+        pool = [
+            'CHARIZARD', 'BLASTOISE', 'VENUSAUR', 'RAICHU', 'GENGAR', 'LUCARIO',
+            'GARCHOMP', 'DRAGONITE', 'TYRANITAR', 'GRENINJA', 'SCIZOR', 'SYLVEON',
+            'ALAKAZAM', 'MACHAMP', 'GYARADOS', 'SNORLAX', 'METAGROSS', 'SALAMENCE'
+        ]
+
+    _RANDOM_POOL_CACHE = list(dict.fromkeys(pool))
     return _RANDOM_POOL_CACHE
 
 

@@ -1,15 +1,18 @@
 import math
 import random
+from typing import Optional, List
 from .data_roster import POKEMON_ROSTER
 from .pbs_loader import get_all_pokemon, get_all_moves, build_moveset_for_species
 from .type_chart import get_type_effectiveness
 
 
 def calculate_stat(base: int, level: int = 50, is_hp: bool = False, iv: int = 31, ev: int = 85) -> int:
-    """Calculates official Pokémon stat value given base, level, IV, and EV."""
     if is_hp:
+        if base == 1:
+            return 1  # Shedinja
         return math.floor(((2 * base + iv + math.floor(ev / 4)) * level) / 100) + level + 10
-    return math.floor(((2 * base + iv + math.floor(ev / 4)) * level) / 100) + 5
+    else:
+        return math.floor(((2 * base + iv + math.floor(ev / 4)) * level) / 100) + 5
 
 
 def stage_multiplier(stage: int) -> float:
@@ -17,6 +20,24 @@ def stage_multiplier(stage: int) -> float:
     if stage >= 0:
         return (2 + stage) / 2.0
     return 2.0 / (2 - stage)
+
+
+_MOVE_TRANSLATIONS = None
+
+
+def get_move_translations() -> dict:
+    global _MOVE_TRANSLATIONS
+    if _MOVE_TRANSLATIONS is not None:
+        return _MOVE_TRANSLATIONS
+    try:
+        from pokedex.models import Movimiento
+        _MOVE_TRANSLATIONS = {
+            m.nombre_ingles.strip().upper(): m.nombre
+            for m in Movimiento.objects.exclude(nombre_ingles='').exclude(nombre_ingles__isnull=True)
+        }
+    except Exception:
+        _MOVE_TRANSLATIONS = {}
+    return _MOVE_TRANSLATIONS
 
 
 def _enrich_move_from_pbs(move_dict: dict) -> dict:
@@ -38,6 +59,13 @@ def _enrich_move_from_pbs(move_dict: dict) -> dict:
         merged.setdefault("flags", [])
         merged.setdefault("description", "")
         merged.setdefault("priority", 0)
+
+    # Translate move name to Spanish
+    trans_map = get_move_translations()
+    name_clean = merged.get("name", "").strip().upper()
+    if name_clean in trans_map:
+        merged["name"] = trans_map[name_clean]
+
     merged["current_pp"] = merged.get("pp", 15)
     return merged
 
@@ -48,19 +76,53 @@ def create_pokemon_instance(species: str, level: int = 50) -> dict:
     pbs_data = pbs_pokemon.get(species_key)
     featured_data = POKEMON_ROSTER.get(species_key)
 
-    if featured_data:
+    # Attempt to pull from Django Pokédex database with WikiDex stats & abilities
+    db_pkmn = None
+    try:
+        from pokedex.models import Pokemon
+        db_pkmn = Pokemon.objects.filter(nombre_ingles__iexact=species_key).select_related('estadisticas').prefetch_related('habilidades').first()
+    except Exception:
+        db_pkmn = None
+
+    if db_pkmn and hasattr(db_pkmn, 'estadisticas'):
+        name = db_pkmn.nombre
+        types = [db_pkmn.tipo1.nombre_ingles.upper()]
+        if db_pkmn.tipo2:
+            types.append(db_pkmn.tipo2.nombre_ingles.upper())
+
+        st = db_pkmn.estadisticas
+        base = {
+            "hp": st.hp,
+            "attack": st.ataque,
+            "defense": st.defensa,
+            "sp_attack": st.ataque_especial,
+            "sp_defense": st.defensa_especial,
+            "speed": st.velocidad
+        }
+        hab_first = db_pkmn.habilidades.first()
+        ability = hab_first.nombre if hab_first else "Presión"
+        gender_ratio = "Female50Percent"
+        if featured_data:
+            moves = [_enrich_move_from_pbs(m) for m in featured_data["moves"]]
+        elif pbs_data:
+            moves = [_enrich_move_from_pbs(m) for m in build_moveset_for_species(pbs_data)]
+        else:
+            moves = [_enrich_move_from_pbs(m) for m in POKEMON_ROSTER.get("CHARIZARD", {}).get("moves", [])]
+
+    elif featured_data:
         name = featured_data["name"]
         types = list(featured_data["types"])
         base = dict(featured_data["base_stats"])
         moves = [_enrich_move_from_pbs(m) for m in featured_data["moves"]]
-        ability = pbs_data["abilities"][0] if pbs_data and pbs_data.get("abilities") else "PRESSURE"
+        ability = pbs_data["abilities"][0] if pbs_data and pbs_data.get("abilities") else "Presión"
         gender_ratio = pbs_data.get("gender_ratio", "Female50Percent") if pbs_data else "Female50Percent"
+
     elif pbs_data:
         name = pbs_data["name"]
         types = list(pbs_data["types"])
         base = dict(pbs_data["base_stats"])
-        moves = build_moveset_for_species(pbs_data)
-        ability = pbs_data["abilities"][0] if pbs_data.get("abilities") else "PRESSURE"
+        moves = [_enrich_move_from_pbs(m) for m in build_moveset_for_species(pbs_data)]
+        ability = pbs_data["abilities"][0] if pbs_data.get("abilities") else "Presión"
         gender_ratio = pbs_data.get("gender_ratio", "Female50Percent")
     else:
         # Fallback to Charizard
@@ -113,14 +175,14 @@ def create_pokemon_instance(species: str, level: int = 50) -> dict:
     }
 
 
-def create_default_party(species_list: list[str], level: int = 50) -> list[dict]:
-    return [create_pokemon_instance(sp, level=level) for sp in species_list]
+def create_default_party(species_list: list, level: int = 50) -> list:
+    return [create_pokemon_instance(sp, level) for sp in species_list]
 
 
 def _can_apply_status(target: dict, status_code: str) -> bool:
     if target.get("status") or target.get("is_fainted"):
         return False
-    types = set(target.get("types", []))
+    types = target.get("types", [])
     if status_code == "BRN" and "FIRE" in types:
         return False
     if status_code == "PAR" and "ELECTRIC" in types:
@@ -132,74 +194,91 @@ def _can_apply_status(target: dict, status_code: str) -> bool:
     return True
 
 
+STAT_NAMES_ES = {
+    "attack": "Ataque",
+    "defense": "Defensa",
+    "sp_attack": "Ataque Especial",
+    "sp_defense": "Defensa Especial",
+    "speed": "Velocidad"
+}
+
+
 def _apply_stat_change(target: dict, stat: str, delta: int, target_side: str, events: list):
     stages = target.setdefault("stages", {"attack": 0, "defense": 0, "sp_attack": 0, "sp_defense": 0, "speed": 0})
     old_val = stages.get(stat, 0)
     new_val = max(-6, min(6, old_val + delta))
+    label_es = STAT_NAMES_ES.get(stat, stat.title())
+
     if new_val == old_val:
         events.append({
             "type": "INFO",
-            "message": f"{target['name']}'s {stat.replace('_', ' ').title()} won't go any {'higher' if delta > 0 else 'lower'}!"
+            "message": f"¡El {label_es} de {target['name']} no puede {'subir' if delta > 0 else 'bajar'} más!"
         })
         return
     stages[stat] = new_val
-    label = stat.replace("_", " ").replace("sp ", "Sp. ").title()
+
     if delta >= 2:
-        verb = "rose sharply"
+        verb = "subió mucho"
     elif delta == 1:
-        verb = "rose"
+        verb = "subió"
     elif delta <= -2:
-        verb = "fell harshly"
+        verb = "bajó mucho"
     else:
-        verb = "fell"
+        verb = "bajó"
+
     events.append({
         "type": "STAT_CHANGE",
         "target": target_side,
         "stat": stat,
         "delta": delta,
         "animation": "burst" if delta > 0 else "normal",
-        "message": f"{target['name']}'s {label} {verb}!"
+        "message": f"¡El {label_es} de {target['name']} {verb}!"
     })
 
 
 def calculate_damage(attacker: dict, defender: dict, move: dict) -> dict:
-    acc = move.get("accuracy", 100)
-    # Accuracy 0 in Essentials PBS means never-miss move (e.g. Aura Sphere, Aerial Ace, Swift)
-    if acc > 0 and random.randint(1, 100) > acc:
+    if move.get("category") == "STATUS" or move.get("power", 0) == 0:
+        return {"damage": 0, "is_miss": False, "effectiveness": 1.0, "is_crit": False}
+
+    accuracy = move.get("accuracy", 100)
+    if accuracy > 0 and random.randint(1, 100) > accuracy:
         return {"damage": 0, "is_miss": True, "effectiveness": 1.0, "is_crit": False}
 
-    atk_stages = attacker.get("stages", {})
-    def_stages = defender.get("stages", {})
-
-    flags = move.get("flags", [])
-    crit_chance = 0.125 if "HighCriticalHitRate" in flags else 0.0625
-    is_crit = random.random() < crit_chance
-
-    category = move.get("category", "SPECIAL")
-    if category == "PHYSICAL":
-        a_stage = max(0, atk_stages.get("attack", 0)) if is_crit else atk_stages.get("attack", 0)
-        d_stage = min(0, def_stages.get("defense", 0)) if is_crit else def_stages.get("defense", 0)
-        a_stat = math.floor(attacker["stats"]["attack"] * stage_multiplier(a_stage))
-        d_stat = math.floor(defender["stats"]["defense"] * stage_multiplier(d_stage))
-        if attacker.get("status") == "BRN":
-            a_stat = math.floor(a_stat * 0.5)
-    else:
-        a_stage = max(0, atk_stages.get("sp_attack", 0)) if is_crit else atk_stages.get("sp_attack", 0)
-        d_stage = min(0, def_stages.get("sp_defense", 0)) if is_crit else def_stages.get("sp_defense", 0)
-        a_stat = math.floor(attacker["stats"]["sp_attack"] * stage_multiplier(a_stage))
-        d_stat = math.floor(defender["stats"]["sp_defense"] * stage_multiplier(d_stage))
-
     level = attacker.get("level", 50)
-    power = move.get("power", 80)
+    power = move.get("power", 50)
+    category = move.get("category", "SPECIAL")
 
-    base_dmg = ((((2 * level / 5) + 2) * power * (a_stat / max(1, d_stat))) / 50) + 2
-    stab = 1.5 if move.get("type") in attacker.get("types", []) else 1.0
-    effectiveness = get_type_effectiveness(move.get("type", "NORMAL"), defender.get("types", []))
+    attacker_stages = attacker.get("stages", {})
+    defender_stages = defender.get("stages", {})
+
+    if category == "PHYSICAL":
+        atk = attacker["stats"]["attack"] * stage_multiplier(attacker_stages.get("attack", 0))
+        defe = defender["stats"]["defense"] * stage_multiplier(defender_stages.get("defense", 0))
+        if attacker.get("status") == "BRN":
+            atk *= 0.5
+    else:
+        atk = attacker["stats"]["sp_attack"] * stage_multiplier(attacker_stages.get("sp_attack", 0))
+        defe = defender["stats"]["sp_defense"] * stage_multiplier(defender_stages.get("sp_defense", 0))
+
+    atk = max(1, atk)
+    defe = max(1, defe)
+
+    base_dmg = math.floor(math.floor((math.floor((2 * level) / 5) + 2) * power * (atk / defe)) / 50) + 2
+
+    # STAB (Same Type Attack Bonus)
+    move_type = move.get("type", "NORMAL")
+    stab = 1.5 if move_type in attacker.get("types", []) else 1.0
+
+    # Type effectiveness
+    effectiveness = get_type_effectiveness(move_type, defender.get("types", []))
+
+    # Critical hit (~1/24)
+    is_crit = random.random() < 0.0417
     crit_mult = 1.5 if is_crit else 1.0
-    rand_variance = random.uniform(0.85, 1.0)
 
+    rand_variance = random.uniform(0.85, 1.0)
     total_damage = math.floor(base_dmg * stab * effectiveness * crit_mult * rand_variance)
-    if effectiveness == 0:
+    if effectiveness == 0.0:
         total_damage = 0
     elif total_damage < 1:
         total_damage = 1
@@ -213,22 +292,22 @@ def calculate_damage(attacker: dict, defender: dict, move: dict) -> dict:
 
 
 def _apply_status_or_secondary(attacker: dict, defender: dict, move: dict, actor_side: str, target_side: str, damage_dealt: int, events: list):
-    fc = move.get("function_code", "None")
-    chance = move.get("effect_chance", 0)
+    fc = move.get("function_code", "")
     is_status_move = move.get("category") == "STATUS"
-    triggers = is_status_move or (chance == 0 and any(k in fc for k in ("LowerUser", "RaiseUser", "Recoil", "HealUser"))) or (chance > 0 and random.randint(1, 100) <= chance)
+    effect_chance = move.get("effect_chance", 100 if is_status_move else 0)
 
+    triggers = is_status_move or (effect_chance > 0 and random.randint(1, 100) <= effect_chance)
     if not triggers:
         return
 
     # Status inflictions
     status_map = [
-        ("BurnTarget", "BRN", "was burned!"),
-        ("ParalyzeTarget", "PAR", "is paralyzed! It may be unable to move!"),
-        ("SleepTarget", "SLP", "fell asleep!"),
-        ("FreezeTarget", "FRZ", "was frozen solid!"),
-        ("BadPoisonTarget", "PSN", "was badly poisoned!"),
-        ("PoisonTarget", "PSN", "was poisoned!"),
+        ("BurnTarget", "BRN", "¡sufrió quemaduras!"),
+        ("ParalyzeTarget", "PAR", "¡está paralizado! ¡Quizás no pueda moverse!"),
+        ("SleepTarget", "SLP", "¡se quedó dormido!"),
+        ("FreezeTarget", "FRZ", "¡se congeló por completo!"),
+        ("BadPoisonTarget", "PSN", "¡fue gravemente envenenado!"),
+        ("PoisonTarget", "PSN", "¡fue envenenado!"),
     ]
     for key, code, msg in status_map:
         if key in fc:
@@ -241,10 +320,10 @@ def _apply_status_or_secondary(attacker: dict, defender: dict, move: dict, actor
                     "target": target_side,
                     "status": code,
                     "animation": "poison" if code == "PSN" else ("fire" if code == "BRN" else "burst"),
-                    "message": f"{defender['name']} {msg}",
+                    "message": f"¡{defender['name']} {msg}",
                 })
             elif is_status_move:
-                events.append({"type": "INFO", "message": "But it failed!"})
+                events.append({"type": "INFO", "message": "¡Pero falló!"})
             return
 
     # Healing moves (50% max HP)
@@ -257,7 +336,7 @@ def _apply_status_or_secondary(attacker: dict, defender: dict, move: dict, actor
             "remaining_hp": attacker["current_hp"],
             "max_hp": attacker["max_hp"],
             "animation": "heal",
-            "message": f"{attacker['name']} regained health!",
+            "message": f"¡{attacker['name']} recuperó PS!",
         })
         return
 
@@ -271,10 +350,10 @@ def _apply_status_or_secondary(attacker: dict, defender: dict, move: dict, actor
             "remaining_hp": attacker["current_hp"],
             "max_hp": attacker["max_hp"],
             "animation": "heal",
-            "message": f"{defender['name']} had its energy drained!",
+            "message": f"¡{attacker['name']} absorbió energía!",
         })
 
-    # Recoil moves
+    # Recoil moves (33% recoil)
     if "RecoilThirdOfDamageDealt" in fc and damage_dealt > 0:
         recoil = max(1, damage_dealt // 3)
         attacker["current_hp"] = max(0, attacker["current_hp"] - recoil)
@@ -286,17 +365,18 @@ def _apply_status_or_secondary(attacker: dict, defender: dict, move: dict, actor
             "max_hp": attacker["max_hp"],
             "effectiveness": 1.0,
             "is_crit": False,
-            "message": f"{attacker['name']} was damaged by the recoil!",
+            "message": f"¡{attacker['name']} sufrió daño por el retroceso!",
         })
         if attacker["current_hp"] == 0:
             attacker["is_fainted"] = True
-            events.append({"type": "FAINT", "target": actor_side, "pokemon": attacker["name"], "message": f"{attacker['name']} fainted!"})
+            events.append({"type": "FAINT", "target": actor_side, "pokemon": attacker["name"], "message": f"¡{attacker['name']} se debilitó!"})
 
-    # Stat boosts / drops
+    # Stat boosters / debuffers
     if "RaiseUserAttack2" in fc:
         _apply_stat_change(attacker, "attack", 2, actor_side, events)
-    elif "RaiseUserAttack1Speed1" in fc:
-        _apply_stat_change(attacker, "attack", 1, actor_side, events)
+    elif "RaiseUserDefense1" in fc:
+        _apply_stat_change(attacker, "defense", 1, actor_side, events)
+    elif "RaiseUserSpeed1" in fc:
         _apply_stat_change(attacker, "speed", 1, actor_side, events)
     elif "RaiseUserSpAtk2" in fc:
         _apply_stat_change(attacker, "sp_attack", 2, actor_side, events)
@@ -332,12 +412,6 @@ def _reset_stages(pokemon: dict):
 
 
 def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: bool = False) -> dict:
-    """
-    Executes a complete GBA/Essentials turn between Player 1 and Player 2.
-    Action format:
-      {'type': 'MOVE', 'move_index': 0}
-      {'type': 'SWITCH', 'target_index': 1}
-    """
     events = []
     p1 = state["p1"]
     p2 = state["p2"]
@@ -359,7 +433,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 "pokemon": p1_active["name"],
                 "species": p1_active["species"],
                 "new_index": new_idx,
-                "message": f"{old_name}, come back! Go! {p1_active['name']}!",
+                "message": f"¡Vuelve, {old_name}! ¡Adelante, {p1_active['name']}!",
             })
 
     if p2_action.get("type") == "SWITCH":
@@ -374,59 +448,72 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 "pokemon": p2_active["name"],
                 "species": p2_active["species"],
                 "new_index": new_idx,
-                "message": f"{p2['name']} sent out {p2_active['name']}!",
+                "message": f"¡{p2['name']} envió a {p2_active['name']}!",
             })
 
     # Step 2: Determine turn order for MOVE actions
-    order = []
+    turn_queue = []
+
+    p1_move = None
     if p1_action.get("type") == "MOVE" and not p1_active["is_fainted"]:
-        idx1 = min(p1_action.get("move_index", 0), len(p1_active["moves"]) - 1)
-        order.append(("p1", p1_active["moves"][idx1], p1_active, p2_active, "p2"))
+        m_idx = p1_action.get("move_index", 0)
+        p1_move = p1_active["moves"][m_idx] if 0 <= m_idx < len(p1_active["moves"]) else p1_active["moves"][0]
 
+    p2_move = None
     if p2_action.get("type") == "MOVE" and not p2_active["is_fainted"]:
-        idx2 = min(p2_action.get("move_index", 0), len(p2_active["moves"]) - 1)
-        order.append(("p2", p2_active["moves"][idx2], p2_active, p1_active, "p1"))
+        m_idx = p2_action.get("move_index", 0)
+        p2_move = p2_active["moves"][m_idx] if 0 <= m_idx < len(p2_active["moves"]) else p2_active["moves"][0]
 
-    if len(order) == 2:
-        def eff_speed(pkmn: dict) -> int:
-            sp = math.floor(pkmn["stats"]["speed"] * stage_multiplier(pkmn.get("stages", {}).get("speed", 0)))
-            if pkmn.get("status") == "PAR":
-                sp = math.floor(sp * 0.5)
-            return sp
+    if p1_move and p2_move:
+        p1_pri = p1_move.get("priority", 0)
+        p2_pri = p2_move.get("priority", 0)
+        p1_spe = p1_active["stats"]["speed"] * stage_multiplier(p1_active.get("stages", {}).get("speed", 0))
+        p2_spe = p2_active["stats"]["speed"] * stage_multiplier(p2_active.get("stages", {}).get("speed", 0))
+        if p1_active.get("status") == "PAR":
+            p1_spe *= 0.5
+        if p2_active.get("status") == "PAR":
+            p2_spe *= 0.5
 
-        p1_prio = order[0][1].get("priority", 0)
-        p2_prio = order[1][1].get("priority", 0)
-        p1_spd = eff_speed(order[0][2])
-        p2_spd = eff_speed(order[1][2])
+        if p1_pri > p2_pri or (p1_pri == p2_pri and p1_spe > p2_spe) or (p1_pri == p2_pri and p1_spe == p2_spe and random.random() < 0.5):
+            turn_queue = [("p1", p1_move), ("p2", p2_move)]
+        else:
+            turn_queue = [("p2", p2_move), ("p1", p1_move)]
+    elif p1_move:
+        turn_queue = [("p1", p1_move)]
+    elif p2_move:
+        turn_queue = [("p2", p2_move)]
 
-        if p2_prio > p1_prio or (p2_prio == p1_prio and (p2_spd > p1_spd or (p2_spd == p1_spd and random.random() > 0.5))):
-            order.reverse()
+    # Step 3: Execute moves in order
+    for actor_side, move in turn_queue:
+        target_side = "p2" if actor_side == "p1" else "p1"
+        attacker = state[actor_side]["team"][state[actor_side]["active_index"]]
+        defender = state[target_side]["team"][state[target_side]["active_index"]]
 
-    # Step 3: Execute attacks in order
-    for actor_side, move, attacker, defender, target_side in order:
         if attacker["is_fainted"] or defender["is_fainted"]:
             continue
 
-        # Pre-move status checks
+        # Sleep check
         if attacker.get("status") == "SLP":
-            if attacker.get("sleep_turns", 0) > 0:
-                attacker["sleep_turns"] -= 1
-                events.append({"type": "INFO", "message": f"{attacker['name']} is fast asleep!"})
-                continue
-            else:
+            attacker["sleep_turns"] = attacker.get("sleep_turns", 1) - 1
+            if attacker["sleep_turns"] <= 0:
                 attacker["status"] = None
-                events.append({"type": "INFO", "message": f"{attacker['name']} woke up!"})
+                events.append({"type": "INFO", "message": f"¡{attacker['name']} se despertó!"})
+            else:
+                events.append({"type": "INFO", "message": f"¡{attacker['name']} está profundamente dormido!"})
+                continue
 
+        # Freeze check
         if attacker.get("status") == "FRZ":
             if move.get("type") == "FIRE" or random.random() < 0.20:
                 attacker["status"] = None
-                events.append({"type": "INFO", "message": f"{attacker['name']} thawed out!"})
+                events.append({"type": "INFO", "message": f"¡{attacker['name']} se descongeló!"})
             else:
-                events.append({"type": "INFO", "message": f"{attacker['name']} is frozen solid!"})
+                events.append({"type": "INFO", "message": f"¡{attacker['name']} está congelado y no se puede mover!"})
                 continue
 
+        # Paralyze check
         if attacker.get("status") == "PAR" and random.random() < 0.25:
-            events.append({"type": "INFO", "message": f"{attacker['name']} is paralyzed! It can't move!"})
+            events.append({"type": "INFO", "message": f"¡{attacker['name']} está paralizado! ¡No se puede mover!"})
             continue
 
         # Deduct PP
@@ -440,14 +527,14 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
             "move": move["name"],
             "move_type": move["type"],
             "category": move.get("category", "SPECIAL"),
-            "message": f"{attacker['name']} used {move['name']}!",
+            "message": f"¡{attacker['name']} usó {move['name']}!",
         })
 
         # Status moves
         if move.get("category") == "STATUS" or move.get("power", 0) == 0:
             acc = move.get("accuracy", 100)
             if acc > 0 and random.randint(1, 100) > acc:
-                events.append({"type": "MISS", "actor": actor_side, "message": f"{attacker['name']}'s attack missed!"})
+                events.append({"type": "MISS", "actor": actor_side, "message": f"¡El ataque de {attacker['name']} falló!"})
                 continue
             _apply_status_or_secondary(attacker, defender, move, actor_side, target_side, 0, events)
             continue
@@ -458,7 +545,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
             events.append({
                 "type": "MISS",
                 "actor": actor_side,
-                "message": f"{attacker['name']}'s attack missed!",
+                "message": f"¡El ataque de {attacker['name']} falló!",
             })
             continue
 
@@ -479,7 +566,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
         # Fire move thaws frozen target
         if defender.get("status") == "FRZ" and move.get("type") == "FIRE" and damage > 0:
             defender["status"] = None
-            events.append({"type": "INFO", "message": f"{defender['name']} thawed out!"})
+            events.append({"type": "INFO", "message": f"¡{defender['name']} se descongeló!"})
 
         if defender["current_hp"] == 0:
             defender["is_fainted"] = True
@@ -487,7 +574,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 "type": "FAINT",
                 "target": target_side,
                 "pokemon": defender["name"],
-                "message": f"{defender['name']} fainted!",
+                "message": f"¡{defender['name']} se debilitó!",
             })
             # Still process recoil if attacker killed defender with recoil move
             if "RecoilThirdOfDamageDealt" in move.get("function_code", ""):
@@ -513,7 +600,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 "max_hp": pk["max_hp"],
                 "effectiveness": 1.0,
                 "is_crit": False,
-                "message": f"{pk['name']} was hurt by its burn!",
+                "message": f"¡{pk['name']} sufre por la quemadura!",
             })
         elif pk.get("status") == "PSN":
             psn_dmg = max(1, pk["max_hp"] // 8)
@@ -526,7 +613,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 "max_hp": pk["max_hp"],
                 "effectiveness": 1.0,
                 "is_crit": False,
-                "message": f"{pk['name']} was hurt by poison!",
+                "message": f"¡{pk['name']} sufre los efectos del veneno!",
             })
         if pk["current_hp"] == 0 and not pk["is_fainted"]:
             pk["is_fainted"] = True
@@ -534,7 +621,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 "type": "FAINT",
                 "target": side_key,
                 "pokemon": pk["name"],
-                "message": f"{pk['name']} fainted!",
+                "message": f"¡{pk['name']} se debilitó!",
             })
 
     # Step 5: Check victory / auto-switch for AI
@@ -544,10 +631,11 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
     if p1_defeated or p2_defeated:
         state["is_game_over"] = True
         state["winner"] = "p2" if p1_defeated else "p1"
+        winner_name = p2['name'] if p1_defeated else p1['name']
         events.append({
             "type": "GAME_OVER",
             "winner": state["winner"],
-            "message": f"Battle ended! {p2['name'] if p1_defeated else p1['name']} wins!",
+            "message": f"¡Combate finalizado! ¡{winner_name} ha ganado!",
         })
     elif is_ai_match and p2["team"][p2["active_index"]]["is_fainted"]:
         # AI automatically sends out next healthy Pokémon
@@ -560,7 +648,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                     "pokemon": candidate["name"],
                     "species": candidate["species"],
                     "new_index": idx,
-                    "message": f"{p2['name']} sent out {candidate['name']}!",
+                    "message": f"¡{p2['name']} envió a {candidate['name']}!",
                 })
                 break
 
@@ -568,21 +656,17 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
     return {"events": events, "state": state}
 
 
-def choose_ai_move(state: dict) -> dict:
-    """Smart AI: scores each move by expected effectiveness + power."""
-    p2 = state["p2"]
-    p1 = state["p1"]
-    ai_pk = p2["team"][p2["active_index"]]
-    foe_pk = p1["team"][p1["active_index"]]
-
+def choose_ai_move(ai_pk: dict, foe_pk: dict) -> dict:
     best_idx = 0
     best_score = -1.0
 
-    for idx, move in enumerate(ai_pk["moves"]):
+    for idx, move in enumerate(ai_pk.get("moves", [])):
         if move.get("current_pp", 1) <= 0:
             continue
-        if move.get("category") == "STATUS" or move.get("power", 0) == 0:
-            score = 45.0 if random.random() < 0.35 else 15.0
+        if move.get("category") == "STATUS":
+            score = 25.0
+            if foe_pk.get("status") is None and any(st in move.get("function_code", "") for st in ["Burn", "Paralyze", "Sleep", "Poison"]):
+                score += 35.0
         else:
             eff = get_type_effectiveness(move["type"], foe_pk["types"])
             stab = 1.5 if move["type"] in ai_pk["types"] else 1.0
@@ -597,12 +681,12 @@ def choose_ai_move(state: dict) -> dict:
 def _build_damage_message(res: dict) -> str:
     parts = []
     if res.get("is_crit"):
-        parts.append("A critical hit!")
+        parts.append("¡Un golpe crítico!")
     eff = res.get("effectiveness", 1.0)
     if eff > 1.0:
-        parts.append("It's super effective!")
+        parts.append("¡Es muy eficaz!")
     elif eff == 0.0:
-        parts.append("It doesn't affect the opposing Pokémon...")
+        parts.append("No afecta al Pokémon rival...")
     elif eff < 1.0:
-        parts.append("It's not very effective...")
+        parts.append("No es muy eficaz...")
     return " ".join(parts)

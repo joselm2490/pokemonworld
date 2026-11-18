@@ -156,13 +156,13 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
           {isWaitingForTurn && (
             <span className="flex items-center gap-1.5 text-xs font-sans text-sky-400 bg-sky-950/70 px-2.5 py-1 rounded-full border border-sky-800">
               <RefreshCw className="w-3 h-3 animate-spin" />
-              <span className="hidden sm:inline">Animating...</span>
+              <span className="hidden sm:inline">Calculando turno...</span>
             </span>
           )}
 
           <button
             onClick={cycleTheme}
-            title="Switch official battle arena"
+            title="Cambiar arena de combate"
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-sans text-slate-200 transition-colors"
           >
             <Map className="w-3.5 h-3.5 text-emerald-400" />
@@ -171,14 +171,14 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
 
           <button
             onClick={handleToggleAudio}
-            title={muted ? 'Unmute Battle Audio' : 'Mute Battle Audio'}
+            title={muted ? 'Activar audio' : 'Silenciar audio'}
             className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-sans text-slate-200 transition-colors"
           >
             {muted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-amber-400" />}
           </button>
 
           <span className="text-xs font-mono text-slate-400">
-            Turn {battleState.turn}
+            Turno {battleState.turn}
           </span>
         </div>
       </div>
@@ -429,12 +429,12 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
             </div>
 
             <h2 className="text-2xl font-bold font-pkmn uppercase tracking-wider mb-2 text-zinc-900">
-              {isWinner ? 'YOU WON!' : 'YOU LOST!'}
+              {isWinner ? '¡VICTORIA!' : '¡DERROTA!'}
             </h2>
             <p className="text-base text-zinc-700 font-pkmn leading-snug mb-6">
               {isWinner
-                ? 'All opposing Pokémon were defeated!'
-                : 'All your Pokémon fainted!'}
+                ? '¡Todos los Pokémon rivales fueron derrotados!'
+                : '¡Todos tus Pokémon se han debilitado!'}
             </p>
 
             <div className="flex flex-col gap-2.5">
@@ -442,13 +442,13 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                 onClick={onRematch}
                 className="w-full py-2.5 rounded-full bg-gradient-to-b from-[#f25d5d] to-[#c42828] border-2 border-white font-pkmn text-lg font-bold text-white uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition-all"
               >
-                Rematch
+                Revancha
               </button>
               <button
                 onClick={onLeaveRoom}
                 className="w-full py-2 rounded-full bg-zinc-700 hover:bg-zinc-800 font-pkmn text-base text-white transition-colors"
               >
-                Return to Lobby
+                Volver al Lobby
               </button>
             </div>
           </div>

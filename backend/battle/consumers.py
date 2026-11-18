@@ -76,7 +76,7 @@ class BattleConsumer(AsyncWebsocketConsumer):
                     "team": create_default_party(p1_species)
                 },
                 "p2": {
-                    "name": room.player2_name or ("AI Bot" if is_ai else "Player 2"),
+                    "name": room.player2_name or ("Bot Entrenador" if is_ai else "Entrenador 2"),
                     "active_index": 0,
                     "team": create_default_party(p2_species)
                 }
@@ -198,7 +198,7 @@ class BattleConsumer(AsyncWebsocketConsumer):
                 "team": create_default_party(p1_species),
             },
             "p2": {
-                "name": room.player2_name or ("AI Bot" if room.is_ai_match else "Player 2"),
+                "name": room.player2_name or ("Bot Entrenador" if room.is_ai_match else "Entrenador 2"),
                 "active_index": 0,
                 "team": create_default_party(p2_species),
             },

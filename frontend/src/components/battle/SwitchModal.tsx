@@ -235,7 +235,7 @@ export const SwitchModal: React.FC<SwitchModalProps> = ({
                 textShadow: '2px 2px 0 #383838',
               }}
             >
-              {isFainted ? 'FNT' : `${pokemon.current_hp}/${pokemon.max_hp}`}
+              {isFainted ? 'DEB' : `${pokemon.current_hp}/${pokemon.max_hp}`}
             </span>
           </button>
         );
@@ -252,7 +252,7 @@ export const SwitchModal: React.FC<SwitchModalProps> = ({
         }}
       >
         <span className="font-pkmn pkmn-text-message leading-none" style={{ fontSize: '21px' }}>
-          {isForcedSwitch ? 'Send out which Pokémon?' : 'Choose a Pokémon to switch in.'}
+          {isForcedSwitch ? '¿A qué Pokémon deseas enviar?' : 'Elige un Pokémon para cambiar.'}
         </span>
       </div>
 
@@ -283,7 +283,7 @@ export const SwitchModal: React.FC<SwitchModalProps> = ({
             className="font-pkmn font-bold text-white leading-none"
             style={{ fontSize: '19px', textShadow: '2px 2px 0 #303030' }}
           >
-            CANCEL
+            SALIR
           </span>
         </button>
       )}

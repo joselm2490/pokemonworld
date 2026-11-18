@@ -128,9 +128,9 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
               dialogueMessage
             ) : (
               <>
-                What will
+                ¿Qué debería
                 <br />
-                {activePokemon.name} do?
+                hacer {activePokemon.name}?
               </>
             )}
           </div>
@@ -169,7 +169,7 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
             onFocus={() => selectHoveredCmd('BAG')}
             onClick={() => {
               battleAudio.playSE('cancel', 0.55);
-              alert('Competitive PvP rules: Bag items are disabled during trainer matches.');
+              alert('Reglas de Duelo: Los objetos de la mochila están prohibidos en combates oficiales.');
             }}
             className="absolute border-0 p-0 cursor-pointer pixelated disabled:opacity-50"
             style={{
@@ -317,7 +317,7 @@ export const BattleActionPanel: React.FC<BattleActionPanelProps> = ({
                 onClick={() => onShowMovesChange(false)}
                 className="mt-0.5 text-[11px] font-pkmn text-zinc-500 hover:text-zinc-900 underline cursor-pointer leading-none"
               >
-                Back (Esc)
+                Volver (Esc)
               </button>
             </div>
           )}
