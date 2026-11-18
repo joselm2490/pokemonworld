@@ -72,6 +72,7 @@ export const App: React.FC = () => {
         activeAttacker={battle.activeAttacker}
         activeHitTarget={battle.activeHitTarget}
         activeEffect={battle.activeEffect}
+        switchingState={battle.switchingState}
         onSelectAction={battle.selectAction}
         onSwitchFainted={battle.switchFainted}
         onRematch={battle.rematch}

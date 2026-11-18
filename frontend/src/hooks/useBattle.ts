@@ -19,6 +19,10 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
   const [activeAttacker, setActiveAttacker] = useState<'p1' | 'p2' | null>(null);
   const [activeHitTarget, setActiveHitTarget] = useState<'p1' | 'p2' | null>(null);
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
+  const [switchingState, setSwitchingState] = useState<{
+    side: 'p1' | 'p2';
+    phase: 'recalling' | 'sending';
+  } | null>(null);
 
   const socketRef = useRef<WebSocket | null>(null);
   const effectCounterRef = useRef<number>(1);
@@ -128,10 +132,12 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
           setCurrentMessage(data.message || '¡Adelante!');
           battleAudio.playSE('throw', 0.6);
           triggerEffect('pokeball', 'burst', isPlayerSide);
-          await delay(360);
+          await delay(380);
           battleAudio.playSE('ball_drop', 0.55);
           setBattleState(data.state);
+          setSwitchingState({ side: switchedSide, phase: 'sending' });
           await delay(500);
+          setSwitchingState(null);
           setActiveEffect(null);
           setCurrentMessage('');
           setIsWaitingForTurn(false);
@@ -190,12 +196,16 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
         const side: 'p1' | 'p2' = ev.player || 'p1';
         const sideIsPlayer = side === playerRoleRef.current;
         setCurrentMessage(ev.message || '');
-        battleAudio.playSE('recall', 0.55);
-        await delay(300);
-        battleAudio.playSE('throw', 0.6);
+        // 1. Recall outgoing Pokémon (red beam shrink)
+        setSwitchingState({ side, phase: 'recalling' });
+        battleAudio.playSE('recall', 0.6);
+        await delay(360);
+        // 2. Throw spinning Pokéball arc
+        battleAudio.playSE('throw', 0.65);
         triggerEffect('pokeball', 'burst', sideIsPlayer);
-        await delay(340);
-        battleAudio.playSE('ball_drop', 0.55);
+        await delay(380);
+        // 3. Pokéball opens + new Pokémon pops out in white flash!
+        battleAudio.playSE('ball_drop', 0.6);
         if (typeof ev.new_index === 'number') {
           const nextIdx = ev.new_index;
           patchLiveState((prev) => ({
@@ -203,7 +213,9 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
             [side]: { ...prev[side], active_index: nextIdx },
           }));
         }
-        await delay(460);
+        setSwitchingState({ side, phase: 'sending' });
+        await delay(500);
+        setSwitchingState(null);
         setActiveEffect(null);
       } else if (ev.type === 'ATTACK') {
         setActiveAttacker(ev.actor || null);
@@ -440,6 +452,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
     activeAttacker,
     activeHitTarget,
     activeEffect,
+    switchingState,
     selectAction,
     switchFainted,
     rematch,

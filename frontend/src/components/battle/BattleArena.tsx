@@ -24,6 +24,7 @@ interface BattleArenaProps {
   activeAttacker: 'p1' | 'p2' | null;
   activeHitTarget: 'p1' | 'p2' | null;
   activeEffect: ActiveEffect | null;
+  switchingState?: { side: 'p1' | 'p2'; phase: 'recalling' | 'sending' } | null;
 }
 
 const NATIVE_WIDTH = 512;
@@ -43,6 +44,7 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
   activeAttacker,
   activeHitTarget,
   activeEffect,
+  switchingState = null,
 }) => {
   const [isSwitchOpen, setIsSwitchOpen] = useState(false);
   const [showMoves, setShowMoves] = useState(false);
@@ -258,12 +260,18 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                 }}
               >
                 <AnimatedPokemonSprite
+                  key={`foe-${opponentSide.active_index}-${opponentActivePkmn.species}`}
                   species={opponentActivePkmn.species}
                   isBack={false}
                   showShadow={true}
                   isAttacking={activeAttacker === (isP1 ? 'p2' : 'p1')}
                   isHit={activeHitTarget === (isP1 ? 'p2' : 'p1')}
                   isFainted={opponentActivePkmn.is_fainted}
+                  switchPhase={
+                    switchingState && switchingState.side === (isP1 ? 'p2' : 'p1')
+                      ? switchingState.phase
+                      : null
+                  }
                   status={opponentActivePkmn.status}
                   lowHp={opponentActivePkmn.current_hp <= opponentActivePkmn.max_hp / 4}
                   scale={2}
@@ -281,12 +289,18 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                 }}
               >
                 <AnimatedPokemonSprite
+                  key={`player-${playerSide.active_index}-${playerActivePkmn.species}`}
                   species={playerActivePkmn.species}
                   isBack={true}
                   showShadow={false}
                   isAttacking={activeAttacker === (isP1 ? 'p1' : 'p2')}
                   isHit={activeHitTarget === (isP1 ? 'p1' : 'p2')}
                   isFainted={playerActivePkmn.is_fainted}
+                  switchPhase={
+                    switchingState && switchingState.side === (isP1 ? 'p1' : 'p2')
+                      ? switchingState.phase
+                      : null
+                  }
                   status={playerActivePkmn.status}
                   lowHp={playerActivePkmn.current_hp <= playerActivePkmn.max_hp / 4}
                   scale={2.6}

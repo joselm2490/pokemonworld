@@ -8,6 +8,7 @@ interface AnimatedPokemonSpriteProps {
   isAttacking?: boolean;
   isHit?: boolean;
   isFainted?: boolean;
+  switchPhase?: 'recalling' | 'sending' | null;
   showShadow?: boolean;
   animate?: boolean;
   animateOnHover?: boolean;
@@ -29,6 +30,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   isAttacking = false,
   isHit = false,
   isFainted = false,
+  switchPhase = null,
   showShadow = true,
   animate = true,
   animateOnHover = false,
@@ -43,7 +45,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isVisible, setIsVisible] = useState(animate && !animateOnHover);
   const [isHovered, setIsHovered] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const frameIndexRef = useRef(0);
@@ -92,11 +94,11 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
       totalFramesRef.current = Math.max(1, Math.round(cached.naturalWidth / (cached.naturalHeight || 64)));
       frameIndexRef.current = 0;
       setHasError(false);
-      setImageLoaded(true);
+      setLoadedUrl(spriteUrl);
       return;
     }
 
-    setImageLoaded(false);
+    setLoadedUrl(null);
     setHasError(false);
     frameIndexRef.current = 0;
 
@@ -112,7 +114,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
       const height = img.naturalHeight || 64;
       const width = img.naturalWidth || 64;
       totalFramesRef.current = Math.max(1, Math.round(width / height));
-      setImageLoaded(true);
+      setLoadedUrl(spriteUrl);
     };
 
     img.onerror = () => {
@@ -131,7 +133,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
             1,
             Math.round(fallbackImg.naturalWidth / (fallbackImg.naturalHeight || 64))
           );
-          setImageLoaded(true);
+          setLoadedUrl(fallbackUrl);
         };
         fallbackImg.onerror = () => {
           if (!cancelled) {
@@ -155,7 +157,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
 
   // Render static first frame or run animation loop only when needed
   useEffect(() => {
-    if (!imageLoaded || !imgRef.current || !canvasRef.current) return;
+    if (!loadedUrl || !imgRef.current || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -222,10 +224,14 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
         animFrameIdRef.current = null;
       }
     };
-  }, [imageLoaded, scale, shouldAnimate, isFainted, frameDelayMs, status, lowHp]);
+  }, [loadedUrl, spriteUrl, scale, shouldAnimate, isFainted, frameDelayMs, status, lowHp]);
 
   let animationClass = '';
-  if (isAttacking) {
+  if (switchPhase === 'recalling') {
+    animationClass = 'anim-recall';
+  } else if (switchPhase === 'sending') {
+    animationClass = 'anim-sendout';
+  } else if (isAttacking) {
     animationClass = isBack ? 'anim-attack-p1' : 'anim-attack-p2';
   } else if (isHit) {
     animationClass = 'anim-damage';
