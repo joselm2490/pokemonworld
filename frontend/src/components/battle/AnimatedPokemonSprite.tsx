@@ -34,7 +34,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   showShadow = true,
   animate = true,
   animateOnHover = false,
-  frameDelayMs = 95,
+  frameDelayMs = 68,
   status = null,
   lowHp = false,
   scale = 2,
@@ -199,12 +199,12 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
       return;
     }
 
-    // Official Deluxe Battle Kit pacing (Settings::ANIMATION_FRAME_DELAY ~90-95ms)
+    // Balanced Gen 5 / Essentials pacing (~15 FPS normal)
     let frameInterval = frameDelayMs;
     if (status === 'SLP') {
-      frameInterval = frameDelayMs * 3;
+      frameInterval = Math.round(frameDelayMs * 2);
     } else if (status === 'PAR' || lowHp) {
-      frameInterval = frameDelayMs * 2;
+      frameInterval = Math.round(frameDelayMs * 1.45);
     }
 
     const renderLoop = (time: number) => {
