@@ -264,6 +264,8 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                   isAttacking={activeAttacker === (isP1 ? 'p2' : 'p1')}
                   isHit={activeHitTarget === (isP1 ? 'p2' : 'p1')}
                   isFainted={opponentActivePkmn.is_fainted}
+                  status={opponentActivePkmn.status}
+                  lowHp={opponentActivePkmn.current_hp <= opponentActivePkmn.max_hp / 4}
                   scale={2}
                 />
               </div>
@@ -285,6 +287,8 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                   isAttacking={activeAttacker === (isP1 ? 'p1' : 'p2')}
                   isHit={activeHitTarget === (isP1 ? 'p1' : 'p2')}
                   isFainted={playerActivePkmn.is_fainted}
+                  status={playerActivePkmn.status}
+                  lowHp={playerActivePkmn.current_hp <= playerActivePkmn.max_hp / 4}
                   scale={2.6}
                 />
               </div>

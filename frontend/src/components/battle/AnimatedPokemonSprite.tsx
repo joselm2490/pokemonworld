@@ -11,6 +11,9 @@ interface AnimatedPokemonSpriteProps {
   showShadow?: boolean;
   animate?: boolean;
   animateOnHover?: boolean;
+  frameDelayMs?: number;
+  status?: string | null;
+  lowHp?: boolean;
   scale?: number;
   className?: string;
   apiBaseUrl?: string;
@@ -29,6 +32,9 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   showShadow = true,
   animate = true,
   animateOnHover = false,
+  frameDelayMs = 95,
+  status = null,
+  lowHp = false,
   scale = 2,
   className = '',
   apiBaseUrl = import.meta.env.VITE_BACKEND_API_URL || '',
@@ -187,11 +193,17 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
     // Always draw at least frame 0 immediately
     drawCurrentFrame();
 
-    if (!shouldAnimate || totalFrames <= 1) {
+    if (!shouldAnimate || totalFrames <= 1 || status === 'FRZ') {
       return;
     }
 
-    const frameInterval = 50; // ~20fps authentic smooth DS/Essentials pacing
+    // Official Deluxe Battle Kit pacing (Settings::ANIMATION_FRAME_DELAY ~90-95ms)
+    let frameInterval = frameDelayMs;
+    if (status === 'SLP') {
+      frameInterval = frameDelayMs * 3;
+    } else if (status === 'PAR' || lowHp) {
+      frameInterval = frameDelayMs * 2;
+    }
 
     const renderLoop = (time: number) => {
       if (time - lastTimeRef.current >= frameInterval) {
@@ -210,7 +222,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
         animFrameIdRef.current = null;
       }
     };
-  }, [imageLoaded, scale, shouldAnimate, isFainted]);
+  }, [imageLoaded, scale, shouldAnimate, isFainted, frameDelayMs, status, lowHp]);
 
   let animationClass = '';
   if (isAttacking) {
