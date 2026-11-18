@@ -7,8 +7,33 @@ import {
   RoomDetailData,
   RoomMessage,
 } from '../types/stadium';
+import { battleLogger } from '../utils/logger';
 
 const API_BASE = import.meta.env.VITE_BACKEND_API_URL || '';
+
+async function apiFetch<T>(path: string, init?: RequestInit, fallbackError = 'Error de red'): Promise<T> {
+  const url = `${API_BASE}${path}`;
+  const method = init?.method || 'GET';
+  const t0 = performance.now();
+  battleLogger.api(`${method} ${url}`);
+
+  try {
+    const res = await fetch(url, init);
+    const ms = Math.round(performance.now() - t0);
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      battleLogger.error('API', `${method} ${path} -> HTTP ${res.status} (${ms}ms)`, errBody);
+      throw new Error(errBody.error || fallbackError);
+    }
+    const data = await res.json();
+    battleLogger.api(`${method} ${path} -> HTTP ${res.status} (${ms}ms)`);
+    return data as T;
+  } catch (err) {
+    const ms = Math.round(performance.now() - t0);
+    battleLogger.error('API', `${method} ${path} FAILED (${ms}ms)`, err);
+    throw err;
+  }
+}
 
 export const PokedexService = {
   async getPokemonList(params: {
@@ -28,18 +53,14 @@ export const PokedexService = {
     if (params.rareza) query.set('rareza', params.rareza);
     if (params.fase) query.set('fase', params.fase);
     if (params.campeon) query.set('campeon', '1');
-    query.set('limit', String(params.limit || 60));
+    query.set('limit', String(params.limit || 24));
     query.set('offset', String(params.offset || 0));
 
-    const res = await fetch(`${API_BASE}/api/pokedex/pokemon/?${query.toString()}`);
-    if (!res.ok) throw new Error('Error al cargar lista de Pokémon');
-    return res.json();
+    return apiFetch(`/api/pokedex/pokemon/?${query.toString()}`, undefined, 'Error al cargar lista de Pokémon');
   },
 
   async getPokemonDetail(idOrName: string | number): Promise<StadiumPokemonDetail> {
-    const res = await fetch(`${API_BASE}/api/pokedex/pokemon/${idOrName}/`);
-    if (!res.ok) throw new Error('Error al cargar detalle del Pokémon');
-    return res.json();
+    return apiFetch(`/api/pokedex/pokemon/${idOrName}/`, undefined, 'Error al cargar detalle del Pokémon');
   },
 
   async getMovesList(params: {
@@ -58,15 +79,11 @@ export const PokedexService = {
     query.set('limit', String(params.limit || 50));
     query.set('offset', String(params.offset || 0));
 
-    const res = await fetch(`${API_BASE}/api/pokedex/movimientos/?${query.toString()}`);
-    if (!res.ok) throw new Error('Error al cargar movimientos');
-    return res.json();
+    return apiFetch(`/api/pokedex/movimientos/?${query.toString()}`, undefined, 'Error al cargar movimientos');
   },
 
   async getTypes(): Promise<{ tipos: TypeDetail[] }> {
-    const res = await fetch(`${API_BASE}/api/pokedex/tipos/`);
-    if (!res.ok) throw new Error('Error al cargar tipos');
-    return res.json();
+    return apiFetch('/api/pokedex/tipos/', undefined, 'Error al cargar tipos');
   },
 
   // === Gestión de Salas y Duelos ===
@@ -82,63 +99,66 @@ export const PokedexService = {
     };
     team?: string[];
   }): Promise<{ room_code: string; status: string }> {
-    const res = await fetch(`${API_BASE}/api/battle/rooms/create/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error('Error al crear la sala');
-    return res.json();
+    return apiFetch(
+      '/api/battle/rooms/create/',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      },
+      'Error al crear la sala'
+    );
   },
 
   async getOpenRooms(): Promise<RoomSummary[]> {
-    const res = await fetch(`${API_BASE}/api/battle/rooms/open/`);
-    if (!res.ok) throw new Error('Error al listar salas abiertas');
-    return res.json();
+    return apiFetch('/api/battle/rooms/open/', undefined, 'Error al listar salas abiertas');
   },
 
   async getRoomDetail(roomCode: string): Promise<RoomDetailData> {
-    const res = await fetch(`${API_BASE}/api/battle/rooms/${roomCode}/`);
-    if (!res.ok) throw new Error('Error al obtener detalle de la sala');
-    return res.json();
+    return apiFetch(`/api/battle/rooms/${roomCode}/`, undefined, 'Error al obtener detalle de la sala');
   },
 
-  async joinRoom(roomCode: string, data: { player_name: string; password?: string; team?: string[] }) {
-    const res = await fetch(`${API_BASE}/api/battle/rooms/${roomCode}/join/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'Error al unirse a la sala');
-    }
-    return res.json();
+  async joinRoom(roomCode: string, data: { player_name: string; password?: string; team?: string[] }): Promise<any> {
+    return apiFetch<any>(
+      `/api/battle/rooms/${roomCode}/join/`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      },
+      'Error al unirse a la sala'
+    );
   },
 
-  async toggleReady(roomCode: string, data: { player_name: string; ready?: boolean; team?: string[] }) {
-    const res = await fetch(`${API_BASE}/api/battle/rooms/${roomCode}/ready/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error('Error al actualizar estado');
-    return res.json();
+  async toggleReady(roomCode: string, data: { player_name: string; ready?: boolean; team?: string[] }): Promise<any> {
+    return apiFetch<any>(
+      `/api/battle/rooms/${roomCode}/ready/`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      },
+      'Error al actualizar estado'
+    );
   },
 
   async getRoomChat(roomCode: string): Promise<RoomMessage[]> {
-    const res = await fetch(`${API_BASE}/api/battle/rooms/${roomCode}/chat/`);
-    if (!res.ok) return [];
-    return res.json();
+    try {
+      return await apiFetch<RoomMessage[]>(`/api/battle/rooms/${roomCode}/chat/`);
+    } catch {
+      return [];
+    }
   },
 
-  async sendRoomChat(roomCode: string, data: { emisor: string; mensaje: string }) {
-    const res = await fetch(`${API_BASE}/api/battle/rooms/${roomCode}/chat/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error('Error al enviar mensaje');
-    return res.json();
+  async sendRoomChat(roomCode: string, data: { emisor: string; mensaje: string }): Promise<any> {
+    return apiFetch<any>(
+      `/api/battle/rooms/${roomCode}/chat/`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      },
+      'Error al enviar mensaje'
+    );
   },
 };

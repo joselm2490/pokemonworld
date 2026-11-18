@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { BattleState, BattleEvent } from '../types/pokemon';
 import { ActiveEffect } from '../components/battle/BattleEffectOverlay';
 import { battleAudio } from '../utils/battleAudio';
+import { battleLogger } from '../utils/logger';
 
 interface UseBattleProps {
   roomCode: string;
@@ -21,12 +22,23 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
   const socketRef = useRef<WebSocket | null>(null);
   const effectCounterRef = useRef<number>(1);
   const playerRoleRef = useRef(playerRole);
+  const actionSentAtRef = useRef<number>(0);
+  const turnTimeoutRef = useRef<number | null>(null);
   playerRoleRef.current = playerRole;
+
+  const clearTurnTimeout = () => {
+    if (turnTimeoutRef.current !== null) {
+      window.clearTimeout(turnTimeoutRef.current);
+      turnTimeoutRef.current = null;
+    }
+  };
 
   useEffect(() => {
     if (!roomCode) {
       setBattleState(null);
       setActiveEffect(null);
+      setIsWaitingForTurn(false);
+      clearTurnTimeout();
       battleAudio.stopBGM();
       return;
     }
@@ -38,42 +50,79 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
       `${wsProtocol}//${window.location.hostname}:${backendPort}`;
     const socketUrl = `${backendHost}/ws/battle/${roomCode}/`;
 
+    const connectStart = performance.now();
+    battleLogger.ws(`Connecting to ${socketUrl}`, { roomCode, isAi, playerRole });
+
     const socket = new WebSocket(socketUrl);
     socketRef.current = socket;
 
     socket.onopen = () => {
+      const connectMs = Math.round(performance.now() - connectStart);
+      battleLogger.ws(`Connected in ${connectMs}ms`, { readyState: socket.readyState });
       battleAudio.playBGM('battle_trainer');
-      socket.send(
-        JSON.stringify({
-          type: 'JOIN_ROOM',
-          player_name: playerRole === 'p1' ? 'Trainer 1' : 'Trainer 2',
-          player_role: playerRole,
-          is_ai: isAi,
-          team: customTeam,
-        })
-      );
+
+      const joinPayload = {
+        type: 'JOIN_ROOM',
+        player_name: playerRole === 'p1' ? 'Entrenador 1' : 'Entrenador 2',
+        player_role: playerRole,
+        is_ai: isAi,
+        team: customTeam,
+      };
+      actionSentAtRef.current = performance.now();
+      battleLogger.ws('SEND -> JOIN_ROOM', joinPayload);
+      socket.send(JSON.stringify(joinPayload));
     };
 
     socket.onmessage = async (event) => {
+      const rttMs = actionSentAtRef.current
+        ? Math.round(performance.now() - actionSentAtRef.current)
+        : 0;
+
       try {
         const data = JSON.parse(event.data);
+        battleLogger.ws(`RECV <- ${data.type} (RTT: ${rttMs}ms, server: ${data.server_ms ?? '?'}ms)`, data);
+
+        if (data.type === 'BATTLE_ERROR') {
+          clearTurnTimeout();
+          battleLogger.error('SERVER_BATTLE_ERROR', data.error, {
+            action: data.action,
+            trace: data.trace,
+          });
+          setIsWaitingForTurn(false);
+          setCurrentMessage(`Error del servidor: ${data.error}`);
+          return;
+        }
+
+        if (data.type === 'ACTION_ACK') {
+          battleLogger.battle(`Acción confirmada por servidor, esperando a ${data.waiting_for}`);
+          return;
+        }
 
         if (data.type === 'BATTLE_INIT') {
+          clearTurnTimeout();
+          battleLogger.battle('Batalla inicializada', {
+            turn: data.state?.turn,
+            p1: data.state?.p1?.team?.map((p: any) => p.species),
+            p2: data.state?.p2?.team?.map((p: any) => p.species),
+          });
           setBattleState(data.state);
           setIsWaitingForTurn(false);
           setCurrentMessage('');
           triggerEffect('pokeball', 'burst', true);
           battleAudio.playSE('throw', 0.55);
         } else if (data.type === 'TURN_RESOLVED') {
+          clearTurnTimeout();
           setIsWaitingForTurn(true);
+          battleLogger.battle(`Resolviendo ${data.events?.length ?? 0} eventos del turno`, data.events);
           await playTurnSequence(data.events, data.state);
           setIsWaitingForTurn(false);
           setCurrentMessage('');
         } else if (data.type === 'FAINT_SWITCH_RESOLVED') {
+          clearTurnTimeout();
           setIsWaitingForTurn(true);
           const switchedSide: 'p1' | 'p2' = data.player || 'p1';
           const isPlayerSide = switchedSide === playerRoleRef.current;
-          setCurrentMessage(data.message || 'Go!');
+          setCurrentMessage(data.message || '¡Adelante!');
           battleAudio.playSE('throw', 0.6);
           triggerEffect('pokeball', 'burst', isPlayerSide);
           await delay(360);
@@ -85,16 +134,29 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
           setIsWaitingForTurn(false);
         }
       } catch (err) {
-        console.error('WebSocket message parsing error:', err);
+        clearTurnTimeout();
+        battleLogger.error('WS_PARSE', 'Error procesando mensaje del servidor', err);
+        setIsWaitingForTurn(false);
       }
     };
 
     socket.onerror = (err) => {
-      console.warn('WebSocket connection error, starting local battle mode...', err);
+      clearTurnTimeout();
+      battleLogger.error('WS_ERROR', `Fallo de conexión WebSocket en ${socketUrl}`, err);
       initLocalFallback();
     };
 
+    socket.onclose = (ev) => {
+      clearTurnTimeout();
+      battleLogger.warn('WS_CLOSE', `Conexión cerrada (code=${ev.code}, clean=${ev.wasClean})`, {
+        reason: ev.reason || '(sin razón)',
+      });
+      setIsWaitingForTurn(false);
+    };
+
     return () => {
+      clearTurnTimeout();
+      battleLogger.ws(`Desconectando sala ${roomCode}`);
       socket.close();
       battleAudio.stopBGM();
     };
@@ -119,16 +181,17 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
     for (const ev of events) {
       const targetSide = ev.target || ev.player || 'p2';
       const targetIsPlayer = targetSide === playerRoleRef.current;
+      battleLogger.battle(`Play event: ${ev.type}`, ev);
 
       if (ev.type === 'SWITCH') {
         const side: 'p1' | 'p2' = ev.player || 'p1';
         const sideIsPlayer = side === playerRoleRef.current;
         setCurrentMessage(ev.message || '');
         battleAudio.playSE('recall', 0.55);
-        await delay(320);
+        await delay(300);
         battleAudio.playSE('throw', 0.6);
         triggerEffect('pokeball', 'burst', sideIsPlayer);
-        await delay(360);
+        await delay(340);
         battleAudio.playSE('ball_drop', 0.55);
         if (typeof ev.new_index === 'number') {
           const nextIdx = ev.new_index;
@@ -137,7 +200,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
             [side]: { ...prev[side], active_index: nextIdx },
           }));
         }
-        await delay(520);
+        await delay(460);
         setActiveEffect(null);
       } else if (ev.type === 'ATTACK') {
         setActiveAttacker(ev.actor || null);
@@ -151,7 +214,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
             ? ev.actor === playerRoleRef.current
             : targetIsPlayer;
         triggerEffect('attack', sheetKey, animTargetIsPlayer);
-        await delay(650);
+        await delay(600);
         setActiveAttacker(null);
         setActiveEffect(null);
       } else if (ev.type === 'DAMAGE') {
@@ -168,7 +231,6 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
           setActiveHitTarget(targetSide);
         }
 
-        // Smoothly update HP bar right when damage lands!
         if (typeof ev.remaining_hp === 'number') {
           const newHp = ev.remaining_hp;
           patchLiveState((prev) => {
@@ -182,9 +244,9 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
 
         if (ev.message) {
           setCurrentMessage(ev.message);
-          await delay(850);
+          await delay(800);
         } else {
-          await delay(520);
+          await delay(480);
         }
         setActiveHitTarget(null);
       } else if (ev.type === 'HEAL') {
@@ -201,7 +263,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
             return { ...prev, [targetSide]: { ...side, team: teamCopy } };
           });
         }
-        await delay(750);
+        await delay(700);
         setActiveEffect(null);
       } else if (ev.type === 'STAT_CHANGE' || ev.type === 'STATUS') {
         setCurrentMessage(ev.message || '');
@@ -216,14 +278,14 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
             return { ...prev, [targetSide]: { ...side, team: teamCopy } };
           });
         }
-        await delay(780);
+        await delay(720);
         setActiveEffect(null);
       } else if (ev.type === 'MISS' || ev.type === 'INFO') {
         setCurrentMessage(ev.message || '');
-        await delay(820);
+        await delay(750);
       } else if (ev.type === 'FAINT') {
         battleAudio.playSE('faint', 0.75);
-        setCurrentMessage(ev.message || 'Pokémon fainted!');
+        setCurrentMessage(ev.message || '¡El Pokémon se debilitó!');
         patchLiveState((prev) => {
           const side = prev[targetSide];
           const teamCopy = side.team.map((pk, idx) =>
@@ -231,13 +293,13 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
           );
           return { ...prev, [targetSide]: { ...side, team: teamCopy } };
         });
-        await delay(1000);
+        await delay(900);
       } else if (ev.type === 'GAME_OVER') {
-        setCurrentMessage(ev.message || 'Match finished!');
+        setCurrentMessage(ev.message || '¡Combate finalizado!');
         if (ev.winner === playerRoleRef.current) {
           battleAudio.playBGM('victory_trainer', 0.38);
         }
-        await delay(1200);
+        await delay(1100);
       }
     }
 
@@ -252,37 +314,68 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
   ) => {
     battleAudio.ensureBgmPlaying();
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      battleLogger.error('WS_SEND', 'No se pudo enviar acción: WebSocket no está abierto', {
+        readyState: socketRef.current?.readyState,
+        action,
+      });
+      setCurrentMessage('Sin conexión con el servidor. Recarga la sala.');
       return;
     }
+
+    const payload = {
+      type: 'SUBMIT_ACTION',
+      player: playerRole,
+      action,
+    };
+    actionSentAtRef.current = performance.now();
     setIsWaitingForTurn(true);
-    socketRef.current.send(
-      JSON.stringify({
-        type: 'SUBMIT_ACTION',
-        player: playerRole,
-        action,
-      })
-    );
+    battleLogger.ws('SEND -> SUBMIT_ACTION', payload);
+    socketRef.current.send(JSON.stringify(payload));
+
+    // Safety timeout (15s) in AI mode so UI never stays stuck on "Calculando turno..."
+    clearTurnTimeout();
+    if (isAi) {
+      turnTimeoutRef.current = window.setTimeout(() => {
+        battleLogger.error(
+          'TURN_TIMEOUT',
+          'El servidor no respondió en 15 segundos tras SUBMIT_ACTION',
+          { roomCode, payload, readyState: socketRef.current?.readyState }
+        );
+        setIsWaitingForTurn(false);
+        setCurrentMessage('El servidor tardó demasiado. Intenta de nuevo.');
+      }, 15000);
+    }
   };
 
   const switchFainted = (targetIndex: number) => {
     battleAudio.ensureBgmPlaying();
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
-    socketRef.current.send(
-      JSON.stringify({
-        type: 'SWITCH_FAINTED',
-        player: playerRole,
-        target_index: targetIndex,
-      })
-    );
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      battleLogger.error('WS_SEND', 'WebSocket cerrado al intentar cambiar Pokémon debilitado');
+      return;
+    }
+    const payload = {
+      type: 'SWITCH_FAINTED',
+      player: playerRole,
+      target_index: targetIndex,
+    };
+    actionSentAtRef.current = performance.now();
+    battleLogger.ws('SEND -> SWITCH_FAINTED', payload);
+    socketRef.current.send(JSON.stringify(payload));
   };
 
   const rematch = () => {
     battleAudio.playBGM('battle_trainer');
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      battleLogger.error('WS_SEND', 'WebSocket cerrado al solicitar revancha');
+      return;
+    }
+    actionSentAtRef.current = performance.now();
+    battleLogger.ws('SEND -> REMATCH');
     socketRef.current.send(JSON.stringify({ type: 'REMATCH' }));
   };
 
   const initLocalFallback = () => {
+    battleLogger.warn('FALLBACK', 'Activando estado local de respaldo porque falló el WebSocket');
     const p1Team = [
       {
         species: 'CHARIZARD',
@@ -332,7 +425,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
       is_game_over: false,
       winner: null,
       p1: { name: 'Entrenador 1', active_index: 0, team: p1Team as any },
-      p2: { name: 'Rival', active_index: 0, team: p2Team as any },
+      p2: { name: 'Bot Entrenador', active_index: 0, team: p2Team as any },
     });
     setCurrentMessage('');
   };

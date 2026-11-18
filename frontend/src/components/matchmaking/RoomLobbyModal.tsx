@@ -63,7 +63,9 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
     };
 
     refreshData();
-    const interval = setInterval(refreshData, 2500);
+    const interval = setInterval(() => {
+      if (!document.hidden) refreshData();
+    }, 5000);
 
     return () => {
       isMounted = false;

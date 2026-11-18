@@ -70,7 +70,7 @@ def _enrich_move_from_pbs(move_dict: dict) -> dict:
     return merged
 
 
-def create_pokemon_instance(species: str, level: int = 50) -> dict:
+def create_pokemon_instance(species: str, level: int = 50, db_cache: Optional[dict] = None) -> dict:
     species_key = species.upper().strip()
     pbs_pokemon = get_all_pokemon()
     pbs_data = pbs_pokemon.get(species_key)
@@ -78,11 +78,20 @@ def create_pokemon_instance(species: str, level: int = 50) -> dict:
 
     # Attempt to pull from Django Pokédex database with WikiDex stats & abilities
     db_pkmn = None
-    try:
-        from pokedex.models import Pokemon
-        db_pkmn = Pokemon.objects.filter(nombre_ingles__iexact=species_key).select_related('estadisticas').prefetch_related('habilidades').first()
-    except Exception:
-        db_pkmn = None
+    if db_cache is not None:
+        db_pkmn = db_cache.get(species_key)
+    else:
+        try:
+            from pokedex.models import Pokemon
+            db_pkmn = (
+                Pokemon.objects
+                .filter(nombre_ingles__iexact=species_key)
+                .select_related('estadisticas', 'tipo1', 'tipo2')
+                .prefetch_related('habilidades')
+                .first()
+            )
+        except Exception:
+            db_pkmn = None
 
     if db_pkmn and hasattr(db_pkmn, 'estadisticas'):
         name = db_pkmn.nombre
@@ -176,7 +185,27 @@ def create_pokemon_instance(species: str, level: int = 50) -> dict:
 
 
 def create_default_party(species_list: list, level: int = 50) -> list:
-    return [create_pokemon_instance(sp, level) for sp in species_list]
+    """Builds a full party using a single batched DB lookup to avoid N+1 queries."""
+    db_cache = {}
+    try:
+        from pokedex.models import Pokemon
+        from django.db.models import Q
+        query = Q()
+        for sp in species_list:
+            query |= Q(nombre_ingles__iexact=sp.strip())
+        if query:
+            qs = (
+                Pokemon.objects
+                .filter(query)
+                .select_related('estadisticas', 'tipo1', 'tipo2')
+                .prefetch_related('habilidades')
+            )
+            for obj in qs:
+                if obj.nombre_ingles:
+                    db_cache[obj.nombre_ingles.upper().strip()] = obj
+    except Exception:
+        db_cache = {}
+    return [create_pokemon_instance(sp, level, db_cache=db_cache) for sp in species_list]
 
 
 def _can_apply_status(target: dict, status_code: str) -> bool:
@@ -656,7 +685,16 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
     return {"events": events, "state": state}
 
 
-def choose_ai_move(ai_pk: dict, foe_pk: dict) -> dict:
+def choose_ai_move(ai_pk_or_state: dict, foe_pk: Optional[dict] = None) -> dict:
+    """Smart AI move selector. Accepts either (state) or (ai_pk, foe_pk)."""
+    if foe_pk is None and "p1" in ai_pk_or_state and "p2" in ai_pk_or_state:
+        p2 = ai_pk_or_state["p2"]
+        p1 = ai_pk_or_state["p1"]
+        ai_pk = p2["team"][p2["active_index"]]
+        foe_pk = p1["team"][p1["active_index"]]
+    else:
+        ai_pk = ai_pk_or_state
+
     best_idx = 0
     best_score = -1.0
 
@@ -665,12 +703,14 @@ def choose_ai_move(ai_pk: dict, foe_pk: dict) -> dict:
             continue
         if move.get("category") == "STATUS":
             score = 25.0
-            if foe_pk.get("status") is None and any(st in move.get("function_code", "") for st in ["Burn", "Paralyze", "Sleep", "Poison"]):
+            if foe_pk and foe_pk.get("status") is None and any(
+                st in move.get("function_code", "") for st in ["Burn", "Paralyze", "Sleep", "Poison"]
+            ):
                 score += 35.0
         else:
-            eff = get_type_effectiveness(move["type"], foe_pk["types"])
-            stab = 1.5 if move["type"] in ai_pk["types"] else 1.0
-            score = move["power"] * eff * stab * random.uniform(0.85, 1.15)
+            eff = get_type_effectiveness(move["type"], foe_pk.get("types", []) if foe_pk else [])
+            stab = 1.5 if move["type"] in ai_pk.get("types", []) else 1.0
+            score = move.get("power", 50) * eff * stab * random.uniform(0.85, 1.15)
         if score > best_score:
             best_score = score
             best_idx = idx

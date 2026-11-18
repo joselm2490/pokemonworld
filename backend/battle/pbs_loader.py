@@ -141,9 +141,15 @@ def get_random_battle_pool(sprites_dir: Optional[Path] = None) -> List[str]:
     pool: List[str] = []
     try:
         from pokedex.models import Pokemon
-        champs = Pokemon.objects.filter(campeon=True)
+        all_pbs = get_all_pokemon()
+        champs = Pokemon.objects.filter(campeon=True, categoria_rareza='estandar')
         for p in champs:
             sp = p.nombre_ingles.upper().replace(' ', '_').replace('-', '_')
+            pbs_entry = all_pbs.get(sp)
+            if pbs_entry and (set(pbs_entry.get('flags', [])) & FORBIDDEN_LEGENDARY_FLAGS):
+                continue
+            if sp in EXCLUDED_RANDOM_SPECIES:
+                continue
             if not front_sprites or sp in front_sprites:
                 pool.append(sp)
     except Exception as e:

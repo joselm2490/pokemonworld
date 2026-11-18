@@ -65,9 +65,13 @@ export const Lobby: React.FC<LobbyProps> = ({
 
   useEffect(() => {
     fetchRooms();
-    const interval = setInterval(fetchRooms, 4000);
+    const interval = setInterval(() => {
+      if (!document.hidden && !waitingRoom) {
+        fetchRooms();
+      }
+    }, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [waitingRoom]);
 
   const handleRoomCreated = (code: string, isAi: boolean, role: 'p1' | 'p2') => {
     setShowCreateModal(false);

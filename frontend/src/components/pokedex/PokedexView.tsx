@@ -54,7 +54,7 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack }) => {
         rareza: selectedRareza,
         fase: selectedFase,
         campeon: onlyChampions,
-        limit: 72,
+        limit: 24,
       })
         .then((data) => {
           if (active) {
@@ -256,6 +256,10 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack }) => {
                   <div className="absolute inset-0 bg-radial from-white/5 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                   <AnimatedPokemonSprite
                     species={pkmn.species}
+                    animate={false}
+                    animateOnHover={true}
+                    showShadow={false}
+                    scale={1.5}
                     className="w-full h-full object-contain filter group-hover:scale-105 transition-transform"
                   />
                 </div>

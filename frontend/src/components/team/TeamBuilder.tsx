@@ -56,7 +56,7 @@ export const TeamBuilder: React.FC<TeamBuilderProps> = ({
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const params = new URLSearchParams({ limit: '48' });
+        const params = new URLSearchParams({ limit: '24' });
         if (query.trim()) params.set('q', query.trim());
         const res = await fetch(`${apiBase}/api/pokedex/roster/?${params.toString()}`, {
           signal: controller.signal,
@@ -217,7 +217,13 @@ export const TeamBuilder: React.FC<TeamBuilderProps> = ({
               )}
 
               <div className="w-24 h-24 flex items-center justify-center my-1">
-                <AnimatedPokemonSprite species={pkmn.species} scale={1.7} showShadow={false} />
+                <AnimatedPokemonSprite
+                  species={pkmn.species}
+                  scale={1.6}
+                  showShadow={false}
+                  animate={false}
+                  animateOnHover={true}
+                />
               </div>
 
               <span className="font-bold text-white font-pkmn text-base tracking-wide uppercase mb-1 truncate max-w-full">
