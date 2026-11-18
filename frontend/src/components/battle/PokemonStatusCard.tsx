@@ -100,7 +100,8 @@ export const PokemonStatusCard: React.FC<PokemonStatusCardProps> = ({
               top: '35px',
               width: '44px',
               height: '16px',
-              backgroundImage: 'url(/battle-ui/ui/icon_statuses.png)',
+              backgroundImage: 'url(/battle-ui/ui/icon_statuses-espanol.png)',
+              backgroundSize: '44px 96px',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: `0px -${statusRow * 16}px`,
             }}
@@ -182,7 +183,8 @@ export const PokemonStatusCard: React.FC<PokemonStatusCardProps> = ({
             top: '35px',
             width: '44px',
             height: '16px',
-            backgroundImage: 'url(/battle-ui/ui/icon_statuses.png)',
+            backgroundImage: 'url(/battle-ui/ui/icon_statuses-espanol.png)',
+            backgroundSize: '44px 96px',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: `0px -${statusRow * 16}px`,
           }}

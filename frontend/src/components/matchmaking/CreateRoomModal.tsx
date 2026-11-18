@@ -19,7 +19,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
   );
   const [password, setPassword] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
-  const [pokemonPerPlayer, setPokemonPerPlayer] = useState<number>(3);
+  const [pokemonPerPlayer, setPokemonPerPlayer] = useState<number>(6);
   const [allowLegendaries, setAllowLegendaries] = useState(false);
   const [genFilter, setGenFilter] = useState('todas');
   const [loading, setLoading] = useState(false);

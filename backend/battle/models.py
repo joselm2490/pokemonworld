@@ -16,7 +16,7 @@ class BattleRoom(models.Model):
     player2_name = models.CharField(max_length=64, blank=True, null=True)
     is_ai_match = models.BooleanField(default=False)
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='WAITING')
-    pokemon_per_player = models.IntegerField(default=3)  # Duelo 3 vs 3 (o 6 vs 6)
+    pokemon_per_player = models.IntegerField(default=6)  # Duelo 6 vs 6 por defecto
     max_players = models.IntegerField(default=2)
     format_settings = models.JSONField(
         default=dict,

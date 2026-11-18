@@ -24,9 +24,9 @@ class RoomCreateView(APIView):
         password = request.data.get("password", "").strip() or None
         is_ai = bool(request.data.get("is_ai", False))
         room_code = request.data.get("room_code", "").strip().upper() or generate_room_code()
-        pokemon_per_player = int(request.data.get("pokemon_per_player", 3) or 3)
+        pokemon_per_player = int(request.data.get("pokemon_per_player", 6) or 6)
         if pokemon_per_player not in (1, 3, 6):
-            pokemon_per_player = 3
+            pokemon_per_player = 6
 
         format_settings = request.data.get("format_settings", {})
         if not isinstance(format_settings, dict):

@@ -213,21 +213,33 @@ class BattleConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def init_room_and_state(self, room_code, player_name, is_ai, force_reset=False):
+        is_ai_match = is_ai or room_code.startswith("AI-")
         room, created = BattleRoom.objects.get_or_create(
             room_code=room_code,
             defaults={
                 "player1_name": player_name,
-                "is_ai_match": is_ai,
-                "status": "ACTIVE" if is_ai else "WAITING",
+                "is_ai_match": is_ai_match,
+                "pokemon_per_player": 6,
+                "status": "ACTIVE" if is_ai_match else "WAITING",
             },
         )
+        if is_ai_match and (not room.is_ai_match or room.pokemon_per_player != 6):
+            room.is_ai_match = True
+            room.pokemon_per_player = 6
+            room.status = "ACTIVE"
+            room.save()
+
         if not created and not room.player2_name and not room.is_ai_match and room.player1_name != player_name:
             room.player2_name = player_name
             room.status = "ACTIVE"
             room.save()
 
         if not room.state_data or force_reset:
-            team_size = max(1, min(6, getattr(room, "pokemon_per_player", 6) or 6))
+            if is_ai_match or room.is_ai_match:
+                team_size = 6
+                room.pokemon_per_player = 6
+            else:
+                team_size = max(1, min(6, getattr(room, "pokemon_per_player", 6) or 6))
             p1_species, p2_species = generate_random_teams(
                 team_size=team_size,
                 sprites_dir=settings.SPRITES_DIR,
@@ -265,7 +277,11 @@ class BattleConsumer(AsyncWebsocketConsumer):
         if not room:
             return None, None
 
-        team_size = max(1, min(6, getattr(room, "pokemon_per_player", 6) or 6))
+        if room.is_ai_match or room_code.startswith("AI-"):
+            team_size = 6
+            room.pokemon_per_player = 6
+        else:
+            team_size = max(1, min(6, getattr(room, "pokemon_per_player", 6) or 6))
         p1_species, p2_species = generate_random_teams(
             team_size=team_size,
             sprites_dir=settings.SPRITES_DIR,
