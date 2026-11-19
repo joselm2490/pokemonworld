@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Trophy,
   Swords,
   Bot,
   Users,
@@ -19,6 +20,14 @@ import {
   Edit2,
   Activity,
   Flame,
+  Info,
+  Search,
+  Gift,
+  HeartPulse,
+  Settings,
+  Send,
+  Sliders,
+  Backpack,
 } from 'lucide-react';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
 import { CreateRoomModal } from './CreateRoomModal';
@@ -46,9 +55,9 @@ export const Lobby: React.FC<LobbyProps> = ({
   selectedTeam,
   onUpdateTeam,
 }) => {
-  // Trainer Name
+  // Trainer Name (Persisted)
   const [trainerName, setTrainerName] = useState(() => {
-    return localStorage.getItem('pokemon_trainer_name') || 'Entrenador Red';
+    return localStorage.getItem('pokemon_trainer_name') || 'BrauElizalde';
   });
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(trainerName);
@@ -111,7 +120,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
   const handleSaveName = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = nameInput.trim() || 'Entrenador Red';
+    const clean = nameInput.trim() || 'BrauElizalde';
     setTrainerName(clean);
     localStorage.setItem('pokemon_trainer_name', clean);
     setIsEditingName(false);
@@ -182,33 +191,55 @@ export const Lobby: React.FC<LobbyProps> = ({
   const leaderSpecies = selectedTeam[0] || 'CHARIZARD';
 
   return (
-    <div className="min-h-[100dvh] bg-[#090d12] text-slate-100 flex flex-col justify-between font-game select-none relative overflow-x-hidden">
-      {/* Background Cyber Grid Accent */}
-      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] opacity-25 pointer-events-none" />
+    <div className="min-h-[100dvh] bg-[#f2f4f7] text-slate-800 flex flex-col justify-between font-sans select-none relative overflow-x-hidden">
+      {/* Background Energetic Mint-Green Angled Ribbons (Digimon Vital Bracelet Arena Palette) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div
+          className="absolute -top-24 -right-20 w-[120%] h-96 bg-[#8bf8c7] opacity-65 transform -rotate-12 origin-top-right"
+          style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 45%)' }}
+        />
+        <div
+          className="absolute top-1/3 -left-32 w-[140%] h-80 bg-[#a6fad4] opacity-45 transform rotate-6"
+          style={{ clipPath: 'polygon(0 15%, 100% 0, 100% 65%, 0 85%)' }}
+        />
+        <div
+          className="absolute -bottom-20 -left-20 w-[120%] h-80 bg-[#74f7bc] opacity-50 transform -rotate-6"
+          style={{ clipPath: 'polygon(0 40%, 100% 0, 100% 100%, 0 100%)' }}
+        />
+      </div>
 
-      {/* Top Trainer & Navigation Header */}
-      <header className="sticky top-0 z-30 bg-[#0d1219]/90 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 py-2.5 shadow-xl">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
-          {/* Trainer Profile Card */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 border-2 border-white flex items-center justify-center shadow-md text-white font-black text-xs">
-              <User className="w-4 h-4" />
+      {/* Main Mobile Screen Wrapper (Centered Handheld Viewport) */}
+      <div className="relative z-10 max-w-sm sm:max-w-md mx-auto w-full flex-1 flex flex-col justify-between px-3 pt-3 pb-2">
+        {/* ================= TOP TRAINER BAR (IMAGE 2) ================= */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          {/* Left: Metallic Dark Badge with Rank '2' / 'S' & Wings */}
+          <div className="flex items-center">
+            <div
+              className="bg-[#2a3038] text-white px-3 py-1 flex items-center gap-1.5 shadow-md border-t border-l border-slate-500"
+              style={{ clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)' }}
+            >
+              <div className="w-5 h-5 rounded-full border border-slate-400 flex items-center justify-center text-[10px] font-black text-amber-300">
+                ❖
+              </div>
+              <span className="text-sm font-black font-mono tracking-tighter text-white">
+                2
+              </span>
             </div>
+          </div>
 
+          {/* Center: Trainer Name White Pill with Edit Pencil */}
+          <div className="flex-1 max-w-[200px]">
             {isEditingName ? (
-              <form onSubmit={handleSaveName} className="flex items-center gap-1">
+              <form onSubmit={handleSaveName} className="flex items-center gap-1 bg-white rounded-full px-2 py-0.5 border border-slate-300 shadow-xs">
                 <input
                   type="text"
                   maxLength={18}
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
-                  className="bg-slate-950 border border-emerald-400 rounded-lg px-2 py-0.5 text-xs text-white uppercase font-bold"
+                  className="w-full bg-transparent text-xs text-slate-800 font-bold focus:outline-hidden"
                   autoFocus
                 />
-                <button
-                  type="submit"
-                  className="px-2 py-0.5 rounded-lg bg-emerald-600 text-[10px] font-bold text-white"
-                >
+                <button type="submit" className="text-[10px] font-bold text-emerald-600">
                   OK
                 </button>
               </form>
@@ -218,276 +249,337 @@ export const Lobby: React.FC<LobbyProps> = ({
                   setNameInput(trainerName);
                   setIsEditingName(true);
                 }}
-                className="flex flex-col cursor-pointer group"
+                className="bg-white/95 hover:bg-white border border-slate-300/80 rounded-full px-3 py-0.5 shadow-xs flex items-center justify-between cursor-pointer group transition-all"
                 title="Toca para editar tu nombre"
               >
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs sm:text-sm font-black text-white uppercase tracking-wider group-hover:text-emerald-400 transition-colors">
-                    {trainerName}
-                  </span>
-                  <Edit2 className="w-3 h-3 text-slate-500 group-hover:text-emerald-400 transition-colors" />
-                </div>
-                <div className="flex items-center gap-1.5 text-[9px] font-mono text-emerald-400">
-                  <span>RANGO S</span>
-                  <span className="text-slate-600">•</span>
-                  <span>ESCUADRÓN {selectedTeam.length}/6</span>
-                </div>
+                <span className="text-xs font-bold text-slate-800 truncate">
+                  {trainerName}
+                </span>
+                <Edit2 className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 transition-colors ml-1 shrink-0" />
               </div>
             )}
           </div>
 
-          {/* Top Quick Navigation Pills */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <button
-              onClick={onOpenPokedex}
-              className="flex items-center gap-1 py-1 px-2.5 sm:px-3 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[10px] font-bold transition-all shadow-xs"
-              title="Explorar Catálogo Pokédex"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-sky-400" />
-              <span className="hidden sm:inline">Pokédex</span>
-            </button>
-
-            <button
-              onClick={onOpenMoves}
-              className="flex items-center gap-1 py-1 px-2.5 sm:px-3 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[10px] font-bold transition-all shadow-xs"
-              title="Catálogo de 953 Movimientos"
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Movimientos</span>
-            </button>
-
-            <button
-              onClick={onOpenTeamBuilder}
-              className="flex items-center gap-1 py-1 px-2.5 sm:px-3 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[10px] font-bold transition-all shadow-xs"
-              title="Organizar Equipo Completo"
-            >
-              <Layers className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden sm:inline">Caja PC</span>
-            </button>
+          {/* Right: 4 Stars (★★★★) */}
+          <div className="flex items-center gap-0.5 text-amber-400 text-xs">
+            <span>★</span>
+            <span>★</span>
+            <span>★</span>
+            <span className="text-slate-300">★</span>
           </div>
         </div>
-      </header>
 
-      {/* Main Mobile-First / Handheld Console Central Hub */}
-      <main className="max-w-2xl mx-auto w-full flex-1 flex flex-col p-3 sm:p-5 z-10 overflow-y-auto">
-        {/* Banner Section */}
-        <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-800/80">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-200">
-                Escuadrón de Combate (6 Slots)
-              </h2>
-            </div>
-            <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-              Toca cualquier tarjeta para ver su diagnóstico táctico, 6 stats y movimientos.
-            </p>
-          </div>
+        {/* ================= WHITE CONTAINER OF POKÉMON TECH-GRID CARDS ================= */}
+        <div className="bg-white/95 rounded-2xl border-2 border-slate-300/80 shadow-xl p-3 flex-1 flex flex-col overflow-hidden max-h-[58vh]">
+          {/* Scrollable Team Cards (Up to 6 Pokémon) */}
+          <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
+            {selectedTeam.map((species, idx) => {
+              const isLeader = idx === 0;
+              const detail = teamDetails[species];
+              const stats = detail?.base_stats;
+              const displayName = detail?.nombre || species;
+              const types = detail?.types_detail || [];
 
-          <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-500/40">
-            {selectedTeam.length}/6 ACTIVOS
-          </span>
-        </div>
+              // Type 2-letter abbreviation like 'Va', 'Fr', 'Da' in Digimon
+              const typeAbbr = types[0] ? types[0].nombre.slice(0, 2) : 'No';
+              const typeColor = types[0]?.color_hex || '#10b981';
 
-        {/* Scrollable Team List (Up to 6 Pokémon) */}
-        <div className="space-y-2.5 pb-24">
-          {selectedTeam.map((species, idx) => {
-            const isLeader = idx === 0;
-            const detail = teamDetails[species];
-            const stats = detail?.base_stats;
-            const displayName = detail?.nombre || species;
-            const types = detail?.types_detail || [];
+              return (
+                <div
+                  key={`${species}-${idx}`}
+                  onClick={() => setInspectingSpecies(species)}
+                  className="relative rounded-lg bg-[#535962] border border-[#3e434a] shadow-md p-2.5 text-white overflow-hidden cursor-pointer group hover:brightness-105 transition-all"
+                >
+                  {/* Subtle 10px White Tech-Grid on Gray Card */}
+                  <div
+                    className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff12_1px,transparent_1px),linear-gradient(to_bottom,#ffffff12_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none"
+                  />
 
-            return (
-              <div
-                key={`${species}-${idx}`}
-                onClick={() => setInspectingSpecies(species)}
-                className={`relative rounded-2xl border transition-all cursor-pointer p-3 sm:p-3.5 flex flex-col gap-2 shadow-lg group overflow-hidden ${
-                  isLeader
-                    ? 'bg-gradient-to-r from-[#14231b] via-[#101923] to-[#0c1219] border-emerald-500/60 hover:border-emerald-400 ring-1 ring-emerald-500/20'
-                    : 'bg-gradient-to-r from-[#121924] via-[#0f151f] to-[#0a0f16] border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                {/* Diagonal Accent Cut for Leader */}
-                {isLeader && (
-                  <div className="absolute top-0 left-0 bg-emerald-500 text-slate-950 text-[8px] font-mono font-black uppercase px-2.5 py-0.5 rounded-br-lg tracking-widest flex items-center gap-1 shadow-md">
-                    <Crown className="w-2.5 h-2.5" />
-                    <span>LÍDER #01</span>
-                  </div>
-                )}
+                  {/* Top Black Chamfered Header Bar: Name on Left, Vitals Counter on Right */}
+                  <div className="relative z-10 flex items-center justify-between mb-2">
+                    {/* Black Chamfered Title Ribbon */}
+                    <div
+                      className="bg-[#15171b] text-white px-3 py-0.5 pr-6 text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5"
+                      style={{ clipPath: 'polygon(0 0, 90% 0, 100% 100%, 0 100%)' }}
+                    >
+                      <span>{displayName}</span>
+                      {isLeader && (
+                        <Crown className="w-3 h-3 text-amber-400 inline ml-1" />
+                      )}
+                    </div>
 
-                {/* Top Row: Slot #, Quick Delete X, Promote Leader */}
-                <div className="flex items-center justify-between">
-                  <span className={`text-[10px] font-mono font-bold ${isLeader ? 'text-emerald-400 pl-16' : 'text-slate-500'}`}>
-                    SLOT #{String(idx + 1).padStart(2, '0')}
-                  </span>
-
-                  <div className="flex items-center gap-1.5">
-                    {!isLeader && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSetLeader(species);
-                        }}
-                        className="px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-400/50 text-[9px] font-bold text-slate-300 hover:text-amber-300 transition-all flex items-center gap-1"
-                        title="Promover a Líder (#01)"
-                      >
-                        <Crown className="w-3 h-3 text-amber-400" />
-                        <span className="hidden sm:inline">Hacer Líder</span>
-                      </button>
-                    )}
-
-                    {selectedTeam.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemovePokemon(species);
-                        }}
-                        className="p-1 rounded-md bg-slate-800/60 hover:bg-rose-950 border border-slate-700 hover:border-rose-600/60 text-slate-400 hover:text-rose-200 transition-all"
-                        title="Quitar del equipo y enviar a Caja PC"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Main Card Body */}
-                <div className="flex items-center gap-3.5">
-                  {/* Sprite / Image Thumbnail */}
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 flex items-center justify-center relative">
-                    <div className="absolute inset-0 rounded-full bg-slate-800/50 border border-slate-700/60 group-hover:border-emerald-500/40 transition-colors" />
-                    <StaticPokemonImage
-                      species={species}
-                      alt={displayName}
-                      className="w-14 h-14 sm:w-16 sm:h-16 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] z-10 group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-
-                  {/* Info Column */}
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 truncate">
-                        <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider truncate">
-                          {displayName}
-                        </h3>
-                        {detail && (
-                          <span className="text-[9px] font-mono text-slate-500">
-                            #{String(detail.numero_pokedex).padStart(3, '0')}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[9px] font-sans font-bold px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 shrink-0">
-                        Lv.50
+                    {/* Vitals Digital Green Counter on Right */}
+                    <div className="text-right leading-none">
+                      <span className="text-[8px] text-slate-300 font-mono block">Vitals</span>
+                      <span className="text-base font-black font-mono text-[#00ff9d] tracking-tight drop-shadow-sm">
+                        {stats?.hp || 164}
+                        <span className="text-[9px] text-slate-300 font-normal"> /9,999</span>
                       </span>
                     </div>
+                  </div>
 
-                    {/* Types Badges */}
-                    <div className="flex items-center gap-1">
-                      {types.length > 0 ? (
-                        types.map((t) => (
-                          <span
-                            key={t.id}
-                            style={{ backgroundColor: t.color_hex }}
-                            className="px-2 py-0.2 rounded-full text-[8px] font-bold text-white uppercase shadow-2xs"
+                  {/* Card Main Body: Left Sprite & Badges, Right Stats */}
+                  <div className="relative z-10 grid grid-cols-12 gap-2 items-center">
+                    {/* Left Column (Col 5): Circular Type, Rank Badge, Sprite, Info icon */}
+                    <div className="col-span-5 flex flex-col items-center justify-center relative">
+                      {/* Top Badges Row */}
+                      <div className="w-full flex items-center justify-between px-1 mb-1">
+                        {/* Circular Type Badge like 'Va' / 'Fr' */}
+                        <div
+                          style={{ backgroundColor: typeColor }}
+                          className="w-5 h-5 rounded-full border border-white/80 flex items-center justify-center text-[9px] font-black text-white shadow-xs capitalize"
+                          title={types[0]?.nombre || 'Tipo'}
+                        >
+                          {typeAbbr}
+                        </div>
+
+                        {/* Rank Badge like 'Rank D' */}
+                        <div className="bg-[#30343a]/90 border border-slate-500 rounded px-1 py-0.2 text-[8px] font-black text-amber-300 shadow-2xs">
+                          {isLeader ? 'Rank S' : 'Rank D'}
+                        </div>
+                      </div>
+
+                      {/* Pokémon Sprite Thumbnail */}
+                      <div className="w-20 h-20 flex items-center justify-center relative my-0.5">
+                        <StaticPokemonImage
+                          species={species}
+                          alt={displayName}
+                          className="w-18 h-18 object-contain drop-shadow-[0_6px_10px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+
+                      {/* Bottom Info Icon ( i ) */}
+                      <div className="w-full flex items-center justify-between px-1 text-slate-300">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setInspectingSpecies(species);
+                          }}
+                          className="w-4 h-4 rounded-full bg-black/50 hover:bg-black text-slate-300 hover:text-white flex items-center justify-center text-[9px] font-bold border border-slate-400 transition-colors"
+                          title="Ver ficha técnica completa"
+                        >
+                          i
+                        </button>
+
+                        {/* Quick Delete X button (if team > 1) */}
+                        {selectedTeam.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemovePokemon(species);
+                            }}
+                            className="w-4 h-4 rounded-full bg-rose-950/80 hover:bg-rose-900 text-rose-200 hover:text-white flex items-center justify-center text-[9px] font-bold border border-rose-500 transition-colors"
+                            title="Quitar del equipo"
                           >
-                            {t.nombre}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="px-2 py-0.2 rounded-full text-[8px] font-bold bg-slate-700 text-white uppercase">
-                          {species}
-                        </span>
-                      )}
-                      {detail?.habilidades && detail.habilidades.length > 0 && (
-                        <span className="text-[9px] text-amber-300/80 truncate font-sans ml-1 hidden sm:inline">
-                          • {detail.habilidades[0].nombre}
-                        </span>
-                      )}
+                            ✕
+                          </button>
+                        )}
+                      </div>
                     </div>
 
-                    {/* All 6 Base Stats Compact Grid */}
-                    <div className="grid grid-cols-6 gap-1 pt-1 border-t border-slate-800/80 font-mono text-[9px]">
-                      <div className="flex flex-col">
-                        <span className="text-slate-500 text-[8px]">PS</span>
-                        <span className="font-bold text-emerald-400">{stats?.hp || '—'}</span>
+                    {/* Right Column (Col 7): Clean Horizontal Stat Rows with Black Pill + Green Bonus */}
+                    <div className="col-span-7 space-y-1 font-mono text-[10px]">
+                      {/* HP */}
+                      <div className="flex items-center justify-between bg-black/25 px-2 py-0.5 rounded">
+                        <span className="text-slate-300 font-bold text-[9px]">HP</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-white">{stats?.hp ? (stats.hp * 20).toLocaleString() : '3,600'}</span>
+                          <span className="bg-[#181c20] text-[#00ff9d] text-[8px] font-black px-1.5 py-0.2 rounded-full border border-slate-700">
+                            +0
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-slate-500 text-[8px]">ATK</span>
-                        <span className="font-bold text-rose-400">{stats?.attack || '—'}</span>
+
+                      {/* AP / ATAQUE */}
+                      <div className="flex items-center justify-between bg-black/25 px-2 py-0.5 rounded">
+                        <span className="text-slate-300 font-bold text-[9px]">AP</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-white">{stats?.attack ? (stats.attack * 14).toLocaleString() : '1,200'}</span>
+                          <span className="bg-[#181c20] text-[#00ff9d] text-[8px] font-black px-1.5 py-0.2 rounded-full border border-slate-700">
+                            +0
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-slate-500 text-[8px]">DEF</span>
-                        <span className="font-bold text-blue-400">{stats?.defense || '—'}</span>
+
+                      {/* BP / DEFENSA & PODER */}
+                      <div className="flex items-center justify-between bg-black/25 px-2 py-0.5 rounded">
+                        <span className="text-slate-300 font-bold text-[9px]">BP</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-white">{stats?.defense ? (stats.defense * 45).toLocaleString() : '5,200'}</span>
+                          <span className="bg-[#181c20] text-[#00ff9d] text-[8px] font-black px-1.5 py-0.2 rounded-full border border-slate-700">
+                            +0
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-slate-500 text-[8px]">SPA</span>
-                        <span className="font-bold text-purple-400">{stats?.sp_attack || '—'}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-slate-500 text-[8px]">SPD</span>
-                        <span className="font-bold text-amber-400">{stats?.sp_defense || '—'}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-slate-500 text-[8px]">SPE</span>
-                        <span className="font-bold text-cyan-400">{stats?.speed || '—'}</span>
+
+                      {/* ABILITY / HABILIDAD BOX */}
+                      <div className="pt-0.5">
+                        <div className="flex items-center gap-1 text-[8px] text-slate-300">
+                          <span className="uppercase tracking-wider">ABILITY</span>
+                          <span className="bg-blue-600 text-white text-[7px] font-black px-1 rounded-xs">
+                            DEF
+                          </span>
+                          <span className="text-slate-400 text-[8px]">Synergy</span>
+                        </div>
+                        <div className="bg-[#1c2026] text-slate-200 text-[9px] font-sans px-2 py-0.5 rounded mt-0.5 truncate border border-slate-600 flex items-center justify-between">
+                          <span className="truncate">
+                            {detail?.habilidades?.[0]?.nombre || 'Mar Llamas'}
+                          </span>
+                          <span className="text-amber-400 font-mono text-[8px] font-bold ml-1 shrink-0">R</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-
-                  <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors shrink-0 ml-1" />
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          {/* Add Pokémon Slot (when team < 6) */}
-          {selectedTeam.length < 6 && (
-            <button
-              type="button"
-              onClick={() => setIsAddModalOpen(true)}
-              className="w-full rounded-2xl border-2 border-dashed border-slate-800 hover:border-emerald-500/70 bg-slate-950/40 hover:bg-emerald-950/20 p-4 transition-all flex items-center justify-center gap-2.5 text-slate-400 hover:text-emerald-300 group cursor-pointer"
-            >
-              <div className="w-8 h-8 rounded-full bg-slate-900 group-hover:bg-emerald-500/20 border border-slate-700 group-hover:border-emerald-400 flex items-center justify-center text-slate-300 group-hover:text-emerald-400 transition-colors">
-                <Plus className="w-4 h-4" />
-              </div>
-              <div className="text-left">
-                <span className="text-xs font-black uppercase tracking-wider block">
-                  + Añadir Pokémon al Equipo
-                </span>
-                <span className="text-[9px] font-mono text-slate-500 group-hover:text-emerald-400/80">
-                  Ranura disponible #{selectedTeam.length + 1} de 6
-                </span>
-              </div>
-            </button>
-          )}
+            {/* Dashed Add Card (when team < 6) */}
+            {selectedTeam.length < 6 && (
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(true)}
+                className="w-full rounded-lg border-2 border-dashed border-slate-400 hover:border-emerald-500 bg-slate-100 hover:bg-emerald-50 p-4 transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-emerald-700 cursor-pointer shadow-xs"
+              >
+                <div className="w-7 h-7 rounded-full bg-white border border-slate-400 flex items-center justify-center text-slate-700">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div className="text-left font-sans">
+                  <span className="text-xs font-black uppercase tracking-wider block text-slate-800">
+                    + Añadir Pokémon ({selectedTeam.length + 1}/6)
+                  </span>
+                  <span className="text-[9px] text-slate-500">
+                    Seleccionar desde la Pokédex
+                  </span>
+                </div>
+              </button>
+            )}
+          </div>
         </div>
-      </main>
 
-      {/* Sticky Bottom Area: Angled Neon ARENA Button + Quick Dock */}
-      <div className="sticky bottom-0 z-30 bg-[#090d12]/95 backdrop-blur-md border-t-2 border-slate-800 px-3 sm:px-6 py-2.5 shadow-2xl">
-        <div className="max-w-md mx-auto flex flex-col gap-2">
-          {/* Main Angled ARENA Button with Neon Pulse */}
+        {/* ================= MAIN ARENA SKEWED BANNER (IMAGE 2) ================= */}
+        <div className="my-2.5 flex justify-center">
           <button
             type="button"
             onClick={() => setIsArenaOpen(true)}
-            className="relative w-full h-12 sm:h-13 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:brightness-110 active:scale-98 transition-all flex items-center justify-center gap-3 shadow-[0_0_25px_rgba(16,185,129,0.4)] border-2 border-emerald-300 text-slate-950 font-black tracking-widest uppercase cursor-pointer overflow-hidden group"
+            className="relative w-full max-w-[340px] h-12 bg-gradient-to-r from-[#32f59b] via-[#2ce692] to-[#25db89] hover:brightness-105 active:scale-[0.98] transition-all shadow-[0_4px_14px_rgba(46,230,146,0.45)] border-2 border-[#19c778] flex items-center justify-between px-6 cursor-pointer overflow-hidden group"
+            style={{ clipPath: 'polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)' }}
           >
-            {/* Animated Light Sweep */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full duration-1000 transition-transform" />
+            {/* Left Spacer for Symmetry */}
+            <div className="w-8" />
 
-            <Swords className="w-5 h-5 text-slate-950 animate-bounce" />
-            <span className="text-xs sm:text-sm tracking-widest">
-              ARENA DE COMBATE • ENTRAR
+            {/* Center Bold ARENA Text */}
+            <span className="text-2xl font-black italic tracking-wider text-slate-950 font-sans uppercase">
+              ARENA
             </span>
-            <div className="w-2 h-2 rounded-full bg-slate-950 animate-ping ml-1" />
+
+            {/* Right White Vital Pulse / Heartbeat Graphic (/\_/\_) */}
+            <div className="flex items-center text-white">
+              <svg
+                viewBox="0 0 60 24"
+                className="w-12 h-6 stroke-white fill-none stroke-[3.5] stroke-linecap-round stroke-linejoin-round drop-shadow-xs"
+              >
+                <path d="M 0 12 L 15 12 L 20 4 L 28 20 L 34 8 L 38 14 L 42 12 L 60 12" />
+              </svg>
+            </div>
           </button>
+        </div>
+
+        {/* ================= CIRCULAR FLOATING ACTION DOCK (IMAGE 2) ================= */}
+        <div className="flex items-center justify-around px-2 my-1">
+          {/* Button 1: Send / Versus */}
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={() => setIsArenaOpen(true)}
+              className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
+              title="Arena de Combates"
+            >
+              <Send className="w-5 h-5 text-white" />
+            </button>
+            <span className="text-[10px] text-slate-600 font-sans font-medium">Send</span>
+          </div>
+
+          {/* Button 2: Assign / Team */}
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={onOpenTeamBuilder}
+              className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
+              title="Organizar Escuadrón / Caja PC"
+            >
+              <Users className="w-5 h-5 text-white" />
+            </button>
+            <span className="text-[10px] text-slate-600 font-sans font-medium">Assign</span>
+          </div>
+
+          {/* Button 3: Codex / Pokédex */}
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={onOpenPokedex}
+              className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
+              title="Catálogo Pokédex"
+            >
+              <BookOpen className="w-5 h-5 text-white" />
+            </button>
+            <span className="text-[10px] text-slate-600 font-sans font-medium">Codex</span>
+          </div>
+
+          {/* Button 4: Adventure / Movimientos */}
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={onOpenMoves}
+              className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
+              title="Catálogo de Movimientos"
+            >
+              <Backpack className="w-5 h-5 text-white" />
+            </button>
+            <span className="text-[10px] text-slate-600 font-sans font-medium">Adventure</span>
+          </div>
+        </div>
+
+        {/* ================= BOTTOM CHAMFERED NAVIGATION TABS (IMAGE 2) ================= */}
+        <div className="grid grid-cols-4 gap-1.5 mt-2">
+          {/* Tab 1: BE Black Active Tab */}
+          <div
+            className="bg-[#12161b] text-white py-2 flex items-center justify-center gap-1 shadow-md border-t border-slate-700 cursor-pointer"
+            style={{ clipPath: 'polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)' }}
+          >
+            <span className="text-xs font-black text-[#32f59b] font-mono tracking-tighter">
+              BE
+            </span>
+            <div className="w-4 h-4 rounded-full bg-[#32f59b]/30 border border-[#32f59b] flex items-center justify-center text-[8px] text-white">
+              ★
+            </div>
+          </div>
+
+          {/* Tab 2: Gift Tab (Mint Green) */}
+          <div
+            className="bg-[#83f8c3] hover:bg-[#72f5b6] text-slate-900 py-2 flex items-center justify-center shadow-xs cursor-pointer transition-colors"
+            style={{ clipPath: 'polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)' }}
+          >
+            <Gift className="w-4 h-4 text-slate-850" />
+          </div>
+
+          {/* Tab 3: Heal / Med Tab (Mint Green) */}
+          <div
+            className="bg-[#83f8c3] hover:bg-[#72f5b6] text-slate-900 py-2 flex items-center justify-center shadow-xs cursor-pointer transition-colors"
+            style={{ clipPath: 'polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)' }}
+          >
+            <HeartPulse className="w-4 h-4 text-slate-850" />
+          </div>
+
+          {/* Tab 4: Settings Tab (Mint Green) */}
+          <div
+            className="bg-[#83f8c3] hover:bg-[#72f5b6] text-slate-900 py-2 flex items-center justify-center shadow-xs cursor-pointer transition-colors"
+            style={{ clipPath: 'polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)' }}
+          >
+            <Settings className="w-4 h-4 text-slate-850" />
+          </div>
         </div>
       </div>
 
-      {/* MODALS */}
+      {/* ================= MODALS ================= */}
       {/* 1. Pokemon Detail Sheet */}
       {inspectingSpecies && (
         <PokemonDetailSheet
