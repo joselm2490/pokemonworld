@@ -19,6 +19,7 @@ import { PokeBallGraphic } from '../common/PokeBallGraphic';
 
 interface ArenaModalProps {
   isOpen: boolean;
+  isStandalone?: boolean;
   onClose: () => void;
   onStartAiBattle: () => void;
   onOpenCreateRoom: () => void;
@@ -36,6 +37,7 @@ interface ArenaModalProps {
 
 export const ArenaModal: React.FC<ArenaModalProps> = ({
   isOpen,
+  isStandalone = false,
   onClose,
   onStartAiBattle,
   onOpenCreateRoom,
@@ -72,9 +74,17 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
     setRoomPassword('');
   };
 
+  const wrapperClasses = isStandalone
+    ? 'w-full flex items-center justify-center'
+    : 'fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 select-none font-sans animate-in fade-in duration-200';
+
+  const containerClasses = isStandalone
+    ? 'relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-4'
+    : 'relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-12';
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 select-none font-sans animate-in fade-in duration-200">
-      <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-12">
+    <div className={wrapperClasses}>
+      <div className={containerClasses}>
         {/* Top Header: Solid Black with Gold Trophy & ARENA Title */}
         <div className="bg-[#14171a] text-white px-5 py-3 flex items-center justify-center relative">
           <div className="flex items-center gap-2.5">
@@ -129,8 +139,19 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
 
           {/* ================= BANNER 2: FORTH BATTLE (DARK NAVY / PVP MULTIPLAYER) ================= */}
           <div
-            onClick={() => setActiveTab(activeTab === 'rooms' ? 'banners' : 'rooms')}
-            className="relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#17202d] via-[#1c2738] to-[#121a24] border-2 border-slate-700 shadow-md cursor-pointer group hover:brightness-110 active:scale-[0.99] transition-all flex items-center px-4"
+            onClick={() => {
+              if (!isLoggedIn) {
+                onOpenAuth();
+                return;
+              }
+              setActiveTab(activeTab === 'rooms' ? 'banners' : 'rooms');
+            }}
+            className={`relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#17202d] via-[#1c2738] to-[#121a24] border-2 shadow-md transition-all flex items-center px-4 ${
+              !isLoggedIn
+                ? 'opacity-40 grayscale-[60%] cursor-not-allowed border-slate-800'
+                : 'border-slate-700 cursor-pointer group hover:brightness-110 active:scale-[0.99]'
+            }`}
+            title={!isLoggedIn ? 'Debes iniciar sesión para jugar salas multijugador' : 'Salas de combate multijugador'}
           >
             {/* Cyber Grid Lines */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#253346_1px,transparent_1px),linear-gradient(to_bottom,#253346_1px,transparent_1px)] bg-[size:16px_16px] opacity-30 pointer-events-none" />
@@ -138,23 +159,44 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
             {/* Left Content */}
             <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
               <div>
-                <h3 className="text-2xl font-black text-white tracking-tighter uppercase italic leading-none">
-                  FORTH BATTLE
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-2xl font-black text-white tracking-tighter uppercase italic leading-none">
+                    FORTH BATTLE
+                  </h3>
+                  {!isLoggedIn && (
+                    <span className="bg-rose-500/80 text-white text-[8px] font-black px-1.5 py-0.5 rounded-sm font-mono uppercase tracking-wider flex items-center gap-1">
+                      <Lock className="w-2.5 h-2.5" />
+                      BLOQUEADO
+                    </span>
+                  )}
+                </div>
                 <span className="text-[9px] font-mono text-slate-400 block mt-1">
-                  SALAS MULTIJUGADOR 6v6 • ONLINE
+                  {!isLoggedIn
+                    ? 'REQUIERE INICIAR SESIÓN PARA SALAS PVP'
+                    : 'SALAS MULTIJUGADOR 6v6 • ONLINE'}
                 </span>
               </div>
 
               {/* Bottom Ribbon */}
               <div className="flex items-center gap-2">
                 <div className="bg-black/90 text-slate-200 text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1 w-fit border border-slate-700">
-                  <Clock className="w-2.5 h-2.5 text-amber-400" />
-                  <span>ENDS IN 0d 05:48:38</span>
+                  {!isLoggedIn ? (
+                    <>
+                      <Lock className="w-2.5 h-2.5 text-rose-400" />
+                      <span className="text-rose-300">SOLO ENTRENADORES REGISTRADOS</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-2.5 h-2.5 text-amber-400" />
+                      <span>ENDS IN 0d 05:48:38</span>
+                    </>
+                  )}
                 </div>
-                <span className="text-[9px] font-bold text-cyan-400 underline">
-                  {activeTab === 'rooms' ? 'Ocultar salas ▲' : 'Ver salas ▼'}
-                </span>
+                {isLoggedIn && (
+                  <span className="text-[9px] font-bold text-cyan-400 underline">
+                    {activeTab === 'rooms' ? 'Ocultar salas ▲' : 'Ver salas ▼'}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -361,15 +403,17 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
           </div>
         )}
 
-        {/* Floating Dark Circular Close Button overlapping bottom center */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#1b1f24] hover:bg-black border-3 border-white text-white flex items-center justify-center shadow-2xl transition-transform active:scale-90 cursor-pointer z-20"
-          title="Cerrar Menú Principal"
-        >
-          <X className="w-5 h-5 text-white" strokeWidth={3} />
-        </button>
+        {/* Floating Dark Circular Close Button overlapping bottom center (Only when logged in) */}
+        {isLoggedIn && !isStandalone && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#1b1f24] hover:bg-black border-3 border-white text-white flex items-center justify-center shadow-2xl transition-transform active:scale-90 cursor-pointer z-20"
+            title="Cerrar Menú Principal"
+          >
+            <X className="w-5 h-5 text-white" strokeWidth={3} />
+          </button>
+        )}
       </div>
     </div>
   );

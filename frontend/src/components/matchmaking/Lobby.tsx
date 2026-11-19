@@ -229,6 +229,66 @@ export const Lobby: React.FC<LobbyProps> = ({
 
   const leaderSpecies = selectedTeam[0] || 'CHARIZARD';
 
+  // Si no está logueado, NO mostrar el Lobby (Imagen 1 con tarjetas Pokémon),
+  // sino únicamente la Pantalla Principal (Arena con los 4 Banners)
+  if (!currentUser) {
+    return (
+      <div className="min-h-[100dvh] bg-[#f2f4f7] text-slate-800 flex flex-col justify-center items-center font-sans select-none relative overflow-x-hidden p-3">
+        {/* Background Energetic Mint-Green Angled Ribbons (Digimon Vital Bracelet Arena Palette) */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <div
+            className="absolute -top-24 -right-20 w-[120%] h-96 bg-[#8bf8c7] opacity-65 transform -rotate-12 origin-top-right"
+            style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 45%)' }}
+          />
+          <div
+            className="absolute top-1/3 -left-32 w-[140%] h-80 bg-[#a6fad4] opacity-45 transform rotate-6"
+            style={{ clipPath: 'polygon(0 15%, 100% 0, 100% 65%, 0 85%)' }}
+          />
+          <div
+            className="absolute -bottom-20 -left-20 w-[120%] h-80 bg-[#74f7bc] opacity-50 transform -rotate-6"
+            style={{ clipPath: 'polygon(0 40%, 100% 0, 100% 100%, 0 100%)' }}
+          />
+        </div>
+
+        {/* Centered Main Screen (The 4 Banners Hub) */}
+        <div className="relative z-10 w-full max-w-sm sm:max-w-md my-auto">
+          <ArenaModal
+            isOpen={true}
+            isStandalone={true}
+            onClose={() => {}}
+            onStartAiBattle={handlePlayAi}
+            onOpenCreateRoom={() => setIsAuthOpen(true)}
+            onOpenAuth={() => setIsAuthOpen(true)}
+            onOpenPokedex={handleOpenPokedexHub}
+            trainerName={trainerName}
+            isLoggedIn={false}
+            openRooms={openRooms}
+            loadingRooms={loadingRooms}
+            onRefreshRooms={fetchRooms}
+            onJoinRoom={handleDirectJoin}
+            joinError={joinError}
+            selectedTeamCount={selectedTeam.length}
+          />
+        </div>
+
+        {/* Pokédex Hub Modal */}
+        <PokedexHubModal
+          isOpen={isPokedexHubOpen}
+          onClose={() => setIsPokedexHubOpen(false)}
+          onSelectOption={handleSelectPokedexOption}
+        />
+
+        {/* Auth Modal (Login / Registro gestionado con Python Django) */}
+        <AuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          currentUser={currentUser}
+          onUserChange={handleUserChange}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[100dvh] bg-[#f2f4f7] text-slate-800 flex flex-col justify-between font-sans select-none relative overflow-x-hidden">
       {/* Background Energetic Mint-Green Angled Ribbons (Digimon Vital Bracelet Arena Palette) */}

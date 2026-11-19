@@ -12,10 +12,11 @@ export const AuthService = {
   getCurrentUser(): TrainerUser | null {
     try {
       const saved = localStorage.getItem('pokemon_auth_user');
-      if (saved) return JSON.parse(saved);
-      const trainerName = localStorage.getItem('pokemon_trainer_name');
-      if (trainerName) {
-        return { username: trainerName };
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.username) {
+          return parsed;
+        }
       }
     } catch {}
     return null;
