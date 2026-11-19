@@ -1,54 +1,23 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
-  User,
-  Lock,
-  ArrowRight,
-  ArrowLeft,
-  CheckCircle,
-  AlertCircle,
-  LogOut,
+  Trophy,
   ShieldCheck,
-  Sparkles,
+  CheckCircle,
+  LogOut,
+  ArrowRight,
 } from 'lucide-react';
 import { AuthService, TrainerUser } from '../services/authService';
 import { PokeBallGraphic } from '../components/common/PokeBallGraphic';
+import { AuthModal } from '../components/auth/AuthModal';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<TrainerUser | null>(() =>
     AuthService.getCurrentUser()
   );
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccessMsg(null);
-
-    if (!username.trim() || !password.trim()) {
-      setError('Por favor ingresa tu nombre de entrenador / correo y tu contraseña.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const user = await AuthService.login(username, password);
-      setCurrentUser(user);
-      setSuccessMsg(`¡Bienvenido a la Arena, Entrenador ${user.username}!`);
-      setTimeout(() => {
-        navigate('/');
-      }, 700);
-    } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión. Revisa tus credenciales.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = () => {
     AuthService.logout();
@@ -56,34 +25,38 @@ export const LoginPage: React.FC = () => {
     setSuccessMsg('Has cerrado sesión correctamente.');
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0c1015] via-[#141b24] to-[#0a0e13] flex flex-col items-center justify-center p-4 font-sans select-none relative overflow-hidden">
-      {/* Background Cyber Tech Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1b2432_1px,transparent_1px),linear-gradient(to_bottom,#1b2432_1px,transparent_1px)] bg-[size:28px_28px] opacity-25 pointer-events-none" />
+  const handleUserChange = (user: TrainerUser | null) => {
+    setCurrentUser(user);
+    if (user) {
+      setTimeout(() => {
+        navigate('/');
+      }, 400);
+    }
+  };
 
-      {/* Main Login Card */}
-      <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-4 z-10 border border-slate-200">
-        {/* Header Bar */}
-        <div className="bg-[#14171a] text-white px-5 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <PokeBallGraphic size={24} glow={false} />
-            <h1 className="text-base sm:text-lg font-black uppercase tracking-wider font-sans text-white">
-              INICIAR SESIÓN
-            </h1>
-          </div>
-          <button
-            onClick={() => navigate('/')}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
-            title="Volver a la Arena"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
+  return (
+    <div className="min-h-screen bg-[#f0fdf4] flex flex-col items-center justify-center p-3 sm:p-4 font-sans select-none relative overflow-hidden">
+      {/* Background Vital Bracelet decorative mint ribbons */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-90 z-0">
+        <div className="absolute -top-32 -left-32 w-[600px] h-[260px] bg-gradient-to-br from-[#8bf8c7]/40 via-[#4ceba1]/25 to-transparent rotate-[-22deg] blur-2xl" />
+        <div className="absolute top-1/3 -right-32 w-[600px] h-[260px] bg-gradient-to-bl from-[#74f7bc]/35 via-[#4ceba1]/20 to-transparent rotate-[-22deg] blur-2xl" />
+        <div className="absolute -bottom-24 -left-20 w-[550px] h-[260px] bg-gradient-to-tr from-[#32f59b]/35 to-transparent rotate-[-22deg] blur-2xl" />
+      </div>
+
+      {/* Main Login Card matching Reference Image */}
+      <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10 border border-slate-200/80 animate-in fade-in duration-200">
+        {/* Top Header: Solid Black with Gold Trophy & POKEMON WORLD Title */}
+        <div className="bg-[#14171a] text-white px-5 py-3.5 flex items-center gap-2.5 relative">
+          <Trophy className="w-6 h-6 text-[#f5d433] fill-[#f5d433]" />
+          <h1 className="text-xl font-black uppercase tracking-wider font-sans text-white">
+            POKEMON WORLD
+          </h1>
         </div>
 
-        {/* Content Body */}
-        <div className="p-5">
+        {/* Card Content Body */}
+        <div className="p-3.5 space-y-3">
           {currentUser ? (
-            /* Already Logged In Profile */
+            /* Logged-In Profile State */
             <div className="space-y-4 py-2">
               <div className="flex flex-col items-center justify-center text-center p-4 bg-slate-50 rounded-2xl border border-slate-200">
                 <PokeBallGraphic size={76} />
@@ -120,10 +93,11 @@ export const LoginPage: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigate('/room')}
-                  className="py-2.5 px-3 bg-slate-900 hover:bg-black active:scale-95 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs text-center"
+                  onClick={() => navigate('/')}
+                  className="py-2.5 px-3 bg-slate-900 hover:bg-black active:scale-95 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs text-center flex items-center justify-center gap-1.5"
                 >
-                  Ir a Duelos PvP
+                  <span>Ir a la Arena</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#32f59b]" />
                 </button>
               </div>
 
@@ -136,125 +110,70 @@ export const LoginPage: React.FC = () => {
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Cerrar Sesión</span>
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => navigate('/')}
-                  className="text-xs font-bold text-slate-500 hover:text-slate-800 uppercase tracking-wider py-1 px-2 cursor-pointer"
-                >
-                  Volver al Inicio →
-                </button>
               </div>
             </div>
           ) : (
-            /* Login Form */
-            <div className="space-y-4">
-              {/* Tab Selector */}
-              <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-black uppercase tracking-wider">
-                <div className="py-2 text-center rounded-xl bg-white text-slate-900 shadow-sm border border-slate-200/80">
-                  Iniciar Sesión
-                </div>
-                <Link
-                  to="/register"
-                  className="py-2 text-center rounded-xl text-slate-400 hover:text-slate-700 transition-colors"
-                >
-                  Crear Cuenta
-                </Link>
-              </div>
+            /* Unlogged State: Banner + Artwork matching Image */
+            <>
+              {/* Banner: INGRESA / REGISTRO */}
+              <div
+                onClick={() => setIsAuthOpen(true)}
+                className="relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#d9f977] via-[#e2fa88] to-[#ebfc9d] border-2 border-[#b5db44] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+              >
+                {/* Background Tech Halftone Pattern */}
+                <div className="absolute inset-0 bg-[radial-gradient(#b2d93e_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-40 pointer-events-none" />
 
-              {/* Status / Error Alerts */}
-              {error && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                  <span>{error}</span>
-                </div>
-              )}
+                {/* Left Content */}
+                <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
+                  <div>
+                    <div className="inline-block bg-[#162024] text-[#42e896] text-[8px] font-black tracking-widest px-2 py-0.5 rounded-sm uppercase">
+                      ACCESO DE ENTRENADOR
+                    </div>
+                    <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none pt-1">
+                      INGRESA /
+                    </h3>
+                    <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none">
+                      REGISTRO
+                    </h3>
+                  </div>
 
-              {successMsg && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
-                  <span>{successMsg}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleLogin} className="space-y-3.5 pt-1">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Nombre de Entrenador o Correo
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Ej. Red, Ash o joselm2490"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all"
-                      required
-                    />
+                  {/* Bottom Ribbon */}
+                  <div className="bg-[#111718] text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1.5 w-fit shadow-xs">
+                    <span className="w-2 h-2 rounded-full bg-[#d9f977] animate-pulse" />
+                    <span className="truncate max-w-[170px]">INICIAR SESIÓN / REGISTRO</span>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Contraseña
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all"
-                      required
-                    />
-                  </div>
+                {/* Pokéball Graphic on Right */}
+                <div className="absolute right-2 -bottom-0.5 w-26 h-26 flex items-center justify-center pointer-events-none group-hover:scale-110 transition-transform duration-300">
+                  <PokeBallGraphic size={90} glow={true} />
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 mt-3 bg-gradient-to-r from-[#d9f977] via-[#b6f04d] to-[#99e334] hover:brightness-105 active:scale-[0.99] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md border border-[#9fd638] flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
-                >
-                  {loading ? (
-                    <span className="animate-pulse">Conectando a la Arena...</span>
-                  ) : (
-                    <>
-                      <span>Ingresar a la Arena</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              <div className="pt-3 text-center border-t border-slate-100">
-                <p className="text-[11px] text-slate-500">
-                  ¿Aún no tienes cuenta?{' '}
-                  <Link
-                    to="/register"
-                    className="font-bold text-emerald-600 hover:text-emerald-700 underline"
-                  >
-                    Registrar Entrenador
-                  </Link>
-                </p>
               </div>
-            </div>
+
+              {/* Artwork Image from Imagen pegada.png */}
+              <div
+                onClick={() => setIsAuthOpen(true)}
+                className="rounded-2xl overflow-hidden border border-slate-200 shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all"
+                title="Iniciar sesión para acceder a la Arena"
+              >
+                <img
+                  src="/pokemon-login-art.png"
+                  alt="Pokemon World"
+                  className="w-full h-auto object-cover rounded-2xl block group-hover:scale-[1.01] transition-transform duration-300"
+                />
+              </div>
+            </>
           )}
         </div>
-
-        {/* Footer Navigation */}
-        <div className="flex justify-center pt-1 pb-1">
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="text-xs font-bold text-slate-400 hover:text-slate-700 uppercase tracking-wider flex items-center gap-1.5 py-1 px-3 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Volver al Menú Principal</span>
-          </button>
-        </div>
       </div>
+
+      {/* Trainer Authentication Modal (Opens on Click) */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        currentUser={currentUser}
+        onUserChange={handleUserChange}
+      />
     </div>
   );
 };

@@ -91,15 +91,15 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
   return (
     <div className={wrapperClasses}>
       <div className={containerClasses}>
-        {/* Top Header: Solid Black with Gold Trophy & ARENA Title */}
+        {/* Top Header: Solid Black with Gold Trophy & Title */}
         <div className="bg-[#14171a] text-white px-5 py-3.5 flex items-center justify-between relative">
           <div className="flex items-center gap-2.5">
             <Trophy className="w-6 h-6 text-[#f5d433] fill-[#f5d433]" />
             <h2 className="text-xl font-black uppercase tracking-wider font-sans">
-              ARENA
+              {isLoggedIn ? 'ARENA' : 'POKEMON WORLD'}
             </h2>
           </div>
-          {!isStandalone && (
+          {isLoggedIn && !isStandalone && (
             <button
               type="button"
               onClick={onClose}
@@ -111,51 +111,69 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
           )}
         </div>
 
-        {/* Modal Scrollable Content: 4 Banners matching Reference */}
+        {/* Modal Scrollable Content: Matching Reference Image */}
         <div className="p-3.5 space-y-3 max-h-[75vh] overflow-y-auto custom-scrollbar">
-          {/* ================= BANNER 1: INGRESA / REGISTRO (SOLO SI NO ESTÁ LOGUEADO) ================= */}
-          {!isLoggedIn && (
-            <div
-              onClick={() => {
-                onClose();
-                onOpenAuth();
-              }}
-              className="relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#d9f977] via-[#e2fa88] to-[#ebfc9d] border-2 border-[#b5db44] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
-            >
-              {/* Background Tech Halftone Pattern */}
-              <div className="absolute inset-0 bg-[radial-gradient(#b2d93e_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-40 pointer-events-none" />
+          {/* ================= IF NOT LOGGED IN: INGRESA / REGISTRO BANNER + RED ARTWORK ================= */}
+          {!isLoggedIn ? (
+            <div className="space-y-3 animate-in fade-in duration-200">
+              {/* Banner: INGRESA / REGISTRO */}
+              <div
+                onClick={() => {
+                  onClose();
+                  onOpenAuth();
+                }}
+                className="relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#d9f977] via-[#e2fa88] to-[#ebfc9d] border-2 border-[#b5db44] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+              >
+                {/* Background Tech Halftone Pattern */}
+                <div className="absolute inset-0 bg-[radial-gradient(#b2d93e_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-40 pointer-events-none" />
 
-              {/* Left Content */}
-              <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
-                <div>
-                  <div className="inline-block bg-[#162024] text-[#42e896] text-[8px] font-black tracking-widest px-2 py-0.5 rounded-sm uppercase">
-                    ACCESO DE ENTRENADOR
+                {/* Left Content */}
+                <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
+                  <div>
+                    <div className="inline-block bg-[#162024] text-[#42e896] text-[8px] font-black tracking-widest px-2 py-0.5 rounded-sm uppercase">
+                      ACCESO DE ENTRENADOR
+                    </div>
+                    <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none pt-1">
+                      INGRESA /
+                    </h3>
+                    <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none">
+                      REGISTRO
+                    </h3>
                   </div>
-                  <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none pt-1">
-                    INGRESA /
-                  </h3>
-                  <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none">
-                    REGISTRO
-                  </h3>
+
+                  {/* Bottom Ribbon */}
+                  <div className="bg-[#111718] text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1.5 w-fit shadow-xs">
+                    <span className="w-2 h-2 rounded-full bg-[#d9f977] animate-pulse" />
+                    <span className="truncate max-w-[170px]">INICIAR SESIÓN / REGISTRO</span>
+                  </div>
                 </div>
 
-                {/* Bottom Ribbon */}
-                <div className="bg-[#111718] text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1.5 w-fit shadow-xs">
-                  <span className="w-2 h-2 rounded-full bg-[#d9f977] animate-pulse" />
-                  <span className="truncate max-w-[170px]">INICIAR SESIÓN / REGISTRO</span>
+                {/* Pokéball Graphic on Right */}
+                <div className="absolute right-2 -bottom-0.5 w-26 h-26 flex items-center justify-center pointer-events-none group-hover:scale-110 transition-transform duration-300">
+                  <PokeBallGraphic size={90} glow={true} />
                 </div>
               </div>
 
-              {/* Pokéball Graphic on Right (Replaces the doll/character) */}
-              <div className="absolute right-2 -bottom-0.5 w-26 h-26 flex items-center justify-center pointer-events-none group-hover:scale-110 transition-transform duration-300">
-                <PokeBallGraphic size={90} glow={true} />
+              {/* Artwork Image from Imagen pegada.png */}
+              <div
+                onClick={() => {
+                  onClose();
+                  onOpenAuth();
+                }}
+                className="rounded-2xl overflow-hidden border border-slate-200 shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all"
+                title="Iniciar sesión para acceder a la Arena"
+              >
+                <img
+                  src="/pokemon-login-art.png"
+                  alt="Pokemon World"
+                  className="w-full h-auto object-cover rounded-2xl block group-hover:scale-[1.01] transition-transform duration-300"
+                />
               </div>
             </div>
-          )}
-
-          {/* ================= BANNER 2: FORTH BATTLE (SOLO SI ESTÁ LOGUEADO) ================= */}
-          {isLoggedIn && (
+          ) : (
+            /* ================= IF LOGGED IN: FORTH BATTLE + TRAINING BATTLE + POKÉDEX ================= */
             <>
+              {/* Forth Battle */}
               <div
                 onClick={() => {
                   if (onOpenRooms) {
@@ -320,8 +338,6 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
               </div>
             </div>
           )}
-        </>
-      )}
 
           {/* ================= BANNER 3: TRAINING BATTLE (PURPLE GRID / VS IA 6v6) ================= */}
           <div
@@ -392,6 +408,8 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
 
         {/* Private Room Password Sub-Dialog */}
@@ -475,20 +493,6 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
                 )}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Footer Close Button for unlogged user (only when not standalone) */}
-        {!isLoggedIn && !isStandalone && (
-          <div className="flex justify-center pt-1 pb-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-xs font-bold text-slate-400 hover:text-slate-700 uppercase tracking-wider flex items-center gap-1.5 py-1.5 px-4 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>Cerrar</span>
-            </button>
           </div>
         )}
       </div>
