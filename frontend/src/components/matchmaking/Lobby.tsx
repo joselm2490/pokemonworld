@@ -35,6 +35,7 @@ import { RoomLobbyModal } from './RoomLobbyModal';
 import { PokemonDetailSheet } from './PokemonDetailSheet';
 import { AddPokemonModal } from './AddPokemonModal';
 import { ArenaModal } from './ArenaModal';
+import { PokedexHubModal } from './PokedexHubModal';
 import { AuthModal } from '../auth/AuthModal';
 import { AuthService, TrainerUser } from '../../services/authService';
 import { PokedexService } from '../../services/pokedexService';
@@ -45,6 +46,7 @@ interface LobbyProps {
   onOpenTeamBuilder: () => void;
   onOpenPokedex: () => void;
   onOpenMoves: () => void;
+  onOpenAbilities?: () => void;
   selectedTeam: string[];
   onUpdateTeam?: (newTeam: string[]) => void;
 }
@@ -54,6 +56,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   onOpenTeamBuilder,
   onOpenPokedex,
   onOpenMoves,
+  onOpenAbilities,
   selectedTeam,
   onUpdateTeam,
 }) => {
@@ -78,6 +81,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
   // Modals - Main View is ARENA Menu (Starts Open)
   const [isArenaOpen, setIsArenaOpen] = useState(true);
+  const [isPokedexHubOpen, setIsPokedexHubOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [inspectingSpecies, setInspectingSpecies] = useState<string | null>(null);
@@ -200,6 +204,27 @@ export const Lobby: React.FC<LobbyProps> = ({
     const { roomCode, role } = waitingRoom;
     setWaitingRoom(null);
     onStartMatch(roomCode, false, role);
+  };
+
+  const handleOpenPokedexHub = () => {
+    setIsArenaOpen(false);
+    setIsPokedexHubOpen(true);
+  };
+
+  const handleClosePokedexHub = () => {
+    setIsPokedexHubOpen(false);
+    setIsArenaOpen(true);
+  };
+
+  const handleSelectPokedexOption = (option: 'pokemon' | 'moves' | 'abilities') => {
+    setIsPokedexHubOpen(false);
+    if (option === 'pokemon') {
+      onOpenPokedex();
+    } else if (option === 'moves') {
+      onOpenMoves();
+    } else if (option === 'abilities' && onOpenAbilities) {
+      onOpenAbilities();
+    }
   };
 
   const leaderSpecies = selectedTeam[0] || 'CHARIZARD';
@@ -514,7 +539,7 @@ export const Lobby: React.FC<LobbyProps> = ({
           {/* Button 3: Codex / Pokédex */}
           <div className="flex flex-col items-center gap-1">
             <button
-              onClick={onOpenPokedex}
+              onClick={handleOpenPokedexHub}
               className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
               title="Catálogo Pokédex"
             >
@@ -606,7 +631,7 @@ export const Lobby: React.FC<LobbyProps> = ({
         onStartAiBattle={handlePlayAi}
         onOpenCreateRoom={() => setShowCreateModal(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenPokedex={onOpenPokedex}
+        onOpenPokedex={handleOpenPokedexHub}
         trainerName={trainerName}
         isLoggedIn={!!currentUser}
         openRooms={openRooms}
@@ -617,7 +642,14 @@ export const Lobby: React.FC<LobbyProps> = ({
         selectedTeamCount={selectedTeam.length}
       />
 
-      {/* 4. Trainer Account / Auth Modal */}
+      {/* 4. Pokédex Hub Modal (Pokémones, Movimientos, Habilidades, Volver) */}
+      <PokedexHubModal
+        isOpen={isPokedexHubOpen}
+        onClose={handleClosePokedexHub}
+        onSelectOption={handleSelectPokedexOption}
+      />
+
+      {/* 5. Trainer Account / Auth Modal */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
@@ -625,7 +657,7 @@ export const Lobby: React.FC<LobbyProps> = ({
         onUserChange={handleUserChange}
       />
 
-      {/* 5. Create Room Modal */}
+      {/* 6. Create Room Modal */}
       {showCreateModal && (
         <CreateRoomModal
           onClose={() => setShowCreateModal(false)}

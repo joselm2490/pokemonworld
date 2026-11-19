@@ -3,6 +3,7 @@ import {
   StadiumPokemonDetail,
   StadiumMove,
   TypeDetail,
+  AbilityDetail,
   RoomSummary,
   RoomDetailData,
   RoomMessage,
@@ -84,6 +85,13 @@ export const PokedexService = {
 
   async getTypes(): Promise<{ tipos: TypeDetail[] }> {
     return apiFetch('/api/pokedex/tipos/', undefined, 'Error al cargar tipos');
+  },
+
+  async getHabilidadesList(params: { q?: string } = {}): Promise<{ total: number; results: AbilityDetail[] }> {
+    const query = new URLSearchParams();
+    if (params.q) query.set('q', params.q);
+    const qStr = query.toString() ? `?${query.toString()}` : '';
+    return apiFetch(`/api/pokedex/habilidades/${qStr}`, undefined, 'Error al cargar habilidades');
   },
 
   // === Gestión de Salas y Duelos ===

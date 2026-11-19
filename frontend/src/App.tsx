@@ -4,9 +4,10 @@ import { TeamBuilder } from './components/team/TeamBuilder';
 import { BattleArena } from './components/battle/BattleArena';
 import { PokedexView } from './components/pokedex/PokedexView';
 import { MovesCatalog } from './components/moves/MovesCatalog';
+import { AbilitiesCatalog } from './components/abilities/AbilitiesCatalog';
 import { useBattle } from './hooks/useBattle';
 
-type AppView = 'lobby' | 'team-builder' | 'battle' | 'pokedex' | 'moves';
+type AppView = 'lobby' | 'team-builder' | 'battle' | 'pokedex' | 'moves' | 'abilities';
 
 export const App: React.FC = () => {
   const [view, setView] = useState<AppView>('lobby');
@@ -68,6 +69,10 @@ export const App: React.FC = () => {
     return <MovesCatalog onBack={() => setView('lobby')} />;
   }
 
+  if (view === 'abilities') {
+    return <AbilitiesCatalog onBack={() => setView('lobby')} />;
+  }
+
   if (view === 'team-builder') {
     return (
       <TeamBuilder
@@ -106,6 +111,7 @@ export const App: React.FC = () => {
       onOpenTeamBuilder={() => setView('team-builder')}
       onOpenPokedex={() => setView('pokedex')}
       onOpenMoves={() => setView('moves')}
+      onOpenAbilities={() => setView('abilities')}
       onStartMatch={handleStartMatch}
     />
   );
