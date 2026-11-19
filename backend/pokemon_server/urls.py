@@ -4,6 +4,7 @@ from pokedex.views import SpriteFileView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/accounts/', include('accounts.urls')),
     path('api/battle/', include('battle.urls')),
     path('api/pokedex/', include('pokedex.urls')),
     re_path(r'^sprites/(?P<sprite_path>.*)$', SpriteFileView.as_view(), name='sprite-serve'),

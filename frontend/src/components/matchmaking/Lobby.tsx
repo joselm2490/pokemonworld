@@ -35,6 +35,8 @@ import { RoomLobbyModal } from './RoomLobbyModal';
 import { PokemonDetailSheet } from './PokemonDetailSheet';
 import { AddPokemonModal } from './AddPokemonModal';
 import { ArenaModal } from './ArenaModal';
+import { AuthModal } from '../auth/AuthModal';
+import { AuthService, TrainerUser } from '../../services/authService';
 import { PokedexService } from '../../services/pokedexService';
 import { RoomSummary, StadiumPokemonDetail } from '../../types/stadium';
 
@@ -55,6 +57,10 @@ export const Lobby: React.FC<LobbyProps> = ({
   selectedTeam,
   onUpdateTeam,
 }) => {
+  // Auth / Trainer Profile State
+  const [currentUser, setCurrentUser] = useState<TrainerUser | null>(() => AuthService.getCurrentUser());
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
   // Trainer Name (Persisted)
   const [trainerName, setTrainerName] = useState(() => {
     return localStorage.getItem('pokemon_trainer_name') || 'BrauElizalde';
@@ -62,8 +68,16 @@ export const Lobby: React.FC<LobbyProps> = ({
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(trainerName);
 
-  // Modals
-  const [isArenaOpen, setIsArenaOpen] = useState(false);
+  const handleUserChange = (user: TrainerUser | null) => {
+    setCurrentUser(user);
+    if (user) {
+      setTrainerName(user.username);
+      setNameInput(user.username);
+    }
+  };
+
+  // Modals - Main View is ARENA Menu (Starts Open)
+  const [isArenaOpen, setIsArenaOpen] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [inspectingSpecies, setInspectingSpecies] = useState<string | null>(null);
@@ -227,37 +241,21 @@ export const Lobby: React.FC<LobbyProps> = ({
             </div>
           </div>
 
-          {/* Center: Trainer Name White Pill with Edit Pencil */}
+          {/* Center: Trainer Name White Pill with Auth Dialog */}
           <div className="flex-1 max-w-[200px]">
-            {isEditingName ? (
-              <form onSubmit={handleSaveName} className="flex items-center gap-1 bg-white rounded-full px-2 py-0.5 border border-slate-300 shadow-xs">
-                <input
-                  type="text"
-                  maxLength={18}
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  className="w-full bg-transparent text-xs text-slate-800 font-bold focus:outline-hidden"
-                  autoFocus
-                />
-                <button type="submit" className="text-[10px] font-bold text-emerald-600">
-                  OK
-                </button>
-              </form>
-            ) : (
-              <div
-                onClick={() => {
-                  setNameInput(trainerName);
-                  setIsEditingName(true);
-                }}
-                className="bg-white/95 hover:bg-white border border-slate-300/80 rounded-full px-3 py-0.5 shadow-xs flex items-center justify-between cursor-pointer group transition-all"
-                title="Toca para editar tu nombre"
-              >
+            <div
+              onClick={() => setIsAuthOpen(true)}
+              className="bg-white/95 hover:bg-white border border-slate-300/80 rounded-full px-3 py-0.5 shadow-xs flex items-center justify-between cursor-pointer group transition-all"
+              title="Cuenta de Entrenador (Iniciar sesión / Registro)"
+            >
+              <div className="flex items-center gap-1.5 truncate">
+                <span className={`w-2 h-2 rounded-full ${currentUser ? 'bg-emerald-500' : 'bg-amber-400'} shrink-0`} />
                 <span className="text-xs font-bold text-slate-800 truncate">
                   {trainerName}
                 </span>
-                <Edit2 className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 transition-colors ml-1 shrink-0" />
               </div>
-            )}
+              <Edit2 className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 transition-colors ml-1 shrink-0" />
+            </div>
           </div>
 
           {/* Right: 4 Stars (★★★★) */}
@@ -601,12 +599,16 @@ export const Lobby: React.FC<LobbyProps> = ({
         currentTeam={selectedTeam}
       />
 
-      {/* 3. Arena Mode Selector Modal */}
+      {/* 3. Arena Mode Selector Modal (Main View) */}
       <ArenaModal
         isOpen={isArenaOpen}
         onClose={() => setIsArenaOpen(false)}
         onStartAiBattle={handlePlayAi}
         onOpenCreateRoom={() => setShowCreateModal(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenPokedex={onOpenPokedex}
+        trainerName={trainerName}
+        isLoggedIn={!!currentUser}
         openRooms={openRooms}
         loadingRooms={loadingRooms}
         onRefreshRooms={fetchRooms}
@@ -615,7 +617,15 @@ export const Lobby: React.FC<LobbyProps> = ({
         selectedTeamCount={selectedTeam.length}
       />
 
-      {/* 4. Create Room Modal */}
+      {/* 4. Trainer Account / Auth Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        currentUser={currentUser}
+        onUserChange={handleUserChange}
+      />
+
+      {/* 5. Create Room Modal */}
       {showCreateModal && (
         <CreateRoomModal
           onClose={() => setShowCreateModal(false)}
