@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BattleArena } from '../components/battle/BattleArena';
 import { useBattle } from '../hooks/useBattle';
+import { AuthService } from '../services/authService';
 import { BookOpen, ArrowLeft, Lightbulb, Zap, ShieldCheck } from 'lucide-react';
 
 export const TutorialPage: React.FC = () => {
   const navigate = useNavigate();
   const [matchId, setMatchId] = useState(() => 'TUTORIAL-' + Math.floor(1000 + Math.random() * 9000));
   const [showTips, setShowTips] = useState(true);
+  const currentUser = AuthService.getCurrentUser();
 
   // Default balanced 6-Pokemon team for tutorial
   const [team] = useState<string[]>(() => {
@@ -108,6 +110,7 @@ export const TutorialPage: React.FC = () => {
         activeHitTarget={battle.activeHitTarget}
         activeEffect={battle.activeEffect}
         switchingState={battle.switchingState}
+        trainerName={currentUser?.username || 'blue'}
         onSelectAction={battle.selectAction}
         onSwitchFainted={battle.switchFainted}
         onRematch={handleRematch}

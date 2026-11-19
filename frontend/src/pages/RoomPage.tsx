@@ -150,6 +150,9 @@ export const RoomPage: React.FC = () => {
         activeHitTarget={battle.activeHitTarget}
         activeEffect={battle.activeEffect}
         switchingState={battle.switchingState}
+        chatMessages={battle.chatMessages}
+        onSendMessage={battle.sendChatMessage}
+        trainerName={currentUser?.username || 'blue'}
         onSelectAction={battle.selectAction}
         onSwitchFainted={battle.switchFainted}
         onRematch={() => {}}

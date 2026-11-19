@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BattleArena } from '../components/battle/BattleArena';
 import { useBattle } from '../hooks/useBattle';
+import { AuthService } from '../services/authService';
 import { Bot, ArrowLeft } from 'lucide-react';
 
 export const PracticePage: React.FC = () => {
   const navigate = useNavigate();
   const [matchId, setMatchId] = useState(() => 'PRACTICE-' + Math.floor(1000 + Math.random() * 9000));
+  const currentUser = AuthService.getCurrentUser();
 
   // Retrieve user's active team (6 Pokemon)
   const [team] = useState<string[]>(() => {
@@ -72,6 +74,7 @@ export const PracticePage: React.FC = () => {
       activeHitTarget={battle.activeHitTarget}
       activeEffect={battle.activeEffect}
       switchingState={battle.switchingState}
+      trainerName={currentUser?.username || 'blue'}
       onSelectAction={battle.selectAction}
       onSwitchFainted={battle.switchFainted}
       onRematch={handleRematch}

@@ -50,6 +50,8 @@ class BattleConsumer(AsyncWebsocketConsumer):
                 await self.handle_switch_fainted(payload)
             elif action_type == "REMATCH":
                 await self.handle_rematch(payload)
+            elif action_type == "CHAT_MESSAGE":
+                await self.handle_chat_message(payload)
             else:
                 await self.send(text_data=json.dumps({
                     "type": "BATTLE_ERROR",
@@ -204,6 +206,28 @@ class BattleConsumer(AsyncWebsocketConsumer):
                     "is_ai": room.is_ai_match,
                     "room_code": self.room_code,
                     "server_ms": elapsed_ms,
+                },
+            },
+        )
+
+    async def handle_chat_message(self, payload):
+        sender = str(payload.get("sender", "Entrenador")).strip() or "Entrenador"
+        message = str(payload.get("message", "")).strip()
+        player_role = payload.get("player_role", "p1")
+        if not message:
+            return
+
+        now_str = time.strftime("%I:%M %p").lower()
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "broadcast_event",
+                "event": {
+                    "type": "CHAT_MESSAGE",
+                    "sender": sender,
+                    "message": message,
+                    "player_role": player_role,
+                    "timestamp": now_str,
                 },
             },
         )

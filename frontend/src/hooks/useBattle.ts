@@ -12,6 +12,14 @@ interface UseBattleProps {
   customTeam: string[];
 }
 
+export interface BattleChatMessage {
+  id: string;
+  sender: string;
+  message: string;
+  playerRole: 'p1' | 'p2';
+  timestamp: string;
+}
+
 export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleProps) => {
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [currentMessage, setCurrentMessage] = useState<string>('');
@@ -19,6 +27,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
   const [activeAttacker, setActiveAttacker] = useState<'p1' | 'p2' | null>(null);
   const [activeHitTarget, setActiveHitTarget] = useState<'p1' | 'p2' | null>(null);
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
+  const [chatMessages, setChatMessages] = useState<BattleChatMessage[]>([]);
   const [switchingState, setSwitchingState] = useState<{
     side: 'p1' | 'p2';
     phase: 'recalling' | 'sending';
@@ -95,6 +104,22 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
           });
           setIsWaitingForTurn(false);
           setCurrentMessage(`Error del servidor: ${data.error}`);
+          return;
+        }
+
+        if (data.type === 'CHAT_MESSAGE') {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              sender: data.sender || 'Entrenador',
+              message: data.message,
+              playerRole: data.player_role || 'p1',
+              timestamp:
+                data.timestamp ||
+                new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
           return;
         }
 
@@ -445,6 +470,23 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
     setCurrentMessage('');
   };
 
+  const sendChatMessage = (text: string, customSender?: string) => {
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
+    const clean = text.trim();
+    if (!clean) return;
+
+    const payload = {
+      type: 'CHAT_MESSAGE',
+      sender:
+        customSender ||
+        localStorage.getItem('pokemon_trainer_name') ||
+        (playerRole === 'p1' ? 'Jugador 1' : 'Jugador 2'),
+      message: clean,
+      player_role: playerRole,
+    };
+    socketRef.current.send(JSON.stringify(payload));
+  };
+
   return {
     battleState,
     currentMessage,
@@ -456,5 +498,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
     selectAction,
     switchFainted,
     rematch,
+    chatMessages,
+    sendChatMessage,
   };
 };
