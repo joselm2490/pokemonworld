@@ -85,6 +85,13 @@ export const Lobby: React.FC<LobbyProps> = ({
     }
   };
 
+  const handleLogout = () => {
+    AuthService.logout();
+    setCurrentUser(null);
+    setTrainerName('Entrenador');
+    setNameInput('Entrenador');
+  };
+
   // Modals - Main View is ARENA Menu (Starts Open)
   const [isArenaOpen, setIsArenaOpen] = useState(true);
   const [isPokedexHubOpen, setIsPokedexHubOpen] = useState(false);
@@ -267,6 +274,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             onOpenAuth={() => (onOpenAuth ? onOpenAuth() : setIsAuthOpen(true))}
             onOpenRooms={onOpenRooms}
             onOpenPokedex={handleOpenPokedexHub}
+            onLogout={handleLogout}
             trainerName={trainerName}
             isLoggedIn={false}
             openRooms={openRooms}
@@ -702,6 +710,7 @@ export const Lobby: React.FC<LobbyProps> = ({
         onOpenAuth={() => (onOpenAuth ? onOpenAuth() : setIsAuthOpen(true))}
         onOpenRooms={onOpenRooms}
         onOpenPokedex={handleOpenPokedexHub}
+        onLogout={handleLogout}
         trainerName={trainerName}
         isLoggedIn={!!currentUser}
         openRooms={openRooms}

@@ -13,6 +13,8 @@ import {
   Clock,
   PlusCircle,
   LogIn,
+  LogOut,
+  AlertCircle,
 } from 'lucide-react';
 import { RoomSummary } from '../../types/stadium';
 import { PokeBallGraphic } from '../common/PokeBallGraphic';
@@ -26,6 +28,7 @@ interface ArenaModalProps {
   onOpenAuth: () => void;
   onOpenPokedex: () => void;
   onOpenRooms?: () => void;
+  onLogout?: () => void;
   trainerName?: string;
   isLoggedIn?: boolean;
   openRooms: RoomSummary[];
@@ -45,6 +48,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
   onOpenAuth,
   onOpenPokedex,
   onOpenRooms,
+  onLogout,
   trainerName = 'Entrenador',
   isLoggedIn = false,
   openRooms,
@@ -55,6 +59,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
   selectedTeamCount,
 }) => {
   const [activeTab, setActiveTab] = useState<'banners' | 'rooms'>('banners');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [inputCode, setInputCode] = useState('');
   const [selectedPrivateRoom, setSelectedPrivateRoom] = useState<RoomSummary | null>(null);
   const [roomPassword, setRoomPassword] = useState('');
@@ -108,66 +113,60 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
 
         {/* Modal Scrollable Content: 4 Banners matching Reference */}
         <div className="p-3.5 space-y-3 max-h-[75vh] overflow-y-auto custom-scrollbar">
-          {/* ================= BANNER 1: INGRESA / REGISTRO (LIME GREEN WITH POKÉBALL) ================= */}
-          <div
-            onClick={() => {
-              onClose();
-              onOpenAuth();
-            }}
-            className="relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#d9f977] via-[#e2fa88] to-[#ebfc9d] border-2 border-[#b5db44] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
-          >
-            {/* Background Tech Halftone Pattern */}
-            <div className="absolute inset-0 bg-[radial-gradient(#b2d93e_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-40 pointer-events-none" />
-
-            {/* Left Content */}
-            <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
-              <div>
-                <div className="inline-block bg-[#162024] text-[#42e896] text-[8px] font-black tracking-widest px-2 py-0.5 rounded-sm uppercase">
-                  {isLoggedIn ? 'PERFIL CONECTADO' : 'ACCESO DE ENTRENADOR'}
-                </div>
-                <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none pt-1">
-                  INGRESA /
-                </h3>
-                <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none">
-                  REGISTRO
-                </h3>
-              </div>
-
-              {/* Bottom Ribbon */}
-              <div className="bg-[#111718] text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1.5 w-fit shadow-xs">
-                <span className={`w-2 h-2 rounded-full ${isLoggedIn ? 'bg-[#42e896]' : 'bg-[#d9f977]'} animate-pulse`} />
-                <span className="truncate max-w-[170px]">
-                  {isLoggedIn ? `ENTRENADOR: ${trainerName}` : 'INICIAR SESIÓN / REGISTRO'}
-                </span>
-              </div>
-            </div>
-
-            {/* Pokéball Graphic on Right (Replaces the doll/character) */}
-            <div className="absolute right-2 -bottom-0.5 w-26 h-26 flex items-center justify-center pointer-events-none group-hover:scale-110 transition-transform duration-300">
-              <PokeBallGraphic size={90} glow={true} />
-            </div>
-          </div>
-
-          {/* ================= BANNER 2: FORTH BATTLE (DARK NAVY / PVP MULTIPLAYER) ================= */}
-          <div
-            onClick={() => {
-              if (!isLoggedIn) {
+          {/* ================= BANNER 1: INGRESA / REGISTRO (SOLO SI NO ESTÁ LOGUEADO) ================= */}
+          {!isLoggedIn && (
+            <div
+              onClick={() => {
+                onClose();
                 onOpenAuth();
-                return;
-              }
-              if (onOpenRooms) {
-                onOpenRooms();
-                return;
-              }
-              setActiveTab(activeTab === 'rooms' ? 'banners' : 'rooms');
-            }}
-            className={`relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#17202d] via-[#1c2738] to-[#121a24] border-2 shadow-md transition-all flex items-center px-4 ${
-              !isLoggedIn
-                ? 'opacity-40 grayscale-[60%] cursor-not-allowed border-slate-800'
-                : 'border-slate-700 cursor-pointer group hover:brightness-110 active:scale-[0.99]'
-            }`}
-            title={!isLoggedIn ? 'Debes iniciar sesión para jugar salas multijugador' : 'Salas de combate multijugador'}
-          >
+              }}
+              className="relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#d9f977] via-[#e2fa88] to-[#ebfc9d] border-2 border-[#b5db44] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+            >
+              {/* Background Tech Halftone Pattern */}
+              <div className="absolute inset-0 bg-[radial-gradient(#b2d93e_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-40 pointer-events-none" />
+
+              {/* Left Content */}
+              <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
+                <div>
+                  <div className="inline-block bg-[#162024] text-[#42e896] text-[8px] font-black tracking-widest px-2 py-0.5 rounded-sm uppercase">
+                    ACCESO DE ENTRENADOR
+                  </div>
+                  <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none pt-1">
+                    INGRESA /
+                  </h3>
+                  <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(20,30,20,0.85)] tracking-tighter uppercase italic leading-none">
+                    REGISTRO
+                  </h3>
+                </div>
+
+                {/* Bottom Ribbon */}
+                <div className="bg-[#111718] text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1.5 w-fit shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-[#d9f977] animate-pulse" />
+                  <span className="truncate max-w-[170px]">INICIAR SESIÓN / REGISTRO</span>
+                </div>
+              </div>
+
+              {/* Pokéball Graphic on Right (Replaces the doll/character) */}
+              <div className="absolute right-2 -bottom-0.5 w-26 h-26 flex items-center justify-center pointer-events-none group-hover:scale-110 transition-transform duration-300">
+                <PokeBallGraphic size={90} glow={true} />
+              </div>
+            </div>
+          )}
+
+          {/* ================= BANNER 2: FORTH BATTLE (SOLO SI ESTÁ LOGUEADO) ================= */}
+          {isLoggedIn && (
+            <>
+              <div
+                onClick={() => {
+                  if (onOpenRooms) {
+                    onOpenRooms();
+                    return;
+                  }
+                  setActiveTab(activeTab === 'rooms' ? 'banners' : 'rooms');
+                }}
+                className="relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#17202d] via-[#1c2738] to-[#121a24] border-2 border-slate-700 shadow-md transition-all flex items-center px-4 cursor-pointer group hover:brightness-110 active:scale-[0.99]"
+                title="Salas de combate multijugador"
+              >
             {/* Cyber Grid Lines */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#253346_1px,transparent_1px),linear-gradient(to_bottom,#253346_1px,transparent_1px)] bg-[size:16px_16px] opacity-30 pointer-events-none" />
 
@@ -321,6 +320,8 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
               </div>
             </div>
           )}
+        </>
+      )}
 
           {/* ================= BANNER 3: TRAINING BATTLE (PURPLE GRID / VS IA 6v6) ================= */}
           <div
@@ -418,8 +419,67 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
           </div>
         )}
 
-        {/* Footer Close Button (Only when logged in and not standalone) */}
-        {isLoggedIn && !isStandalone && (
+        {/* Logged in Footer: Logout Button with Confirmation Dialog */}
+        {isLoggedIn && (
+          <div className="px-4 pt-1 pb-1">
+            {showLogoutConfirm ? (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col items-center gap-2 text-center animate-in fade-in duration-150 shadow-xs">
+                <div className="flex items-center gap-1.5 text-xs font-black text-rose-900 uppercase tracking-wide">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>¿Deseas cerrar sesión?</span>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Se desconectará la cuenta del entrenador <strong>{trainerName}</strong>.
+                </p>
+                <div className="flex items-center gap-2 pt-1 w-full justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLogoutConfirm(false);
+                      if (onLogout) onLogout();
+                    }}
+                    className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-xs transition-all cursor-pointer"
+                  >
+                    Confirmar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-800 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-700 uppercase tracking-wider flex items-center gap-1.5 py-1.5 px-3 rounded-xl hover:bg-rose-50 border border-rose-200 transition-all cursor-pointer"
+                  title="Cerrar Sesión de Entrenador"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Cerrar Sesión</span>
+                </button>
+
+                {!isStandalone && (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="text-xs font-bold text-slate-400 hover:text-slate-700 uppercase tracking-wider flex items-center gap-1.5 py-1.5 px-3 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Cerrar</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Footer Close Button for unlogged user (only when not standalone) */}
+        {!isLoggedIn && !isStandalone && (
           <div className="flex justify-center pt-1 pb-1">
             <button
               type="button"
