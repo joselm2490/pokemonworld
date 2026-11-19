@@ -8,6 +8,13 @@ export interface TrainerUser {
   token?: string;
 }
 
+export interface TrainerTeamData {
+  slot: number;
+  name: string;
+  pokemon_list: string[];
+  is_active: boolean;
+}
+
 export const AuthService = {
   getCurrentUser(): TrainerUser | null {
     try {
@@ -116,5 +123,67 @@ export const AuthService = {
 
   logout() {
     this.setCurrentUser(null);
+  },
+
+  async getTeams(): Promise<{ teams: TrainerTeamData[]; active_slot: number }> {
+    const user = this.getCurrentUser();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (user?.username) {
+      headers['X-Trainer-User'] = user.username;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/accounts/teams/`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('pokemon_trainer_teams', JSON.stringify(data.teams));
+        return data;
+      }
+    } catch (e) {
+      battleLogger.error('AUTH', 'getTeams failed, using local cache', e);
+    }
+
+    const saved = localStorage.getItem('pokemon_trainer_teams');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const active = parsed.find((t: any) => t.is_active)?.slot || 1;
+          return { teams: parsed, active_slot: active };
+        }
+      } catch {}
+    }
+
+    const defaultTeams: TrainerTeamData[] = Array.from({ length: 10 }, (_, i) => ({
+      slot: i + 1,
+      name: `Equipo ${i + 1}`,
+      pokemon_list: ['CHARIZARD', 'PIKACHU', 'BLASTOISE', 'LUCARIO', 'GENGAR', 'GARCHOMP'],
+      is_active: i === 0,
+    }));
+    return { teams: defaultTeams, active_slot: 1 };
+  },
+
+  async saveTeam(slot: number, name: string, pokemon_list: string[], is_active: boolean): Promise<TrainerTeamData> {
+    const user = this.getCurrentUser();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (user?.username) {
+      headers['X-Trainer-User'] = user.username;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/accounts/teams/`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ slot, name, pokemon_list, is_active }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data;
+      }
+    } catch (e) {
+      battleLogger.error('AUTH', 'saveTeam API failed', e);
+    }
+
+    return { slot, name, pokemon_list, is_active };
   },
 };

@@ -79,7 +79,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 select-none font-sans animate-in fade-in duration-200">
-      <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-12 max-h-[85vh]">
+      <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-3 max-h-[85vh]">
         {/* Header: Solid Black with Chamfered Accent */}
         <div className="bg-[#14171a] text-white px-5 py-3 flex items-center justify-between">
           <div>
@@ -93,6 +93,14 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
               Ranura activa: <span className="text-[#00ff9d] font-bold">{currentTeam.length + 1}/6</span>
             </p>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+            title="Cerrar"
+          >
+            <X className="w-4 h-4" strokeWidth={2.5} />
+          </button>
         </div>
 
         {/* Search & Filters */}
@@ -252,15 +260,17 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
           </div>
         </div>
 
-        {/* Floating Circular Dark Close Button overlapping bottom center */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#1b1f24] hover:bg-black border-3 border-white text-white flex items-center justify-center shadow-2xl transition-transform active:scale-90 cursor-pointer z-20"
-          title="Cerrar"
-        >
-          <X className="w-5 h-5 text-white" strokeWidth={3} />
-        </button>
+        {/* Footer Close Button */}
+        <div className="flex justify-center pt-2 pb-1">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs font-bold text-slate-400 hover:text-slate-700 uppercase tracking-wider flex items-center gap-1.5 py-1.5 px-4 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Cerrar</span>
+          </button>
+        </div>
       </div>
     </div>
   );

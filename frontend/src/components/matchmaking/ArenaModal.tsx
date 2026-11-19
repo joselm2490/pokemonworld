@@ -25,6 +25,7 @@ interface ArenaModalProps {
   onOpenCreateRoom: () => void;
   onOpenAuth: () => void;
   onOpenPokedex: () => void;
+  onOpenRooms?: () => void;
   trainerName?: string;
   isLoggedIn?: boolean;
   openRooms: RoomSummary[];
@@ -43,6 +44,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
   onOpenCreateRoom,
   onOpenAuth,
   onOpenPokedex,
+  onOpenRooms,
   trainerName = 'Entrenador',
   isLoggedIn = false,
   openRooms,
@@ -78,21 +80,30 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
     ? 'w-full flex items-center justify-center'
     : 'fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 select-none font-sans animate-in fade-in duration-200';
 
-  const containerClasses = isStandalone
-    ? 'relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-4'
-    : 'relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-12';
+  const containerClasses =
+    'relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-4';
 
   return (
     <div className={wrapperClasses}>
       <div className={containerClasses}>
         {/* Top Header: Solid Black with Gold Trophy & ARENA Title */}
-        <div className="bg-[#14171a] text-white px-5 py-3 flex items-center justify-center relative">
+        <div className="bg-[#14171a] text-white px-5 py-3.5 flex items-center justify-between relative">
           <div className="flex items-center gap-2.5">
             <Trophy className="w-6 h-6 text-[#f5d433] fill-[#f5d433]" />
             <h2 className="text-xl font-black uppercase tracking-wider font-sans">
               ARENA
             </h2>
           </div>
+          {!isStandalone && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+              title="Cerrar Menú Principal"
+            >
+              <X className="w-4 h-4" strokeWidth={2.5} />
+            </button>
+          )}
         </div>
 
         {/* Modal Scrollable Content: 4 Banners matching Reference */}
@@ -142,6 +153,10 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
             onClick={() => {
               if (!isLoggedIn) {
                 onOpenAuth();
+                return;
+              }
+              if (onOpenRooms) {
+                onOpenRooms();
                 return;
               }
               setActiveTab(activeTab === 'rooms' ? 'banners' : 'rooms');
@@ -403,16 +418,18 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
           </div>
         )}
 
-        {/* Floating Dark Circular Close Button overlapping bottom center (Only when logged in) */}
+        {/* Footer Close Button (Only when logged in and not standalone) */}
         {isLoggedIn && !isStandalone && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#1b1f24] hover:bg-black border-3 border-white text-white flex items-center justify-center shadow-2xl transition-transform active:scale-90 cursor-pointer z-20"
-            title="Cerrar Menú Principal"
-          >
-            <X className="w-5 h-5 text-white" strokeWidth={3} />
-          </button>
+          <div className="flex justify-center pt-1 pb-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-xs font-bold text-slate-400 hover:text-slate-700 uppercase tracking-wider flex items-center gap-1.5 py-1.5 px-4 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Cerrar</span>
+            </button>
+          </div>
         )}
       </div>
     </div>

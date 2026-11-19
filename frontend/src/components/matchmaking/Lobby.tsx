@@ -47,6 +47,9 @@ interface LobbyProps {
   onOpenPokedex: () => void;
   onOpenMoves: () => void;
   onOpenAbilities?: () => void;
+  onOpenRooms?: () => void;
+  onOpenAuth?: () => void;
+  onOpenPractice?: () => void;
   selectedTeam: string[];
   onUpdateTeam?: (newTeam: string[]) => void;
 }
@@ -57,6 +60,9 @@ export const Lobby: React.FC<LobbyProps> = ({
   onOpenPokedex,
   onOpenMoves,
   onOpenAbilities,
+  onOpenRooms,
+  onOpenAuth,
+  onOpenPractice,
   selectedTeam,
   onUpdateTeam,
 }) => {
@@ -256,9 +262,10 @@ export const Lobby: React.FC<LobbyProps> = ({
             isOpen={true}
             isStandalone={true}
             onClose={() => {}}
-            onStartAiBattle={handlePlayAi}
-            onOpenCreateRoom={() => setIsAuthOpen(true)}
-            onOpenAuth={() => setIsAuthOpen(true)}
+            onStartAiBattle={onOpenPractice || handlePlayAi}
+            onOpenCreateRoom={() => (onOpenRooms ? onOpenRooms() : (onOpenAuth ? onOpenAuth() : setIsAuthOpen(true)))}
+            onOpenAuth={() => (onOpenAuth ? onOpenAuth() : setIsAuthOpen(true))}
+            onOpenRooms={onOpenRooms}
             onOpenPokedex={handleOpenPokedexHub}
             trainerName={trainerName}
             isLoggedIn={false}
@@ -625,8 +632,10 @@ export const Lobby: React.FC<LobbyProps> = ({
         <div className="grid grid-cols-4 gap-1.5 mt-2">
           {/* Tab 1: BE Black Active Tab */}
           <div
-            className="bg-[#12161b] text-white py-2 flex items-center justify-center gap-1 shadow-md border-t border-slate-700 cursor-pointer"
+            onClick={() => onOpenRooms && onOpenRooms()}
+            className="bg-[#12161b] text-white py-2 flex items-center justify-center gap-1 shadow-md border-t border-slate-700 cursor-pointer hover:bg-black transition-colors"
             style={{ clipPath: 'polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)' }}
+            title="Ir a Salas Multijugador Forth Battle (/room)"
           >
             <span className="text-xs font-black text-[#32f59b] font-mono tracking-tighter">
               BE
@@ -688,9 +697,10 @@ export const Lobby: React.FC<LobbyProps> = ({
       <ArenaModal
         isOpen={isArenaOpen}
         onClose={() => setIsArenaOpen(false)}
-        onStartAiBattle={handlePlayAi}
-        onOpenCreateRoom={() => setShowCreateModal(true)}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onStartAiBattle={onOpenPractice || handlePlayAi}
+        onOpenCreateRoom={() => (onOpenRooms ? onOpenRooms() : setShowCreateModal(true))}
+        onOpenAuth={() => (onOpenAuth ? onOpenAuth() : setIsAuthOpen(true))}
+        onOpenRooms={onOpenRooms}
         onOpenPokedex={handleOpenPokedexHub}
         trainerName={trainerName}
         isLoggedIn={!!currentUser}
