@@ -10,14 +10,32 @@ type AppView = 'lobby' | 'team-builder' | 'battle' | 'pokedex' | 'moves';
 
 export const App: React.FC = () => {
   const [view, setView] = useState<AppView>('lobby');
-  const [selectedTeam, setSelectedTeam] = useState<string[]>([
-    'CHARIZARD',
-    'PIKACHU',
-    'BLASTOISE',
-    'LUCARIO',
-    'GENGAR',
-    'GARCHOMP',
-  ]);
+  const [selectedTeam, setSelectedTeam] = useState<string[]>(() => {
+    const saved = localStorage.getItem('pokemon_user_team');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 1 && parsed.length <= 6) {
+          return parsed;
+        }
+      } catch {}
+    }
+    return [
+      'CHARIZARD',
+      'PIKACHU',
+      'BLASTOISE',
+      'LUCARIO',
+      'GENGAR',
+      'GARCHOMP',
+    ];
+  });
+
+  const handleUpdateTeam = (newTeam: string[]) => {
+    if (!newTeam || newTeam.length < 1) return;
+    const bounded = newTeam.slice(0, 6);
+    setSelectedTeam(bounded);
+    localStorage.setItem('pokemon_user_team', JSON.stringify(bounded));
+  };
 
   const [activeMatch, setActiveMatch] = useState<{
     roomCode: string;
@@ -54,7 +72,7 @@ export const App: React.FC = () => {
     return (
       <TeamBuilder
         selectedTeam={selectedTeam}
-        onSaveTeam={(newTeam) => setSelectedTeam(newTeam)}
+        onSaveTeam={handleUpdateTeam}
         onBack={() => setView('lobby')}
       />
     );
@@ -84,6 +102,7 @@ export const App: React.FC = () => {
   return (
     <Lobby
       selectedTeam={selectedTeam}
+      onUpdateTeam={handleUpdateTeam}
       onOpenTeamBuilder={() => setView('team-builder')}
       onOpenPokedex={() => setView('pokedex')}
       onOpenMoves={() => setView('moves')}
