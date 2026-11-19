@@ -150,14 +150,14 @@ export const LoginPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Artwork Image from Imagen pegada.png */}
+              {/* Artwork Image in webp format */}
               <div
                 onClick={() => setIsAuthOpen(true)}
                 className="rounded-2xl overflow-hidden border border-slate-200 shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all"
                 title="Iniciar sesión para acceder a la Arena"
               >
                 <img
-                  src="/pokemon-login-art.png"
+                  src="/pokemon-login-art.webp"
                   alt="Pokemon World"
                   className="w-full h-auto object-cover rounded-2xl block group-hover:scale-[1.01] transition-transform duration-300"
                 />

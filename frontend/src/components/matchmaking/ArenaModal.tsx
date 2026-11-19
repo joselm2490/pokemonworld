@@ -154,7 +154,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
                 </div>
               </div>
 
-              {/* Artwork Image from Imagen pegada.png */}
+              {/* Artwork Image from pokemon-login-art.webp */}
               <div
                 onClick={() => {
                   onClose();
@@ -164,7 +164,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
                 title="Iniciar sesión para acceder a la Arena"
               >
                 <img
-                  src="/pokemon-login-art.png"
+                  src="/pokemon-login-art.webp"
                   alt="Pokemon World"
                   className="w-full h-auto object-cover rounded-2xl block group-hover:scale-[1.01] transition-transform duration-300"
                 />
