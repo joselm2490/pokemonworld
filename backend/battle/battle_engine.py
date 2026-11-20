@@ -70,7 +70,7 @@ def _enrich_move_from_pbs(move_dict: dict) -> dict:
     return merged
 
 
-def create_pokemon_instance(species: str, level: int = 50, db_cache: Optional[dict] = None) -> dict:
+def create_pokemon_instance(species: str, level: int = 50, db_cache: Optional[dict] = None, moves_cache: Optional[dict] = None) -> dict:
     species_key = species.upper().strip()
     pbs_pokemon = get_all_pokemon()
     pbs_data = pbs_pokemon.get(species_key)
@@ -111,7 +111,39 @@ def create_pokemon_instance(species: str, level: int = 50, db_cache: Optional[di
         hab_first = db_pkmn.habilidades.first()
         ability = hab_first.nombre if hab_first else "Presión"
         gender_ratio = "Female50Percent"
-        if featured_data:
+
+        # 1. Prioritize movimientos_predeterminados directly from Supabase PostgreSQL
+        db_moves = []
+        if db_pkmn.movimientos_predeterminados:
+            try:
+                for mid in db_pkmn.movimientos_predeterminados:
+                    m_obj = None
+                    if moves_cache and mid in moves_cache:
+                        m_obj = moves_cache[mid]
+                    else:
+                        from pokedex.models import Move
+                        m_obj = Move.objects.filter(id=mid).select_related('tipo', 'clase').first()
+                    if m_obj:
+                        t_name = m_obj.tipo.nombre_ingles.upper() if m_obj.tipo else (m_obj.tipo_nombre.upper() if m_obj.tipo_nombre else 'NORMAL')
+                        c_name = m_obj.clase.nombre_ingles.upper() if m_obj.clase else (m_obj.clase_nombre.upper() if m_obj.clase_nombre else 'PHYSICAL')
+                        db_moves.append(_enrich_move_from_pbs({
+                            "id": m_obj.nombre_ingles.upper().replace(' ', '').replace('-', ''),
+                            "name": m_obj.nombre or m_obj.nombre_ingles,
+                            "type": t_name,
+                            "category": c_name,
+                            "power": m_obj.potencia or 0,
+                            "accuracy": m_obj.precision or 100,
+                            "pp": m_obj.pp or 15,
+                            "current_pp": m_obj.pp or 15,
+                            "priority": m_obj.prioridad,
+                            "description": m_obj.descripcion or "",
+                        }))
+            except Exception:
+                db_moves = []
+
+        if db_moves:
+            moves = db_moves
+        elif featured_data:
             moves = [_enrich_move_from_pbs(m) for m in featured_data["moves"]]
         elif pbs_data:
             moves = [_enrich_move_from_pbs(m) for m in build_moveset_for_species(pbs_data)]
@@ -187,8 +219,9 @@ def create_pokemon_instance(species: str, level: int = 50, db_cache: Optional[di
 def create_default_party(species_list: list, level: int = 50) -> list:
     """Builds a full party using a single batched DB lookup to avoid N+1 queries."""
     db_cache = {}
+    moves_cache = {}
     try:
-        from pokedex.models import Pokemon
+        from pokedex.models import Pokemon, Move
         from django.db.models import Q
         query = Q()
         for sp in species_list:
@@ -200,12 +233,21 @@ def create_default_party(species_list: list, level: int = 50) -> list:
                 .select_related('estadisticas', 'tipo1', 'tipo2')
                 .prefetch_related('habilidades')
             )
+            all_move_ids = set()
             for obj in qs:
                 if obj.nombre_ingles:
                     db_cache[obj.nombre_ingles.upper().strip()] = obj
+                if obj.movimientos_predeterminados:
+                    all_move_ids.update(obj.movimientos_predeterminados)
+
+            if all_move_ids:
+                move_objs = Move.objects.filter(id__in=all_move_ids).select_related('tipo', 'clase')
+                for m in move_objs:
+                    moves_cache[m.id] = m
     except Exception:
         db_cache = {}
-    return [create_pokemon_instance(sp, level, db_cache=db_cache) for sp in species_list]
+        moves_cache = {}
+    return [create_pokemon_instance(sp, level, db_cache=db_cache, moves_cache=moves_cache) for sp in species_list]
 
 
 def _can_apply_status(target: dict, status_code: str) -> bool:
