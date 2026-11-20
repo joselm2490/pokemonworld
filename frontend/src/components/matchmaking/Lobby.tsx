@@ -21,9 +21,6 @@ import {
   Flame,
   Info,
   Search,
-  Gift,
-  HeartPulse,
-  Settings,
   Send,
   Sliders,
   Clock,
@@ -401,7 +398,7 @@ export const Lobby: React.FC<LobbyProps> = ({
         </div>
 
         {/* ================= WHITE CONTAINER: DYNAMIC SECTIONS (ARENA / EQUIPO / SALIR) ================= */}
-        <div className="bg-white/95 rounded-2xl border-2 border-slate-300/80 shadow-xl p-2.5 sm:p-3 flex-1 flex flex-col overflow-hidden max-h-[62vh]">
+        <div className="bg-white/95 rounded-2xl border-2 border-slate-300/80 shadow-xl p-2.5 sm:p-3 flex-1 flex flex-col overflow-hidden max-h-[72vh] sm:max-h-[76vh]">
           {/* 1. SECCIÓN ARENA (IMAGEN 2 - PREDETERMINADA) */}
           {activeSection === 'arena' && (
             <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
@@ -722,40 +719,31 @@ export const Lobby: React.FC<LobbyProps> = ({
       )}
     </div>
 
-        {/* ================= MAIN ARENA SKEWED BANNER (IMAGE 2 & 3) ================= */}
-        <div className="my-1.5 sm:my-2 flex justify-center">
-          <button
-            type="button"
-            onClick={() => setActiveSection('arena')}
-            className={`relative w-full max-w-[340px] h-12 bg-gradient-to-r from-[#32f59b] via-[#2ce692] to-[#25db89] hover:brightness-105 active:scale-[0.98] transition-all shadow-[0_4px_14px_rgba(46,230,146,0.45)] border-2 border-[#19c778] flex items-center justify-between px-6 cursor-pointer overflow-hidden group ${
-              activeSection === 'arena' ? 'ring-2 ring-emerald-500' : ''
-            }`}
-            style={{ clipPath: 'polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)' }}
-            title="Sección Arena Principal"
-          >
-            {/* Left Spacer for Symmetry */}
-            <div className="w-8" />
-
-            {/* Center Bold ARENA Text */}
-            <span className="text-2xl font-black italic tracking-wider text-slate-950 font-sans uppercase">
-              ARENA
+        {/* ================= CIRCULAR FLOATING ACTION DOCK (Arena, Equipo, Cajas, Pokedex) ================= */}
+        <div className="flex items-center justify-around max-w-[340px] sm:max-w-[380px] mx-auto w-full px-2 my-2 sm:my-3">
+          {/* Button 1: Arena */}
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={() => setActiveSection('arena')}
+              className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer border-2 ${
+                activeSection === 'arena'
+                  ? 'bg-gradient-to-b from-[#181d24] to-[#0c1015] border-emerald-400 text-[#32f59b]'
+                  : 'bg-gradient-to-b from-[#2e353f] to-[#181d24] border-[#545f6e] hover:border-emerald-400 text-white'
+              }`}
+              title="Sección Arena"
+            >
+              <Swords className="w-5 h-5" />
+            </button>
+            <span
+              className={`text-[10px] font-sans font-medium ${
+                activeSection === 'arena' ? 'text-emerald-700 font-bold' : 'text-slate-600'
+              }`}
+            >
+              Arena
             </span>
+          </div>
 
-            {/* Right White Vital Pulse / Heartbeat Graphic (/\_/\_) */}
-            <div className="flex items-center text-white">
-              <svg
-                viewBox="0 0 60 24"
-                className="w-12 h-6 stroke-white fill-none stroke-[3.5] stroke-linecap-round stroke-linejoin-round drop-shadow-xs"
-              >
-                <path d="M 0 12 L 15 12 L 20 4 L 28 20 L 34 8 L 38 14 L 42 12 L 60 12" />
-              </svg>
-            </div>
-          </button>
-        </div>
-
-        {/* ================= CIRCULAR FLOATING ACTION DOCK (IMAGE 2: Equipo, Cajas, Pokedex) ================= */}
-        <div className="flex items-center justify-around max-w-[280px] sm:max-w-[320px] mx-auto w-full px-2 my-1">
-          {/* Button 1: Equipo */}
+          {/* Button 2: Equipo */}
           <div className="flex flex-col items-center gap-1">
             <button
               onClick={() => setActiveSection('equipo')}
@@ -768,12 +756,16 @@ export const Lobby: React.FC<LobbyProps> = ({
             >
               <Send className="w-5 h-5" />
             </button>
-            <span className={`text-[10px] font-sans font-medium ${activeSection === 'equipo' ? 'text-emerald-700 font-bold' : 'text-slate-600'}`}>
+            <span
+              className={`text-[10px] font-sans font-medium ${
+                activeSection === 'equipo' ? 'text-emerald-700 font-bold' : 'text-slate-600'
+              }`}
+            >
               Equipo
             </span>
           </div>
 
-          {/* Button 2: Cajas */}
+          {/* Button 3: Cajas */}
           <div className="flex flex-col items-center gap-1">
             <button
               onClick={onOpenTeamBuilder}
@@ -787,7 +779,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             </span>
           </div>
 
-          {/* Button 3: Pokedex */}
+          {/* Button 4: Pokedex */}
           <div className="flex flex-col items-center gap-1">
             <button
               onClick={handleOpenPokedexHub}
@@ -799,48 +791,6 @@ export const Lobby: React.FC<LobbyProps> = ({
             <span className="text-[10px] text-slate-600 font-sans font-medium">
               Pokedex
             </span>
-          </div>
-        </div>
-
-        {/* ================= BOTTOM CHAMFERED NAVIGATION TABS (IMAGE 2) ================= */}
-        <div className="grid grid-cols-4 gap-1.5 mt-2">
-          {/* Tab 1: BE Black Active Tab */}
-          <div
-            onClick={() => onOpenRooms && onOpenRooms()}
-            className="bg-[#12161b] text-white py-2 flex items-center justify-center gap-1 shadow-md border-t border-slate-700 cursor-pointer hover:bg-black transition-colors"
-            style={{ clipPath: 'polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)' }}
-            title="Ir a Salas Multijugador Forth Battle (/room)"
-          >
-            <span className="text-xs font-black text-[#32f59b] font-mono tracking-tighter">
-              BE
-            </span>
-            <div className="w-4 h-4 rounded-full bg-[#32f59b]/30 border border-[#32f59b] flex items-center justify-center text-[8px] text-white">
-              ★
-            </div>
-          </div>
-
-          {/* Tab 2: Gift Tab (Mint Green) */}
-          <div
-            className="bg-[#83f8c3] hover:bg-[#72f5b6] text-slate-900 py-2 flex items-center justify-center shadow-xs cursor-pointer transition-colors"
-            style={{ clipPath: 'polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)' }}
-          >
-            <Gift className="w-4 h-4 text-slate-850" />
-          </div>
-
-          {/* Tab 3: Heal / Med Tab (Mint Green) */}
-          <div
-            className="bg-[#83f8c3] hover:bg-[#72f5b6] text-slate-900 py-2 flex items-center justify-center shadow-xs cursor-pointer transition-colors"
-            style={{ clipPath: 'polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)' }}
-          >
-            <HeartPulse className="w-4 h-4 text-slate-850" />
-          </div>
-
-          {/* Tab 4: Settings Tab (Mint Green) */}
-          <div
-            className="bg-[#83f8c3] hover:bg-[#72f5b6] text-slate-900 py-2 flex items-center justify-center shadow-xs cursor-pointer transition-colors"
-            style={{ clipPath: 'polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)' }}
-          >
-            <Settings className="w-4 h-4 text-slate-850" />
           </div>
         </div>
       </div>
