@@ -79,7 +79,7 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
   }
 
   const stats = pokemon.base_stats;
-  const maxStat = 255;
+  const maxStat = 550;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 select-none font-game animate-in fade-in duration-200">
@@ -327,7 +327,7 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
                 <div className="bg-zinc-900/80 border border-zinc-700/60 rounded-2xl p-4 space-y-2.5">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                      Estadísticas Base
+                      Estadísticas Nivel 100 (Favorable / PokémonDB)
                     </span>
                     <span className="text-xs font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30">
                       BST Total: {stats.total}
@@ -342,7 +342,8 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
                     { label: 'Def. Esp.', val: stats.sp_defense, color: 'bg-purple-500' },
                     { label: 'Velocidad', val: stats.speed, color: 'bg-pink-500' },
                   ].map((s) => {
-                    const pct = Math.min(100, Math.round((s.val / maxStat) * 100));
+                    const maxVal = s.label.includes('HP') ? 720 : maxStat;
+                    const pct = Math.min(100, Math.round((s.val / maxVal) * 100));
                     return (
                       <div key={s.label} className="grid grid-cols-12 gap-2 items-center text-xs">
                         <span className="col-span-3 text-zinc-300 font-semibold">{s.label}</span>

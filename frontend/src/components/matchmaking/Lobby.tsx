@@ -643,7 +643,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                       <div className="flex items-center justify-between bg-black/25 px-2 py-0.5 rounded">
                         <span className="text-slate-300 font-bold text-[9px]">HP</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white">{stats?.hp ? (stats.hp * 20).toLocaleString() : '3,600'}</span>
+                          <span className="font-bold text-white">{stats?.hp ? stats.hp.toLocaleString() : '314'}</span>
                           <span className="bg-[#181c20] text-[#00ff9d] text-[8px] font-black px-1.5 py-0.2 rounded-full border border-slate-700">
                             +0
                           </span>
@@ -654,7 +654,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                       <div className="flex items-center justify-between bg-black/25 px-2 py-0.5 rounded">
                         <span className="text-slate-300 font-bold text-[9px]">AP</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white">{stats?.attack ? (stats.attack * 14).toLocaleString() : '1,200'}</span>
+                          <span className="font-bold text-white">{stats?.attack ? stats.attack.toLocaleString() : '262'}</span>
                           <span className="bg-[#181c20] text-[#00ff9d] text-[8px] font-black px-1.5 py-0.2 rounded-full border border-slate-700">
                             +0
                           </span>
@@ -665,7 +665,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                       <div className="flex items-center justify-between bg-black/25 px-2 py-0.5 rounded">
                         <span className="text-slate-300 font-bold text-[9px]">BP</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white">{stats?.defense ? (stats.defense * 45).toLocaleString() : '5,200'}</span>
+                          <span className="font-bold text-white">{stats?.defense ? stats.defense.toLocaleString() : '207'}</span>
                           <span className="bg-[#181c20] text-[#00ff9d] text-[8px] font-black px-1.5 py-0.2 rounded-full border border-slate-700">
                             +0
                           </span>

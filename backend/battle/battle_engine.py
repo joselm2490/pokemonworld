@@ -6,7 +6,7 @@ from .pbs_loader import get_all_pokemon, get_all_moves, build_moveset_for_specie
 from .type_chart import get_type_effectiveness
 
 
-def calculate_stat(base: int, level: int = 50, is_hp: bool = False, iv: int = 31, ev: int = 85) -> int:
+def calculate_stat(base: int, level: int = 100, is_hp: bool = False, iv: int = 31, ev: int = 85) -> int:
     if is_hp:
         if base == 1:
             return 1  # Shedinja
@@ -70,7 +70,7 @@ def _enrich_move_from_pbs(move_dict: dict) -> dict:
     return merged
 
 
-def create_pokemon_instance(species: str, level: int = 50, db_cache: Optional[dict] = None, moves_cache: Optional[dict] = None) -> dict:
+def create_pokemon_instance(species: str, level: int = 100, db_cache: Optional[dict] = None, moves_cache: Optional[dict] = None) -> dict:
     species_key = species.upper().strip()
     pbs_pokemon = get_all_pokemon()
     pbs_data = pbs_pokemon.get(species_key)
@@ -225,7 +225,7 @@ def create_pokemon_instance(species: str, level: int = 50, db_cache: Optional[di
     }
 
 
-def create_default_party(species_list: list, level: int = 50) -> list:
+def create_default_party(species_list: list, level: int = 100) -> list:
     """Builds a full party using a single batched DB lookup to avoid N+1 queries."""
     db_cache = {}
     moves_cache = {}
@@ -324,7 +324,7 @@ def calculate_damage(attacker: dict, defender: dict, move: dict) -> dict:
     if accuracy > 0 and random.randint(1, 100) > accuracy:
         return {"damage": 0, "is_miss": True, "effectiveness": 1.0, "is_crit": False}
 
-    level = attacker.get("level", 50)
+    level = attacker.get("level", 100)
     power = move.get("power", 50)
     category = move.get("category", "SPECIAL")
 

@@ -74,12 +74,12 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
 
   const statConfigs = pokemon?.base_stats
     ? [
-        { label: 'HP', val: pokemon.base_stats.hp, bonus: '+0', max: 255 },
-        { label: 'ATK', val: pokemon.base_stats.attack, bonus: '+0', max: 255 },
-        { label: 'DEF', val: pokemon.base_stats.defense, bonus: '+0', max: 255 },
-        { label: 'SPA', val: pokemon.base_stats.sp_attack, bonus: '+0', max: 255 },
-        { label: 'SPD', val: pokemon.base_stats.sp_defense, bonus: '+0', max: 255 },
-        { label: 'SPE', val: pokemon.base_stats.speed, bonus: '+0', max: 255 },
+        { label: 'HP', val: pokemon.base_stats.hp, bonus: '+0', max: 720 },
+        { label: 'ATK', val: pokemon.base_stats.attack, bonus: '+0', max: 550 },
+        { label: 'DEF', val: pokemon.base_stats.defense, bonus: '+0', max: 550 },
+        { label: 'SPA', val: pokemon.base_stats.sp_attack, bonus: '+0', max: 550 },
+        { label: 'SPD', val: pokemon.base_stats.sp_defense, bonus: '+0', max: 550 },
+        { label: 'SPE', val: pokemon.base_stats.speed, bonus: '+0', max: 550 },
       ]
     : [];
 
@@ -246,7 +246,7 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
                 <div className="relative z-10 flex items-center justify-between pb-1.5 mb-2 border-b border-slate-500/80">
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-200 flex items-center gap-1">
                     <Activity className="w-3.5 h-3.5 text-[#00ff9d]" />
-                    Estadísticas Base (6 Atributos)
+                    Estadísticas Nivel 100 Favorable
                   </span>
                   <span className="text-[10px] font-mono font-bold text-[#00ff9d] bg-black/40 px-2 py-0.2 rounded border border-slate-600">
                     BST: {pokemon.base_stats?.total || 0}
