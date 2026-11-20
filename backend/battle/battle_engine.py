@@ -169,12 +169,21 @@ def create_pokemon_instance(species: str, level: int = 50, db_cache: Optional[di
         # Fallback to Charizard
         return create_pokemon_instance("CHARIZARD", level)
 
-    max_hp = calculate_stat(base["hp"], level, is_hp=True)
-    attack = calculate_stat(base["attack"], level)
-    defense = calculate_stat(base["defense"], level)
-    sp_attack = calculate_stat(base["sp_attack"], level)
-    sp_defense = calculate_stat(base["sp_defense"], level)
-    speed = calculate_stat(base["speed"], level)
+    # Las estadísticas en los duelos son EXACTAMENTE las estadísticas de cada Pokémon en Supabase
+    if db_pkmn and hasattr(db_pkmn, 'estadisticas'):
+        max_hp = int(base["hp"])
+        attack = int(base["attack"])
+        defense = int(base["defense"])
+        sp_attack = int(base["sp_attack"])
+        sp_defense = int(base["sp_defense"])
+        speed = int(base["speed"])
+    else:
+        max_hp = int(base.get("hp", 50))
+        attack = int(base.get("attack", 50))
+        defense = int(base.get("defense", 50))
+        sp_attack = int(base.get("sp_attack", 50))
+        sp_defense = int(base.get("sp_defense", 50))
+        speed = int(base.get("speed", 50))
 
     if gender_ratio == "Genderless":
         gender = None
