@@ -88,14 +88,6 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
                 <span>Líder</span>
               </span>
             )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer shrink-0 ml-1"
-              title="Cerrar Ficha"
-            >
-              <X className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </button>
           </div>
         </div>
 
@@ -237,48 +229,51 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
               <div className="rounded-xl bg-[#535962] border border-[#3e434a] p-3 text-white shadow-md relative overflow-hidden">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff12_1px,transparent_1px),linear-gradient(to_bottom,#ffffff12_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none" />
 
-                <div className="relative z-10 flex items-center justify-between pb-1.5 mb-2 border-b border-slate-500/80">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-200 flex items-center gap-1">
-                    <Crosshair className="w-3.5 h-3.5 text-rose-400" />
+                <div className="relative z-10 flex items-center justify-between pb-2 mb-2.5 border-b border-slate-500/80">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-100 flex items-center gap-1.5">
+                    <Crosshair className="w-4 h-4 text-rose-400" />
                     Movimientos de Combate (4 Ataques)
                   </span>
-                  <span className="text-[8px] font-mono text-slate-300">Oficial</span>
+                  <span className="text-[10px] font-mono text-slate-300 font-bold">Oficial</span>
                 </div>
 
-                <div className="relative z-10 space-y-1.5">
+                <div className="relative z-10 space-y-2">
                   {pokemon.movimientos_predeterminados_data && pokemon.movimientos_predeterminados_data.length > 0 ? (
                     pokemon.movimientos_predeterminados_data.slice(0, 4).map((mv: StadiumMove) => (
                       <div
                         key={mv.id || mv.codigo}
-                        className="bg-black/35 border border-slate-600 rounded p-2 flex flex-col gap-1 shadow-xs"
+                        className="bg-black/40 border border-slate-600 rounded-lg p-2.5 flex flex-col gap-1.5 shadow-sm"
                       >
+                        {/* Nombre del movimiento y tipo con badge destacado */}
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-white text-xs">{mv.nombre}</span>
+                          <span className="font-black text-white text-sm tracking-wide">{mv.nombre}</span>
                           <span
-                            style={{ backgroundColor: mv.tipo_color }}
-                            className="px-2 py-0.2 rounded-full text-[8px] font-bold text-white uppercase"
+                            style={{ backgroundColor: mv.tipo_color || '#ef4444' }}
+                            className="px-2.5 py-0.5 rounded-full text-[10px] font-black text-white uppercase tracking-wider shadow-xs"
                           >
                             {mv.tipo}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2 text-[9px] text-slate-300 font-mono">
-                          <span className="bg-[#181c20] px-1 py-0.2 rounded text-[8px] text-slate-300 border border-slate-700">
+                        {/* Clase (Físico / Especial / Estado) y Atributos (Potencia, Precisión, PP) */}
+                        <div className="flex items-center gap-2 text-[11px] text-slate-200 font-mono flex-wrap">
+                          <span className="bg-[#181c20] px-2 py-0.5 rounded text-[10px] font-bold text-slate-200 border border-slate-600 capitalize">
                             {mv.clase}
                           </span>
-                          <span>
-                            Pot: <strong className="text-amber-300">{mv.potencia ?? '—'}</strong>
+                          <span className="bg-black/30 px-1.5 py-0.5 rounded border border-slate-700/60">
+                            Pot: <strong className="text-amber-400 font-bold">{mv.potencia ?? '—'}</strong>
                           </span>
-                          <span>
-                            Prec: <strong className="text-white">{mv.precision ? `${mv.precision}%` : '—'}</strong>
+                          <span className="bg-black/30 px-1.5 py-0.5 rounded border border-slate-700/60">
+                            Prec: <strong className="text-white font-bold">{mv.precision ? `${mv.precision}%` : '—'}</strong>
                           </span>
-                          <span>
-                            PP: <strong className="text-slate-300">{mv.pp ?? '—'}</strong>
+                          <span className="bg-black/30 px-1.5 py-0.5 rounded border border-slate-700/60">
+                            PP: <strong className="text-emerald-400 font-bold">{mv.pp ?? '—'}</strong>
                           </span>
                         </div>
 
+                        {/* Descripción clara y con tamaño legible */}
                         {mv.descripcion && (
-                          <p className="text-[8px] text-slate-300 leading-snug line-clamp-2 font-sans bg-black/20 p-1 rounded">
+                          <p className="text-[10px] sm:text-[11px] text-slate-300 leading-relaxed font-sans bg-black/25 p-1.5 rounded border border-slate-700/40">
                             {mv.descripcion}
                           </p>
                         )}

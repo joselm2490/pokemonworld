@@ -693,13 +693,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                           <span className="bg-emerald-600 text-white text-[7px] font-black px-1 rounded-xs uppercase">
                             PASIVA
                           </span>
-                          <span className="text-slate-400 text-[8px]">Sinergia</span>
                         </div>
-                        <div className="bg-[#1c2026] text-slate-200 text-[9px] font-sans px-2 py-0.5 rounded mt-0.5 truncate border border-slate-600 flex items-center justify-between">
+                        <div className="bg-[#1c2026] text-slate-200 text-[9px] font-sans px-2 py-0.5 rounded mt-0.5 truncate border border-slate-600">
                           <span className="truncate">
                             {detail?.habilidades?.[0]?.nombre || resolved.ability || 'Mar Llamas'}
                           </span>
-                          <span className="text-amber-400 font-mono text-[8px] font-bold ml-1 shrink-0">R</span>
                         </div>
                       </div>
                     </div>
