@@ -407,7 +407,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 </div>
               </div>
 
-              {/* 2. Training Battle Card (Combate vs IA 6v6) */}
+              {/* 2. Duelo Práctica Card (Combate vs IA 6v6) */}
               <div
                 onClick={onOpenPractice || handlePlayAi}
                 className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#7a52c7] via-[#875fd3] to-[#9973e2] border-2 border-[#603baf] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
@@ -418,10 +418,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                 {/* Left Typography */}
                 <div className="relative z-10">
                   <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
-                    TRAINING
+                    DUELO
                   </h3>
                   <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
-                    BATTLE
+                    PRACTICA
                   </h3>
                   <span className="text-[9px] font-bold text-purple-200 tracking-wider uppercase block mt-1 font-mono">
                     COMBATE VS IA (6 VS 6)

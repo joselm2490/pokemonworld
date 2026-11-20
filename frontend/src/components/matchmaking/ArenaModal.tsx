@@ -319,10 +319,10 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
             {/* Left Typography */}
             <div className="relative z-10">
               <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
-                TRAINING
+                DUELO
               </h3>
               <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
-                BATTLE
+                PRACTICA
               </h3>
               <span className="text-[9px] font-bold text-purple-200 tracking-wider uppercase block mt-1 font-mono">
                 COMBATE VS IA (6 VS 6)
