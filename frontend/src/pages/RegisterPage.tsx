@@ -62,9 +62,13 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0c1015] via-[#141b24] to-[#0a0e13] flex flex-col items-center justify-center p-4 font-sans select-none relative overflow-hidden">
-      {/* Background Cyber Tech Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1b2432_1px,transparent_1px),linear-gradient(to_bottom,#1b2432_1px,transparent_1px)] bg-[size:28px_28px] opacity-25 pointer-events-none" />
+    <div className="min-h-screen bg-[#f0fdf4] flex flex-col items-center justify-center p-3 sm:p-4 font-sans select-none relative overflow-hidden">
+      {/* Background Vital Bracelet decorative mint ribbons */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-90 z-0">
+        <div className="absolute -top-32 -left-32 w-[600px] h-[260px] bg-gradient-to-br from-[#8bf8c7]/40 via-[#4ceba1]/25 to-transparent rotate-[-22deg] blur-2xl" />
+        <div className="absolute top-1/3 -right-32 w-[600px] h-[260px] bg-gradient-to-bl from-[#74f7bc]/35 via-[#4ceba1]/20 to-transparent rotate-[-22deg] blur-2xl" />
+        <div className="absolute -bottom-24 -left-20 w-[550px] h-[260px] bg-gradient-to-tr from-[#32f59b]/35 to-transparent rotate-[-22deg] blur-2xl" />
+      </div>
 
       {/* Main Register Card */}
       <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-4 z-10 border border-slate-200">

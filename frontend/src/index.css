@@ -20,10 +20,26 @@
 
 @layer base {
   body {
-    background-color: #101418;
-    color: #f1f5f9;
+    background-color: #f2f4f7;
+    color: #1e293b;
     font-family: 'Power Clear', 'Press Start 2P', monospace, sans-serif;
   }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 .font-pkmn {

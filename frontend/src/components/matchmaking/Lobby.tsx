@@ -27,6 +27,8 @@ import {
   Settings,
   Send,
   Sliders,
+  Clock,
+  AlertCircle,
   Backpack,
 } from 'lucide-react';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
@@ -90,10 +92,15 @@ export const Lobby: React.FC<LobbyProps> = ({
     setCurrentUser(null);
     setTrainerName('Entrenador');
     setNameInput('Entrenador');
+    setActiveSection('arena');
+    if (onOpenAuth) {
+      onOpenAuth();
+    }
   };
 
-  // Modals - Main View is ARENA Menu (Starts Open)
-  const [isArenaOpen, setIsArenaOpen] = useState(true);
+  // Section Navigation (Default: 'arena' when logged in as requested)
+  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'salir'>('arena');
+  const [isArenaOpen, setIsArenaOpen] = useState(false);
   const [isPokedexHubOpen, setIsPokedexHubOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -367,10 +374,163 @@ export const Lobby: React.FC<LobbyProps> = ({
           </div>
         </div>
 
-        {/* ================= WHITE CONTAINER OF POKÉMON TECH-GRID CARDS ================= */}
+        {/* ================= WHITE CONTAINER: DYNAMIC SECTIONS (ARENA / EQUIPO / SALIR) ================= */}
         <div className="bg-white/95 rounded-2xl border-2 border-slate-300/80 shadow-xl p-3 flex-1 flex flex-col overflow-hidden max-h-[58vh]">
-          {/* Scrollable Team Cards (Up to 6 Pokémon) */}
-          <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
+          {/* 1. SECCIÓN ARENA (IMAGEN 2 - PREDETERMINADA) */}
+          {activeSection === 'arena' && (
+            <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
+              {/* Forth Battle Card (Salas Multijugador) */}
+              <div
+                onClick={() => (onOpenRooms ? onOpenRooms() : null)}
+                className="relative h-26 rounded-2xl overflow-hidden bg-[#151c26] border border-[#26354a] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+              >
+                {/* Tech Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff15_1px,transparent_1px),linear-gradient(to_bottom,#ffffff15_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
+
+                {/* Left Typography */}
+                <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
+                      FORTH BATTLE
+                    </h3>
+                    <span className="text-[9px] font-mono font-bold text-slate-300 tracking-wider uppercase block mt-1">
+                      SALAS MULTIJUGADOR 6v6 • ONLINE
+                    </span>
+                  </div>
+
+                  {/* Bottom Ribbon */}
+                  <div className="flex items-center gap-2">
+                    <div className="bg-black/90 text-amber-300 text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1 border border-slate-700 shadow-xs">
+                      <Clock className="w-2.5 h-2.5 text-amber-400" />
+                      <span>ENDS IN 0d 05:48:38</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-[#38bdf8] hover:text-[#7dd3fc] underline">
+                      Ver salas ▼
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Emblem Icons */}
+                <div className="absolute right-4 flex items-center gap-2 pointer-events-none">
+                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/60 flex items-center justify-center text-white">
+                    <Swords className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-white/10 border-2 border-white/80 flex items-center justify-center text-white">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Training Battle Card (Combate vs IA 6v6) */}
+              <div
+                onClick={onOpenPractice || handlePlayAi}
+                className="relative h-26 rounded-2xl overflow-hidden bg-gradient-to-r from-[#7a52c7] via-[#875fd3] to-[#9973e2] border-2 border-[#603baf] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+              >
+                {/* Purple Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff30_1px,transparent_1px),linear-gradient(to_bottom,#ffffff30_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
+
+                {/* Left Typography */}
+                <div className="relative z-10">
+                  <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
+                    TRAINING
+                  </h3>
+                  <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
+                    BATTLE
+                  </h3>
+                  <span className="text-[9px] font-bold text-purple-200 tracking-wider uppercase block mt-1 font-mono">
+                    COMBATE VS IA (6 VS 6)
+                  </span>
+                </div>
+
+                {/* Sparring Stick Figures on Right */}
+                <div className="absolute right-4 flex items-center gap-2 pointer-events-none text-white opacity-95">
+                  <div className="flex flex-col items-center">
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white mb-0.5" />
+                    <div className="w-1 h-5 bg-white" />
+                  </div>
+                  <div className="text-2xl font-black italic text-amber-300 drop-shadow-sm">⚡</div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-3 h-3 rounded-full border-2 border-white mb-0.5" />
+                    <div className="w-1 h-4 bg-white" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Próximamente Card */}
+              <div className="relative h-26 rounded-2xl overflow-hidden bg-gradient-to-r from-[#44c4e8] via-[#52d2f4] to-[#68defd] border-2 border-[#2fa8cb] shadow-md flex items-center px-4">
+                {/* Cyan Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff30_1px,transparent_1px),linear-gradient(to_bottom,#ffffff30_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
+
+                {/* Left Typography */}
+                <div className="relative z-10">
+                  <h3 className="text-2xl sm:text-3xl font-black text-white italic tracking-tight leading-none drop-shadow-sm font-sans">
+                    PROXIMAMENTE
+                  </h3>
+                  <span className="text-[9px] font-bold text-[#0c4756] tracking-wider uppercase block mt-1 font-mono">
+                    NUEVOS MODOS DE TORNEO
+                  </span>
+                </div>
+
+                {/* White Circular Stadium Medals on Right */}
+                <div className="absolute right-4 flex items-center -space-x-2 pointer-events-none">
+                  <div className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center border-2 border-slate-200">
+                    <Shield className="w-6 h-6 text-[#2ba7ca]" />
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center border-2 border-slate-200">
+                    <Sparkles className="w-5 h-5 text-[#2ba7ca]" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. SECCIÓN SALIR (IMAGEN 3) */}
+          {activeSection === 'salir' && (
+            <div className="flex-1 flex flex-col justify-between py-1 animate-in fade-in duration-200 overflow-y-auto custom-scrollbar">
+              {/* Top Image: Pikachu de 98.webp */}
+              <div className="w-full rounded-2xl overflow-hidden border-2 border-slate-300 shadow-md bg-black shrink-0">
+                <img
+                  src="/98.webp"
+                  alt="¿Deseas cerrar sesión?"
+                  className="w-full h-44 sm:h-52 object-cover"
+                />
+              </div>
+
+              {/* Confirmation Dialog Box (Matching Imagen 3) */}
+              <div className="bg-[#fff1f2] border border-[#fecdd3] rounded-2xl p-3.5 sm:p-4 text-center mt-3 shadow-xs space-y-2">
+                <div className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-black text-[#9f1239] uppercase tracking-wide">
+                  <AlertCircle className="w-4 h-4 text-[#e11d48] shrink-0" />
+                  <span>¿DESEAS CERRAR SESIÓN?</span>
+                </div>
+                <p className="text-xs text-slate-600 font-sans">
+                  Se desconectará la cuenta del entrenador{' '}
+                  <strong className="text-slate-900 font-bold">{trainerName}</strong>.
+                </p>
+                <div className="flex items-center justify-center gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex-1 py-2 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                  >
+                    CONFIRMAR
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection('arena')}
+                    className="flex-1 py-2 px-4 bg-[#e2e8f0] hover:bg-[#cbd5e1] text-slate-700 font-black text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
+                  >
+                    CANCELAR
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. SECCIÓN EQUIPO (LISTADO DE POKÉMON TECH-GRID) */}
+          {activeSection === 'equipo' && (
+            <>
+              {/* Scrollable Team Cards (Up to 6 Pokémon) */}
+              <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
             {selectedTeam.map((species, idx) => {
               const isLeader = idx === 0;
               const detail = teamDetails[species];
@@ -555,15 +715,20 @@ export const Lobby: React.FC<LobbyProps> = ({
               </button>
             )}
           </div>
-        </div>
+        </>
+      )}
+    </div>
 
-        {/* ================= MAIN ARENA SKEWED BANNER (IMAGE 2) ================= */}
+        {/* ================= MAIN ARENA SKEWED BANNER (IMAGE 2 & 3) ================= */}
         <div className="my-2.5 flex justify-center">
           <button
             type="button"
-            onClick={() => setIsArenaOpen(true)}
-            className="relative w-full max-w-[340px] h-12 bg-gradient-to-r from-[#32f59b] via-[#2ce692] to-[#25db89] hover:brightness-105 active:scale-[0.98] transition-all shadow-[0_4px_14px_rgba(46,230,146,0.45)] border-2 border-[#19c778] flex items-center justify-between px-6 cursor-pointer overflow-hidden group"
+            onClick={() => setActiveSection('arena')}
+            className={`relative w-full max-w-[340px] h-12 bg-gradient-to-r from-[#32f59b] via-[#2ce692] to-[#25db89] hover:brightness-105 active:scale-[0.98] transition-all shadow-[0_4px_14px_rgba(46,230,146,0.45)] border-2 border-[#19c778] flex items-center justify-between px-6 cursor-pointer overflow-hidden group ${
+              activeSection === 'arena' ? 'ring-2 ring-emerald-500' : ''
+            }`}
             style={{ clipPath: 'polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)' }}
+            title="Sección Arena Principal"
           >
             {/* Left Spacer for Symmetry */}
             <div className="w-8" />
@@ -585,33 +750,41 @@ export const Lobby: React.FC<LobbyProps> = ({
           </button>
         </div>
 
-        {/* ================= CIRCULAR FLOATING ACTION DOCK (IMAGE 2) ================= */}
+        {/* ================= CIRCULAR FLOATING ACTION DOCK (IMAGE 2 & 3: Equipo, Cajas, Pokedex, Salir) ================= */}
         <div className="flex items-center justify-around px-2 my-1">
-          {/* Button 1: Send / Versus */}
+          {/* Button 1: Equipo */}
           <div className="flex flex-col items-center gap-1">
             <button
-              onClick={() => setIsArenaOpen(true)}
-              className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
-              title="Arena de Combates"
+              onClick={() => setActiveSection('equipo')}
+              className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer border-2 ${
+                activeSection === 'equipo'
+                  ? 'bg-gradient-to-b from-[#181d24] to-[#0c1015] border-emerald-400 text-[#32f59b]'
+                  : 'bg-gradient-to-b from-[#2e353f] to-[#181d24] border-[#545f6e] hover:border-emerald-400 text-white'
+              }`}
+              title="Mi Equipo Pokémon"
             >
-              <Send className="w-5 h-5 text-white" />
+              <Send className="w-5 h-5" />
             </button>
-            <span className="text-[10px] text-slate-600 font-sans font-medium">Send</span>
+            <span className={`text-[10px] font-sans font-medium ${activeSection === 'equipo' ? 'text-emerald-700 font-bold' : 'text-slate-600'}`}>
+              Equipo
+            </span>
           </div>
 
-          {/* Button 2: Assign / Team */}
+          {/* Button 2: Cajas */}
           <div className="flex flex-col items-center gap-1">
             <button
               onClick={onOpenTeamBuilder}
               className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
-              title="Organizar Escuadrón / Caja PC"
+              title="Organizar Escuadrón / Cajas PC"
             >
               <Users className="w-5 h-5 text-white" />
             </button>
-            <span className="text-[10px] text-slate-600 font-sans font-medium">Assign</span>
+            <span className="text-[10px] text-slate-600 font-sans font-medium">
+              Cajas
+            </span>
           </div>
 
-          {/* Button 3: Codex / Pokédex */}
+          {/* Button 3: Pokedex */}
           <div className="flex flex-col items-center gap-1">
             <button
               onClick={handleOpenPokedexHub}
@@ -620,19 +793,27 @@ export const Lobby: React.FC<LobbyProps> = ({
             >
               <BookOpen className="w-5 h-5 text-white" />
             </button>
-            <span className="text-[10px] text-slate-600 font-sans font-medium">Codex</span>
+            <span className="text-[10px] text-slate-600 font-sans font-medium">
+              Pokedex
+            </span>
           </div>
 
-          {/* Button 4: Adventure / Movimientos */}
+          {/* Button 4: Salir */}
           <div className="flex flex-col items-center gap-1">
             <button
-              onClick={onOpenMoves}
-              className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
-              title="Catálogo de Movimientos"
+              onClick={() => setActiveSection('salir')}
+              className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer border-2 ${
+                activeSection === 'salir'
+                  ? 'bg-gradient-to-b from-[#181d24] to-[#0c1015] border-rose-500 text-rose-400'
+                  : 'bg-gradient-to-b from-[#2e353f] to-[#181d24] border-[#545f6e] hover:border-rose-400 text-white'
+              }`}
+              title="Cerrar Sesión"
             >
-              <Backpack className="w-5 h-5 text-white" />
+              <Backpack className="w-5 h-5" />
             </button>
-            <span className="text-[10px] text-slate-600 font-sans font-medium">Adventure</span>
+            <span className={`text-[10px] font-sans font-medium ${activeSection === 'salir' ? 'text-rose-700 font-bold' : 'text-slate-600'}`}>
+              Salir
+            </span>
           </div>
         </div>
 

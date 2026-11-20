@@ -214,30 +214,30 @@ export const TeamPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0c1015] via-[#141b24] to-[#0a0e13] text-slate-100 p-3 sm:p-6 font-sans select-none flex flex-col">
+    <div className="min-h-screen bg-[#f2f4f7] text-slate-800 p-3 sm:p-6 font-sans select-none flex flex-col">
       {/* Top Header */}
-      <div className="max-w-6xl w-full mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="max-w-6xl w-full mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-300">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
-            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 hover:text-slate-950 transition-colors cursor-pointer shadow-xs"
             title="Volver a la Arena"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white">
+              <h1 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-slate-900">
                 EQUIPOS DE COMBATE (10 RANURAS)
               </h1>
               {currentUser && (
-                <span className="hidden sm:inline-flex items-center gap-1 bg-emerald-950/70 text-emerald-400 border border-emerald-700/60 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                <span className="hidden sm:inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                   <ShieldCheck className="w-3 h-3" />
                   {currentUser.username}
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-600 mt-0.5">
               Configura hasta 10 alineaciones de 6 Pokémon y guárdalas en Supabase.
             </p>
           </div>
@@ -258,12 +258,12 @@ export const TeamPage: React.FC = () => {
       {/* Main Content Area */}
       <div className="max-w-6xl w-full mx-auto flex-1 flex flex-col py-4 space-y-4">
         {/* 10-Slot Selector Tabs */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-2 shadow-lg">
-          <div className="flex items-center justify-between px-2 pb-2 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+        <div className="bg-white border border-slate-300/80 rounded-2xl p-2 shadow-xs">
+          <div className="flex items-center justify-between px-2 pb-2 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
             <span>Selecciona Ranura de Equipo (1 a 10)</span>
             <span>
               Activo para combate:{' '}
-              <strong className="text-amber-400">
+              <strong className="text-amber-600 font-black">
                 Ranura #{teams.find((t) => t.is_active)?.slot || 1}
               </strong>
             </span>
@@ -278,8 +278,8 @@ export const TeamPage: React.FC = () => {
                   onClick={() => setSelectedSlotIndex(t.slot)}
                   className={`py-2 px-1 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex flex-col items-center justify-center relative border ${
                     isSelected
-                      ? 'bg-slate-800 text-white border-amber-400 shadow-md ring-1 ring-amber-400/50'
-                      : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:bg-slate-800/60 hover:text-slate-200'
+                      ? 'bg-slate-900 text-white border-amber-400 shadow-md ring-1 ring-amber-400/50'
+                      : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 hover:text-slate-900'
                   }`}
                 >
                   <span className="font-mono text-sm">#{String(t.slot).padStart(2, '0')}</span>
@@ -295,47 +295,47 @@ export const TeamPage: React.FC = () => {
         </div>
 
         {/* Selected Slot Information Bar */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white border border-slate-300/80 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="bg-slate-800 text-amber-400 font-mono text-xs font-bold px-2 py-0.5 rounded-md border border-slate-700">
+              <span className="bg-slate-100 text-amber-700 font-mono text-xs font-bold px-2 py-0.5 rounded-md border border-slate-300">
                 RANURA #{String(currentTeam.slot).padStart(2, '0')}
               </span>
               {currentTeam.is_active ? (
-                <span className="bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-emerald-400 text-emerald-400" />
+                <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-emerald-600 text-emerald-600" />
                   EQUIPO PRINCIPAL ACTIVO
                 </span>
               ) : (
                 <button
                   onClick={handleSetActive}
-                  className="bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[10px] font-bold px-2.5 py-0.5 rounded-md flex items-center gap-1 transition-all cursor-pointer"
+                  className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-md flex items-center gap-1 transition-all cursor-pointer shadow-2xs"
                 >
-                  <Star className="w-3 h-3" />
+                  <Star className="w-3 h-3 text-amber-600" />
                   Marcar como Equipo Activo
                 </button>
               )}
             </div>
 
             <div className="flex items-center gap-2">
-              <Edit2 className="w-4 h-4 text-slate-400" />
+              <Edit2 className="w-4 h-4 text-slate-500" />
               <input
                 type="text"
                 value={currentTeam.name}
                 onChange={(e) => handleUpdateName(e.target.value)}
                 placeholder="Nombre del Equipo..."
-                className="bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-1.5 text-sm sm:text-base font-black text-white focus:outline-hidden focus:border-amber-400 w-full sm:w-80"
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-sm sm:text-base font-black text-slate-900 focus:outline-hidden focus:border-amber-500 w-full sm:w-80 shadow-inner"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold font-mono text-slate-400">
+            <span className="text-xs font-bold font-mono text-slate-600">
               {currentTeam.pokemon_list.length}/6 Miembros
             </span>
             <button
               onClick={() => handleUpdateName(`Equipo ${currentTeam.slot}`)}
-              className="text-xs text-slate-500 hover:text-slate-300 underline cursor-pointer"
+              className="text-xs text-slate-500 hover:text-slate-800 underline cursor-pointer"
             >
               Restablecer nombre
             </button>
@@ -344,14 +344,14 @@ export const TeamPage: React.FC = () => {
 
         {/* Save message notification */}
         {saveMessage && (
-          <div className="p-3 bg-emerald-950/80 border border-emerald-600 rounded-xl text-emerald-200 text-xs flex items-center gap-2 shadow-lg animate-in fade-in">
-            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-800 text-xs flex items-center gap-2 shadow-xs animate-in fade-in">
+            <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{saveMessage}</span>
           </div>
         )}
 
         {/* 6 Pokémon Slots Grid */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
+        <div className="bg-white border border-slate-300/80 rounded-2xl p-4 shadow-xs">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
             {Array.from({ length: 6 }).map((_, idx) => {
               const species = currentTeam.pokemon_list[idx];
@@ -360,8 +360,8 @@ export const TeamPage: React.FC = () => {
                   key={idx}
                   className={`h-40 rounded-2xl border-2 flex flex-col items-center justify-center relative p-2 transition-all ${
                     species
-                      ? 'bg-slate-800/95 border-amber-400/80 shadow-md group'
-                      : 'bg-slate-950/60 border-dashed border-slate-800 text-slate-600'
+                      ? 'bg-slate-50 border-amber-400 shadow-xs group'
+                      : 'bg-slate-100/60 border-dashed border-slate-300 text-slate-400'
                   }`}
                 >
                   <div className="absolute top-2 left-2 text-[10px] font-mono text-slate-500 font-bold">
@@ -372,7 +372,7 @@ export const TeamPage: React.FC = () => {
                     <>
                       <button
                         onClick={() => handleRemovePokemon(idx)}
-                        className="absolute top-2 right-2 p-1 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                        className="absolute top-2 right-2 p-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-2xs"
                         title="Quitar del equipo"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -382,12 +382,12 @@ export const TeamPage: React.FC = () => {
                         alt={species}
                         className="w-20 h-20 my-auto drop-shadow-md group-hover:scale-105 transition-transform"
                       />
-                      <span className="text-xs font-black text-white uppercase truncate font-mono mt-1 max-w-[90%] text-center">
+                      <span className="text-xs font-black text-slate-900 uppercase truncate font-mono mt-1 max-w-[90%] text-center">
                         {species}
                       </span>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center text-slate-600">
+                    <div className="flex flex-col items-center justify-center text-slate-400">
                       <Plus className="w-6 h-6 mb-1 opacity-50" />
                       <span className="text-[11px] font-mono">Ranura Vacía</span>
                     </div>
@@ -399,16 +399,16 @@ export const TeamPage: React.FC = () => {
         </div>
 
         {/* Roster / Pokédex Catalog for Adding */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+        <div className="bg-white border border-slate-300/80 rounded-2xl p-4 shadow-xs space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                 <span>Catálogo de Pokémon Disponibles</span>
                 {loadingRoster && (
-                  <RefreshCw className="w-3.5 h-3.5 text-slate-400 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 text-slate-500 animate-spin" />
                 )}
               </h2>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-600">
                 Haz clic en cualquier Pokémon para añadirlo o quitarlo de la Ranura #{currentTeam.slot}.
               </p>
             </div>
@@ -420,7 +420,7 @@ export const TeamPage: React.FC = () => {
                 value={rosterQuery}
                 onChange={(e) => setRosterQuery(e.target.value)}
                 placeholder="Buscar por nombre o tipo..."
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-400"
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-amber-500 shadow-inner"
               />
             </div>
           </div>
@@ -434,12 +434,12 @@ export const TeamPage: React.FC = () => {
                   onClick={() => handleTogglePokemon(pkmn.species)}
                   className={`p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col items-center relative overflow-hidden select-none ${
                     isSelected
-                      ? 'bg-emerald-950/40 border-emerald-400 shadow-md ring-1 ring-emerald-500/50'
-                      : 'bg-slate-950/80 hover:bg-slate-800/80 border-slate-800 hover:border-slate-600'
+                      ? 'bg-emerald-50 border-emerald-500 shadow-xs ring-1 ring-emerald-500/50'
+                      : 'bg-slate-50 hover:bg-slate-100 border-slate-200'
                   }`}
                 >
                   {isSelected && (
-                    <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+                    <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs">
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </div>
                   )}
@@ -452,7 +452,7 @@ export const TeamPage: React.FC = () => {
                     />
                   </div>
 
-                  <span className="font-bold text-white text-[11px] tracking-wide uppercase truncate max-w-full text-center">
+                  <span className="font-bold text-slate-900 text-[11px] tracking-wide uppercase truncate max-w-full text-center">
                     {pkmn.name}
                   </span>
 

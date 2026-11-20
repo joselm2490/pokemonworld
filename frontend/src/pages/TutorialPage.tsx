@@ -42,18 +42,18 @@ export const TutorialPage: React.FC = () => {
 
   if (!battle.battleState) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-white font-sans">
+      <div className="min-h-screen bg-[#f2f4f7] flex flex-col items-center justify-center p-4 text-slate-800 font-sans">
         <div className="flex flex-col items-center gap-3">
-          <BookOpen className="w-12 h-12 text-amber-400 animate-pulse" />
-          <h2 className="text-xl font-black uppercase tracking-wider">
+          <BookOpen className="w-12 h-12 text-amber-500 animate-pulse" />
+          <h2 className="text-xl font-black uppercase tracking-wider text-slate-900">
             Cargando Duelo Tutorial (6 vs IA)
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Preparando simulación táctica guiada...
           </p>
           <button
             onClick={() => navigate('/')}
-            className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold uppercase rounded-xl transition-colors flex items-center gap-2"
+            className="mt-4 px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold uppercase rounded-xl transition-colors flex items-center gap-2 border border-slate-300 shadow-sm cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Cancelar y Volver</span>
@@ -64,35 +64,35 @@ export const TutorialPage: React.FC = () => {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-[#f0fdf4]">
       {/* Tutorial Guidance Drawer / Banner */}
       {showTips && (
-        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-xl bg-slate-900/95 border-2 border-amber-400 text-white rounded-2xl p-3 shadow-2xl backdrop-blur-md animate-in slide-in-from-top duration-300">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-700">
+        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-xl bg-white/95 border-2 border-amber-400 text-slate-800 rounded-2xl p-3 shadow-2xl backdrop-blur-md animate-in slide-in-from-top duration-300">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200">
             <div className="flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-amber-400" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-amber-300">
+              <Lightbulb className="w-4 h-4 text-amber-500" />
+              <h3 className="text-xs font-black uppercase tracking-wider text-amber-600">
                 Guía Táctica: Duelo 6 vs IA
               </h3>
             </div>
             <button
               onClick={() => setShowTips(false)}
-              className="text-xs text-slate-400 hover:text-white font-bold px-2 py-0.5 rounded-md hover:bg-slate-800 cursor-pointer"
+              className="text-xs text-slate-500 hover:text-slate-800 font-bold px-2 py-0.5 rounded-md hover:bg-slate-100 cursor-pointer"
             >
               ✕ Entendido
             </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-[10px] text-slate-300">
-            <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-              <span className="font-bold text-amber-400 block mb-0.5">1. Ventajas de Tipo</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-[10px] text-slate-600">
+            <div className="bg-amber-50/80 p-2 rounded-xl border border-amber-200">
+              <span className="font-bold text-amber-700 block mb-0.5">1. Ventajas de Tipo</span>
               Usa ataques supereficaces (x2 / x4 de daño). Revisa los tipos de tu rival en su barra de estado.
             </div>
-            <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-              <span className="font-bold text-emerald-400 block mb-0.5">2. Cambio Táctico</span>
+            <div className="bg-emerald-50/80 p-2 rounded-xl border border-emerald-200">
+              <span className="font-bold text-emerald-700 block mb-0.5">2. Cambio Táctico</span>
               Si estás en desventaja, usa el botón "CAMBIAR" para enviar a un Pokémon que resista el daño.
             </div>
-            <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-              <span className="font-bold text-sky-400 block mb-0.5">3. Veredicto Final</span>
+            <div className="bg-sky-50/80 p-2 rounded-xl border border-sky-200">
+              <span className="font-bold text-sky-700 block mb-0.5">3. Veredicto Final</span>
               El primer entrenador que debilite a los 6 Pokémon del rival se lleva la victoria de la Arena.
             </div>
           </div>
