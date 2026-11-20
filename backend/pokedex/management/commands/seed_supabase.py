@@ -5,8 +5,8 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 from django.conf import settings
 from pokedex.models import (
-    Tipo, ClaseMovimiento, EfectividadTipo, Habilidad,
-    Movimiento, Pokemon, EstadisticasBase, PokemonMovimiento
+    Type, MoveCategory, TypeEffectiveness, Ability,
+    Move, Pokemon, BaseStat, PokemonMove
 )
 from battle.models import BattleRoom
 
@@ -33,10 +33,10 @@ class Command(BaseCommand):
             m = item['model']
             by_model.setdefault(m, []).append(item)
 
-        # 1. Tipo
-        self.stdout.write("1. Insertando Tipos...")
+        # 1. Type
+        self.stdout.write("1. Insertando Types...")
         tipos = [
-            Tipo(
+            Type(
                 id=item['pk'],
                 nombre=item['fields']['nombre'],
                 nombre_ingles=item['fields']['nombre_ingles'],
@@ -44,12 +44,12 @@ class Command(BaseCommand):
             )
             for item in by_model.get('pokedex.tipo', [])
         ]
-        Tipo.objects.bulk_create(tipos, ignore_conflicts=True)
+        Type.objects.bulk_create(tipos, ignore_conflicts=True)
 
-        # 2. ClaseMovimiento
-        self.stdout.write("2. Insertando Clases de Movimiento...")
+        # 2. MoveCategory
+        self.stdout.write("2. Insertando MoveCategories...")
         clases = [
-            ClaseMovimiento(
+            MoveCategory(
                 id=item['pk'],
                 nombre=item['fields']['nombre'],
                 nombre_ingles=item['fields']['nombre_ingles'],
@@ -57,12 +57,12 @@ class Command(BaseCommand):
             )
             for item in by_model.get('pokedex.clasemovimiento', [])
         ]
-        ClaseMovimiento.objects.bulk_create(clases, ignore_conflicts=True)
+        MoveCategory.objects.bulk_create(clases, ignore_conflicts=True)
 
-        # 3. EfectividadTipo
-        self.stdout.write("3. Insertando Efectividad de Tipos...")
+        # 3. TypeEffectiveness
+        self.stdout.write("3. Insertando TypeEffectiveness...")
         efectividades = [
-            EfectividadTipo(
+            TypeEffectiveness(
                 id=item['pk'],
                 tipo_ataque_id=item['fields']['tipo_ataque'],
                 tipo_defensa_id=item['fields']['tipo_defensa'],
@@ -70,12 +70,12 @@ class Command(BaseCommand):
             )
             for item in by_model.get('pokedex.efectividadtipo', [])
         ]
-        EfectividadTipo.objects.bulk_create(efectividades, ignore_conflicts=True)
+        TypeEffectiveness.objects.bulk_create(efectividades, ignore_conflicts=True)
 
-        # 4. Habilidad
-        self.stdout.write("4. Insertando Habilidades...")
+        # 4. Ability
+        self.stdout.write("4. Insertando Abilities...")
         habilidades = [
-            Habilidad(
+            Ability(
                 id=item['pk'],
                 nombre=item['fields']['nombre'],
                 nombre_ingles=item['fields']['nombre_ingles'],
@@ -84,14 +84,14 @@ class Command(BaseCommand):
             )
             for item in by_model.get('pokedex.habilidad', [])
         ]
-        Habilidad.objects.bulk_create(habilidades, ignore_conflicts=True)
+        Ability.objects.bulk_create(habilidades, ignore_conflicts=True)
 
-        # 5. Movimiento
-        self.stdout.write("5. Insertando Movimientos...")
+        # 5. Move
+        self.stdout.write("5. Insertando Moves...")
         movimientos = []
         for item in by_model.get('pokedex.movimiento', []):
             f = item['fields']
-            movimientos.append(Movimiento(
+            movimientos.append(Move(
                 id=item['pk'],
                 codigo=f['codigo'],
                 nombre=f['nombre'],
@@ -116,7 +116,7 @@ class Command(BaseCommand):
                 probabilidad_efecto=f.get('probabilidad_efecto', 0),
                 efecto_secundario=f.get('efecto_secundario')
             ))
-        Movimiento.objects.bulk_create(movimientos, batch_size=1000, ignore_conflicts=True)
+        Move.objects.bulk_create(movimientos, batch_size=1000, ignore_conflicts=True)
 
         # 6. Pokemon
         self.stdout.write("6. Insertando Pokémon y relaciones...")
@@ -168,10 +168,10 @@ class Command(BaseCommand):
 
         ThroughModel.objects.bulk_create(pokemon_habilidades_rels, batch_size=2000, ignore_conflicts=True)
 
-        # 7. EstadisticasBase
-        self.stdout.write("7. Insertando Estadísticas Base...")
+        # 7. BaseStat
+        self.stdout.write("7. Insertando BaseStats...")
         stats = [
-            EstadisticasBase(
+            BaseStat(
                 pokemon_id=item['pk'],
                 hp=item['fields']['hp'],
                 ataque=item['fields']['ataque'],
@@ -183,14 +183,14 @@ class Command(BaseCommand):
             )
             for item in by_model.get('pokedex.estadisticasbase', [])
         ]
-        EstadisticasBase.objects.bulk_create(stats, batch_size=1000, ignore_conflicts=True)
+        BaseStat.objects.bulk_create(stats, batch_size=1000, ignore_conflicts=True)
 
-        # 8. PokemonMovimiento
-        self.stdout.write("8. Insertando Movimientos de Pokémon...")
+        # 8. PokemonMove
+        self.stdout.write("8. Insertando PokemonMoves...")
         pm_list = []
         for item in by_model.get('pokedex.pokemonmovimiento', []):
             f = item['fields']
-            pm_list.append(PokemonMovimiento(
+            pm_list.append(PokemonMove(
                 id=item['pk'],
                 pokemon_id=f['pokemon'],
                 movimiento_id=f['movimiento'],
@@ -198,11 +198,11 @@ class Command(BaseCommand):
                 nivel_aprendizaje=f['nivel_aprendizaje']
             ))
             if len(pm_list) >= 2000:
-                PokemonMovimiento.objects.bulk_create(pm_list, batch_size=2000, ignore_conflicts=True)
+                PokemonMove.objects.bulk_create(pm_list, batch_size=2000, ignore_conflicts=True)
                 pm_list = []
 
         if pm_list:
-            PokemonMovimiento.objects.bulk_create(pm_list, batch_size=2000, ignore_conflicts=True)
+            PokemonMove.objects.bulk_create(pm_list, batch_size=2000, ignore_conflicts=True)
 
         # 9. BattleRoom
         self.stdout.write("9. Insertando Salas de Batalla...")
@@ -229,9 +229,10 @@ class Command(BaseCommand):
         self.stdout.write("10. Sincronizando secuencias ID en PostgreSQL...")
         with connection.cursor() as cursor:
             tables = [
-                'tipos', 'clases_movimiento', 'efectividad_tipos', 'habilidades',
-                'movimientos', 'pokemon', 'pokemon_habilidades', 'pokemon_movimientos',
-                'salas_batalla', 'accounts_trainerteam', 'auth_user'
+                'types', 'move_categories', 'type_effectiveness', 'abilities',
+                'moves', 'pokemon', 'pokemon_abilities', 'pokemon_moves',
+                'battle_rooms', 'room_players', 'room_messages', 'battle_statistics',
+                'accounts_trainerteam', 'auth_user'
             ]
             for tbl in tables:
                 try:

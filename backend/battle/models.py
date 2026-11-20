@@ -29,34 +29,42 @@ class BattleRoom(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'salas_batalla'
+        db_table = 'battle_rooms'
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Sala {self.room_code} [{self.status}]"
+        return f"BattleRoom {self.room_code} [{self.status}]"
 
 
-class SalaJugador(models.Model):
+class RoomPlayer(models.Model):
     sala = models.ForeignKey(
         BattleRoom, on_delete=models.CASCADE, related_name='jugadores'
     )
     apodo = models.CharField(max_length=64)
     es_anfitrion = models.BooleanField(default=False)
-    equipo_pokemon = models.JSONField(default=list, blank=True)  # IDs o nombres de especies
+    equipo_pokemon = models.JSONField(default=list, blank=True)
     listo = models.BooleanField(default=False)
     conectado = models.BooleanField(default=True)
     unido_en = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'sala_jugadores'
+        db_table = 'room_players'
         unique_together = ('sala', 'apodo')
 
+    @property
+    def room(self):
+        return self.sala
+
+    @property
+    def nickname(self):
+        return self.apodo
+
     def __str__(self):
-        role = "Anfitrión" if self.es_anfitrion else "Invitado"
-        return f"{self.apodo} ({role}) en Sala {self.sala.room_code}"
+        role = "Host" if self.es_anfitrion else "Guest"
+        return f"{self.apodo} ({role}) in BattleRoom {self.sala.room_code}"
 
 
-class SalaMensaje(models.Model):
+class RoomMessage(models.Model):
     sala = models.ForeignKey(
         BattleRoom, on_delete=models.CASCADE, related_name='mensajes'
     )
@@ -66,14 +74,26 @@ class SalaMensaje(models.Model):
     enviado_en = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'sala_mensajes'
+        db_table = 'room_messages'
         ordering = ['enviado_en']
+
+    @property
+    def room(self):
+        return self.sala
+
+    @property
+    def sender(self):
+        return self.emisor
+
+    @property
+    def content(self):
+        return self.mensaje
 
     def __str__(self):
         return f"[{self.sala.room_code}] {self.emisor}: {self.mensaje[:30]}"
 
 
-class SalaEstadistica(models.Model):
+class BattleStatistic(models.Model):
     sala = models.OneToOneField(
         BattleRoom, on_delete=models.CASCADE, related_name='estadisticas', primary_key=True
     )
@@ -86,7 +106,17 @@ class SalaEstadistica(models.Model):
     datos_combate = models.JSONField(default=dict, blank=True)
 
     class Meta:
-        db_table = 'sala_estadisticas'
+        db_table = 'battle_statistics'
+
+    @property
+    def room(self):
+        return self.sala
 
     def __str__(self):
-        return f"Estadísticas Sala {self.sala.room_code}"
+        return f"Statistics for BattleRoom {self.sala.room_code}"
+
+
+# Backward compatibility aliases
+SalaJugador = RoomPlayer
+SalaMensaje = RoomMessage
+SalaEstadistica = BattleStatistic

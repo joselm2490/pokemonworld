@@ -1,64 +1,64 @@
 from django.db import models
 
 
-class Tipo(models.Model):
+class Type(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
     nombre_ingles = models.CharField(max_length=50)
     color_hex = models.CharField(max_length=10)
 
     class Meta:
-        db_table = 'tipos'
+        db_table = 'types'
         ordering = ['id']
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre_ingles} ({self.nombre})"
 
 
-class ClaseMovimiento(models.Model):
+class MoveCategory(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
     nombre_ingles = models.CharField(max_length=50)
     color_hex = models.CharField(max_length=10)
 
     class Meta:
-        db_table = 'clases_movimiento'
+        db_table = 'move_categories'
         ordering = ['id']
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre_ingles} ({self.nombre})"
 
 
-class EfectividadTipo(models.Model):
+class TypeEffectiveness(models.Model):
     tipo_ataque = models.ForeignKey(
-        Tipo, on_delete=models.CASCADE, related_name='efectividades_ataque'
+        Type, on_delete=models.CASCADE, related_name='efectividades_ataque'
     )
     tipo_defensa = models.ForeignKey(
-        Tipo, on_delete=models.CASCADE, related_name='efectividades_defensa'
+        Type, on_delete=models.CASCADE, related_name='efectividades_defensa'
     )
     multiplicador = models.FloatField(default=1.0)
 
     class Meta:
-        db_table = 'efectividad_tipos'
+        db_table = 'type_effectiveness'
         unique_together = ('tipo_ataque', 'tipo_defensa')
 
     def __str__(self):
         return f"{self.tipo_ataque} -> {self.tipo_defensa}: x{self.multiplicador}"
 
 
-class Habilidad(models.Model):
+class Ability(models.Model):
     nombre = models.CharField(max_length=100, db_index=True)
     nombre_ingles = models.CharField(max_length=100, db_index=True)
     descripcion = models.TextField(blank=True, null=True)
     gen = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        db_table = 'habilidades'
+        db_table = 'abilities'
         ordering = ['id']
 
     def __str__(self):
-        return f"{self.nombre} ({self.nombre_ingles})"
+        return f"{self.nombre_ingles} ({self.nombre})"
 
 
-class Movimiento(models.Model):
+class Move(models.Model):
     codigo = models.CharField(max_length=20, unique=True)
     nombre = models.CharField(max_length=100, db_index=True)
     nombre_alt = models.CharField(max_length=100, blank=True, null=True)
@@ -66,11 +66,11 @@ class Movimiento(models.Model):
     gen = models.IntegerField(db_index=True, default=1)
     descripcion = models.TextField(blank=True, null=True)
     tipo = models.ForeignKey(
-        Tipo, on_delete=models.SET_NULL, null=True, blank=True, related_name='movimientos'
+        Type, on_delete=models.SET_NULL, null=True, blank=True, related_name='movimientos'
     )
     tipo_nombre = models.CharField(max_length=50, db_index=True)
     clase = models.ForeignKey(
-        ClaseMovimiento, on_delete=models.SET_NULL, null=True, blank=True, related_name='movimientos'
+        MoveCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='movimientos'
     )
     clase_nombre = models.CharField(max_length=50, db_index=True)
     potencia = models.IntegerField(null=True, blank=True)
@@ -87,11 +87,11 @@ class Movimiento(models.Model):
     efecto_secundario = models.TextField(blank=True, null=True)
 
     class Meta:
-        db_table = 'movimientos'
+        db_table = 'moves'
         ordering = ['id']
 
     def __str__(self):
-        return f"{self.nombre} ({self.tipo_nombre})"
+        return f"{self.nombre_ingles} ({self.tipo_nombre})"
 
 
 class Pokemon(models.Model):
@@ -100,10 +100,10 @@ class Pokemon(models.Model):
     nombre_ingles = models.CharField(max_length=100, db_index=True)
     gen = models.IntegerField(db_index=True)
     tipo1 = models.ForeignKey(
-        Tipo, on_delete=models.PROTECT, related_name='pokemon_tipo1'
+        Type, on_delete=models.PROTECT, related_name='pokemon_tipo1'
     )
     tipo2 = models.ForeignKey(
-        Tipo, on_delete=models.SET_NULL, null=True, blank=True, related_name='pokemon_tipo2'
+        Type, on_delete=models.SET_NULL, null=True, blank=True, related_name='pokemon_tipo2'
     )
     peso_kg = models.FloatField(null=True, blank=True)
     altura_m = models.FloatField(null=True, blank=True)
@@ -113,9 +113,9 @@ class Pokemon(models.Model):
     categoria_rareza = models.CharField(
         max_length=50, default='estandar', db_index=True
     )  # 'estandar', 'legendario', 'pseudolegendario'
-    movimientos_predeterminados = models.JSONField(default=list, blank=True)  # IDs o nombres de movimientos
-    habilidades = models.ManyToManyField(
-        Habilidad, related_name='pokemon_asociados', blank=True
+    movimientos_predeterminados = models.JSONField(default=list, blank=True)
+    abilities = models.ManyToManyField(
+        Ability, related_name='associated_pokemon', blank=True, db_table='pokemon_abilities'
     )
     preevolucion = models.ForeignKey(
         'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='evoluciones_siguientes'
@@ -130,11 +130,19 @@ class Pokemon(models.Model):
         db_table = 'pokemon'
         ordering = ['numero_pokedex', 'id']
 
+    @property
+    def habilidades(self):
+        return self.abilities
+
+    @property
+    def base_stats(self):
+        return getattr(self, 'estadisticas', None)
+
     def __str__(self):
-        return f"#{self.numero_pokedex:03d} {self.nombre}"
+        return f"#{self.numero_pokedex:03d} {self.nombre_ingles} ({self.nombre})"
 
 
-class EstadisticasBase(models.Model):
+class BaseStat(models.Model):
     pokemon = models.OneToOneField(
         Pokemon, on_delete=models.CASCADE, related_name='estadisticas', primary_key=True
     )
@@ -147,7 +155,7 @@ class EstadisticasBase(models.Model):
     total = models.IntegerField(default=300)
 
     class Meta:
-        db_table = 'estadisticas_base'
+        db_table = 'base_stats'
 
     def save(self, *args, **kwargs):
         self.total = (
@@ -157,15 +165,15 @@ class EstadisticasBase(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Stats of {self.pokemon.nombre} (Total: {self.total})"
+        return f"Stats of {self.pokemon.nombre_ingles} (Total: {self.total})"
 
 
-class PokemonMovimiento(models.Model):
+class PokemonMove(models.Model):
     pokemon = models.ForeignKey(
         Pokemon, on_delete=models.CASCADE, related_name='movimientos_aprendibles'
     )
     movimiento = models.ForeignKey(
-        Movimiento, on_delete=models.CASCADE, related_name='pokemon_que_aprenden'
+        Move, on_delete=models.CASCADE, related_name='pokemon_que_aprenden'
     )
     metodo_aprendizaje = models.CharField(
         max_length=50
@@ -173,11 +181,25 @@ class PokemonMovimiento(models.Model):
     nivel_aprendizaje = models.IntegerField(default=1)
 
     class Meta:
-        db_table = 'pokemon_movimientos'
+        db_table = 'pokemon_moves'
         unique_together = ('pokemon', 'movimiento', 'metodo_aprendizaje', 'nivel_aprendizaje')
         indexes = [
             models.Index(fields=['pokemon', 'metodo_aprendizaje']),
         ]
 
+    @property
+    def move(self):
+        return self.movimiento
+
     def __str__(self):
-        return f"{self.pokemon.nombre} - {self.movimiento.nombre} ({self.metodo_aprendizaje})"
+        return f"{self.pokemon.nombre_ingles} - {self.movimiento.nombre_ingles} ({self.metodo_aprendizaje})"
+
+
+# Backward-compatible model aliases
+Tipo = Type
+ClaseMovimiento = MoveCategory
+EfectividadTipo = TypeEffectiveness
+Habilidad = Ability
+Movimiento = Move
+EstadisticasBase = BaseStat
+PokemonMovimiento = PokemonMove
