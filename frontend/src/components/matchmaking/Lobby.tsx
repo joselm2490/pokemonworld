@@ -332,27 +332,27 @@ export const Lobby: React.FC<LobbyProps> = ({
       {/* Main Mobile Screen Wrapper (Centered Handheld Viewport) */}
       <div className="relative z-10 max-w-sm sm:max-w-md mx-auto w-full flex-1 flex flex-col justify-between px-3 pt-3 pb-2">
         {/* ================= TOP TRAINER BAR (IMAGE 2) ================= */}
-        <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-2 sm:mb-3">
           {/* Left: Metallic Dark Badge with Rank '2' / 'S' & Wings */}
           <div className="flex items-center">
             <div
-              className="bg-[#2a3038] text-white px-3 py-1 flex items-center gap-1.5 shadow-md border-t border-l border-slate-500"
+              className="bg-[#2a3038] text-white px-2.5 sm:px-3 py-1 flex items-center gap-1.5 shadow-md border-t border-l border-slate-500"
               style={{ clipPath: 'polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)' }}
             >
-              <div className="w-5 h-5 rounded-full border border-slate-400 flex items-center justify-center text-[10px] font-black text-amber-300">
+              <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-slate-400 flex items-center justify-center text-[9px] sm:text-[10px] font-black text-amber-300">
                 ❖
               </div>
-              <span className="text-sm font-black font-mono tracking-tighter text-white">
+              <span className="text-xs sm:text-sm font-black font-mono tracking-tighter text-white">
                 2
               </span>
             </div>
           </div>
 
           {/* Center: Trainer Name White Pill with Auth Dialog */}
-          <div className="flex-1 max-w-[200px]">
+          <div className="flex-1 max-w-[185px]">
             <div
               onClick={() => setIsAuthOpen(true)}
-              className="bg-white/95 hover:bg-white border border-slate-300/80 rounded-full px-3 py-0.5 shadow-xs flex items-center justify-between cursor-pointer group transition-all"
+              className="bg-white/95 hover:bg-white border border-slate-300/80 rounded-full px-2.5 sm:px-3 py-0.5 shadow-xs flex items-center justify-between cursor-pointer group transition-all"
               title="Cuenta de Entrenador (Iniciar sesión / Registro)"
             >
               <div className="flex items-center gap-1.5 truncate">
@@ -365,17 +365,43 @@ export const Lobby: React.FC<LobbyProps> = ({
             </div>
           </div>
 
-          {/* Right: 4 Stars (★★★★) */}
-          <div className="flex items-center gap-0.5 text-amber-400 text-xs">
-            <span>★</span>
-            <span>★</span>
-            <span>★</span>
-            <span className="text-slate-300">★</span>
+          {/* Right: 4 Stars (★★★★) & Top-Right Salir Button */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-0.5 text-amber-400 text-[10px] sm:text-xs">
+              <span>★</span>
+              <span>★</span>
+              <span>★</span>
+              <span className="text-slate-300">★</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActiveSection('salir')}
+              className="flex flex-col items-center justify-center -my-1 text-slate-700 hover:text-slate-900 transition-all cursor-pointer group shrink-0"
+              title="Cerrar Sesión"
+            >
+              <div
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-xs transition-all border ${
+                  activeSection === 'salir'
+                    ? 'bg-rose-950 border-rose-500 text-rose-300 ring-2 ring-rose-400'
+                    : 'bg-slate-800 hover:bg-slate-900 border-slate-600 text-white'
+                }`}
+              >
+                <Backpack className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              <span
+                className={`text-[8px] font-sans font-medium mt-0.5 leading-none ${
+                  activeSection === 'salir' ? 'text-rose-700 font-bold' : 'text-slate-600'
+                }`}
+              >
+                Salir
+              </span>
+            </button>
           </div>
         </div>
 
         {/* ================= WHITE CONTAINER: DYNAMIC SECTIONS (ARENA / EQUIPO / SALIR) ================= */}
-        <div className="bg-white/95 rounded-2xl border-2 border-slate-300/80 shadow-xl p-3 flex-1 flex flex-col overflow-hidden max-h-[58vh]">
+        <div className="bg-white/95 rounded-2xl border-2 border-slate-300/80 shadow-xl p-2.5 sm:p-3 flex-1 flex flex-col overflow-hidden max-h-[62vh]">
           {/* 1. SECCIÓN ARENA (IMAGEN 2 - PREDETERMINADA) */}
           {activeSection === 'arena' && (
             <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
@@ -551,7 +577,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                     {/* Total: Suma de todos los atributos a Nivel 100 Favorable */}
                     <div className="text-right leading-none flex items-baseline justify-end gap-1">
                       <span className="text-[9px] text-slate-300 font-bold uppercase tracking-wider font-mono">
-                        total:
+                        TOTAL:
                       </span>
                       <span className="text-sm sm:text-base font-black font-mono text-[#00ff9d] tracking-tight drop-shadow-sm">
                         {resolved.total.toLocaleString()}
@@ -561,10 +587,10 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                   {/* Card Main Body: Left Sprite & Badges, Right All 6 Stats */}
                   <div className="relative z-10 grid grid-cols-12 gap-2 items-center">
-                    {/* Left Column (Col 5): Full Type Badge, Sprite, Info icon (sin rangos ni botón X) */}
-                    <div className="col-span-5 flex flex-col items-center justify-center relative">
-                      {/* Top Badges Row: Nombre completo del tipo en español (sin abreviaturas ni rangos) */}
-                      <div className="w-full flex items-center gap-1 px-1 mb-1 flex-wrap">
+                    {/* Left Column (Col 5): Stacked Type Badges, Sprite, Info icon (sin rangos ni botón X) */}
+                    <div className="col-span-5 flex flex-col items-center justify-between h-full py-0.5 relative">
+                      {/* Top Badges: Stacked Vertically */}
+                      <div className="w-full flex flex-col items-start gap-1 px-1 mb-1">
                         {types.map((t) => (
                           <span
                             key={t.nombre}
@@ -697,7 +723,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     </div>
 
         {/* ================= MAIN ARENA SKEWED BANNER (IMAGE 2 & 3) ================= */}
-        <div className="my-2.5 flex justify-center">
+        <div className="my-1.5 sm:my-2 flex justify-center">
           <button
             type="button"
             onClick={() => setActiveSection('arena')}
@@ -727,8 +753,8 @@ export const Lobby: React.FC<LobbyProps> = ({
           </button>
         </div>
 
-        {/* ================= CIRCULAR FLOATING ACTION DOCK (IMAGE 2 & 3: Equipo, Cajas, Pokedex, Salir) ================= */}
-        <div className="flex items-center justify-around px-2 my-1">
+        {/* ================= CIRCULAR FLOATING ACTION DOCK (IMAGE 2: Equipo, Cajas, Pokedex) ================= */}
+        <div className="flex items-center justify-around max-w-[280px] sm:max-w-[320px] mx-auto w-full px-2 my-1">
           {/* Button 1: Equipo */}
           <div className="flex flex-col items-center gap-1">
             <button
@@ -772,24 +798,6 @@ export const Lobby: React.FC<LobbyProps> = ({
             </button>
             <span className="text-[10px] text-slate-600 font-sans font-medium">
               Pokedex
-            </span>
-          </div>
-
-          {/* Button 4: Salir */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={() => setActiveSection('salir')}
-              className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer border-2 ${
-                activeSection === 'salir'
-                  ? 'bg-gradient-to-b from-[#181d24] to-[#0c1015] border-rose-500 text-rose-400'
-                  : 'bg-gradient-to-b from-[#2e353f] to-[#181d24] border-[#545f6e] hover:border-rose-400 text-white'
-              }`}
-              title="Cerrar Sesión"
-            >
-              <Backpack className="w-5 h-5" />
-            </button>
-            <span className={`text-[10px] font-sans font-medium ${activeSection === 'salir' ? 'text-rose-700 font-bold' : 'text-slate-600'}`}>
-              Salir
             </span>
           </div>
         </div>
