@@ -173,7 +173,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
           ) : (
             /* ================= IF LOGGED IN: FORTH BATTLE + TRAINING BATTLE + POKÉDEX ================= */
             <>
-              {/* Forth Battle */}
+              {/* Forth Battle / Duelo Online */}
               <div
                 onClick={() => {
                   if (onOpenRooms) {
@@ -182,66 +182,32 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
                   }
                   setActiveTab(activeTab === 'rooms' ? 'banners' : 'rooms');
                 }}
-                className="relative h-28 rounded-xl overflow-hidden bg-gradient-to-r from-[#17202d] via-[#1c2738] to-[#121a24] border-2 border-slate-700 shadow-md transition-all flex items-center px-4 cursor-pointer group hover:brightness-110 active:scale-[0.99]"
+                className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-[#151c26] border border-[#26354a] shadow-md transition-all flex items-center px-4 cursor-pointer group hover:brightness-105 active:scale-[0.99]"
                 title="Salas de combate multijugador"
               >
-            {/* Cyber Grid Lines */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#253346_1px,transparent_1px),linear-gradient(to_bottom,#253346_1px,transparent_1px)] bg-[size:16px_16px] opacity-30 pointer-events-none" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff15_1px,transparent_1px),linear-gradient(to_bottom,#ffffff15_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
 
-            {/* Left Content */}
-            <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-2xl font-black text-white tracking-tighter uppercase italic leading-none">
-                    FORTH BATTLE
+                <div className="relative z-10">
+                  <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
+                    DUELO
                   </h3>
-                  {!isLoggedIn && (
-                    <span className="bg-rose-500/80 text-white text-[8px] font-black px-1.5 py-0.5 rounded-sm font-mono uppercase tracking-wider flex items-center gap-1">
-                      <Lock className="w-2.5 h-2.5" />
-                      BLOQUEADO
-                    </span>
-                  )}
-                </div>
-                <span className="text-[9px] font-mono text-slate-400 block mt-1">
-                  {!isLoggedIn
-                    ? 'REQUIERE INICIAR SESIÓN PARA SALAS PVP'
-                    : 'SALAS MULTIJUGADOR 6v6 • ONLINE'}
-                </span>
-              </div>
-
-              {/* Bottom Ribbon */}
-              <div className="flex items-center gap-2">
-                <div className="bg-black/90 text-slate-200 text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1 w-fit border border-slate-700">
-                  {!isLoggedIn ? (
-                    <>
-                      <Lock className="w-2.5 h-2.5 text-rose-400" />
-                      <span className="text-rose-300">SOLO ENTRENADORES REGISTRADOS</span>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="w-2.5 h-2.5 text-amber-400" />
-                      <span>ENDS IN 0d 05:48:38</span>
-                    </>
-                  )}
-                </div>
-                {isLoggedIn && (
-                  <span className="text-[9px] font-bold text-cyan-400 underline">
-                    {activeTab === 'rooms' ? 'Ocultar salas ▲' : 'Ver salas ▼'}
+                  <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
+                    ONLINE
+                  </h3>
+                  <span className="text-[9px] font-bold text-purple-200 tracking-wider uppercase block mt-1 font-mono">
+                    SALAS MULTIJUGADOR 6v6
                   </span>
-                )}
-              </div>
-            </div>
+                </div>
 
-            {/* Right Emblem Icons */}
-            <div className="absolute right-4 flex items-center gap-2 pointer-events-none">
-              <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/60 flex items-center justify-center text-white">
-                <Swords className="w-5 h-5 text-white" />
+                <div className="absolute right-4 flex items-center gap-2 pointer-events-none">
+                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/60 flex items-center justify-center text-white">
+                    <Swords className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-white/10 border-2 border-white/80 flex items-center justify-center text-white">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                </div>
               </div>
-              <div className="w-10 h-10 rounded-full bg-white/10 border-2 border-white/80 flex items-center justify-center text-white">
-                <Users className="w-5 h-5 text-white" />
-              </div>
-            </div>
-          </div>
 
           {/* Expandable Rooms List & Room Creation when Forth Battle is toggled */}
           {activeTab === 'rooms' && (
@@ -345,20 +311,20 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
               onClose();
               onStartAiBattle();
             }}
-            className="relative h-24 rounded-xl overflow-hidden bg-gradient-to-r from-[#7a52c7] via-[#875fd3] to-[#9973e2] border-2 border-[#603baf] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+            className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#7a52c7] via-[#875fd3] to-[#9973e2] border-2 border-[#603baf] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
           >
             {/* Purple Grid Pattern */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff30_1px,transparent_1px),linear-gradient(to_bottom,#ffffff30_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
 
             {/* Left Typography */}
             <div className="relative z-10">
-              <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm">
+              <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
                 TRAINING
               </h3>
-              <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm">
+              <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
                 BATTLE
               </h3>
-              <span className="text-[9px] font-bold text-purple-200 tracking-wider uppercase block mt-1">
+              <span className="text-[9px] font-bold text-purple-200 tracking-wider uppercase block mt-1 font-mono">
                 COMBATE VS IA (6 VS 6)
               </span>
             </div>
@@ -383,17 +349,17 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({
               onClose();
               onOpenPokedex();
             }}
-            className="relative h-24 rounded-xl overflow-hidden bg-gradient-to-r from-[#44c4e8] via-[#52d2f4] to-[#68defd] border-2 border-[#2fa8cb] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+            className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#44c4e8] via-[#52d2f4] to-[#68defd] border-2 border-[#2fa8cb] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
           >
             {/* Cyan Grid Pattern */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff30_1px,transparent_1px),linear-gradient(to_bottom,#ffffff30_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
 
             {/* Left Typography */}
             <div className="relative z-10">
-              <h3 className="text-3xl font-black text-white italic tracking-tight leading-none drop-shadow-sm font-sans">
+              <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
                 Pokédex
               </h3>
-              <span className="text-[9px] font-bold text-[#0c4756] tracking-wider uppercase block mt-1">
+              <span className="text-[9px] font-bold text-[#0c4756] tracking-wider uppercase block mt-1 font-mono">
                 CATÁLOGO NACIONAL • GUÍA TÁCTICA
               </span>
             </div>

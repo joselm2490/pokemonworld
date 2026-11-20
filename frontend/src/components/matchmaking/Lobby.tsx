@@ -379,38 +379,24 @@ export const Lobby: React.FC<LobbyProps> = ({
           {/* 1. SECCIÓN ARENA (IMAGEN 2 - PREDETERMINADA) */}
           {activeSection === 'arena' && (
             <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
-              {/* Forth Battle Card (Salas Multijugador) */}
+              {/* 1. Duelo Online Card (Salas Multijugador) */}
               <div
                 onClick={() => (onOpenRooms ? onOpenRooms() : null)}
-                className="relative h-26 rounded-2xl overflow-hidden bg-[#151c26] border border-[#26354a] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+                className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-[#151c26] border border-[#26354a] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
               >
-                {/* Tech Grid Pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff15_1px,transparent_1px),linear-gradient(to_bottom,#ffffff15_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
-
-                {/* Left Typography */}
-                <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
-                  <div>
-                    <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
-                      FORTH BATTLE
-                    </h3>
-                    <span className="text-[9px] font-mono font-bold text-slate-300 tracking-wider uppercase block mt-1">
-                      SALAS MULTIJUGADOR 6v6 • ONLINE
-                    </span>
-                  </div>
-
-                  {/* Bottom Ribbon */}
-                  <div className="flex items-center gap-2">
-                    <div className="bg-black/90 text-amber-300 text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1 border border-slate-700 shadow-xs">
-                      <Clock className="w-2.5 h-2.5 text-amber-400" />
-                      <span>ENDS IN 0d 05:48:38</span>
-                    </div>
-                    <span className="text-[9px] font-bold text-[#38bdf8] hover:text-[#7dd3fc] underline">
-                      Ver salas ▼
-                    </span>
-                  </div>
+                <div className="relative z-10">
+                  <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
+                    DUELO
+                  </h3>
+                  <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
+                    ONLINE
+                  </h3>
+                  <span className="text-[9px] font-bold text-purple-200 tracking-wider uppercase block mt-1 font-mono">
+                    SALAS MULTIJUGADOR 6v6
+                  </span>
                 </div>
 
-                {/* Right Emblem Icons */}
                 <div className="absolute right-4 flex items-center gap-2 pointer-events-none">
                   <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/60 flex items-center justify-center text-white">
                     <Swords className="w-5 h-5 text-white" />
@@ -421,10 +407,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                 </div>
               </div>
 
-              {/* Training Battle Card (Combate vs IA 6v6) */}
+              {/* 2. Training Battle Card (Combate vs IA 6v6) */}
               <div
                 onClick={onOpenPractice || handlePlayAi}
-                className="relative h-26 rounded-2xl overflow-hidden bg-gradient-to-r from-[#7a52c7] via-[#875fd3] to-[#9973e2] border-2 border-[#603baf] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+                className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#7a52c7] via-[#875fd3] to-[#9973e2] border-2 border-[#603baf] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
               >
                 {/* Purple Grid Pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff30_1px,transparent_1px),linear-gradient(to_bottom,#ffffff30_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
@@ -456,14 +442,14 @@ export const Lobby: React.FC<LobbyProps> = ({
                 </div>
               </div>
 
-              {/* Próximamente Card */}
-              <div className="relative h-26 rounded-2xl overflow-hidden bg-gradient-to-r from-[#44c4e8] via-[#52d2f4] to-[#68defd] border-2 border-[#2fa8cb] shadow-md flex items-center px-4">
+              {/* 3. Próximamente Card */}
+              <div className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#44c4e8] via-[#52d2f4] to-[#68defd] border-2 border-[#2fa8cb] shadow-md flex items-center px-4">
                 {/* Cyan Grid Pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff30_1px,transparent_1px),linear-gradient(to_bottom,#ffffff30_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
 
                 {/* Left Typography */}
                 <div className="relative z-10">
-                  <h3 className="text-2xl sm:text-3xl font-black text-white italic tracking-tight leading-none drop-shadow-sm font-sans">
+                  <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-sm font-sans">
                     PROXIMAMENTE
                   </h3>
                   <span className="text-[9px] font-bold text-[#0c4756] tracking-wider uppercase block mt-1 font-mono">

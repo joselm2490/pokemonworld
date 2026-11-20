@@ -6,6 +6,12 @@ export default {
   ],
   theme: {
     extend: {
+      spacing: {
+        26: '6.5rem',
+      },
+      height: {
+        26: '6.5rem',
+      },
       colors: {
         pokemon: {
           red: '#EE1515',
