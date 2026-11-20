@@ -48,7 +48,7 @@ export interface Pokemon {
   stats: PokemonStats;
   stages?: PokemonStatStages;
   moves: PokemonMove[];
-  status: 'BRN' | 'PAR' | 'SLP' | 'PSN' | 'FRZ' | null;
+  status: 'PAR' | 'QUE' | 'ENV' | 'VEN' | 'DOR' | 'CON' | 'BRN' | 'SLP' | 'PSN' | 'FRZ' | null;
   is_fainted: boolean;
   front_sprite_url?: string;
   back_sprite_url?: string;
@@ -95,7 +95,7 @@ export interface BattleEvent {
   pokemon?: string;
   species?: string;
   new_index?: number;
-  status?: 'BRN' | 'PAR' | 'SLP' | 'PSN' | 'FRZ';
+  status?: 'PAR' | 'QUE' | 'ENV' | 'VEN' | 'DOR' | 'CON' | 'BRN' | 'SLP' | 'PSN' | 'FRZ';
   stat?: string;
   delta?: number;
   message?: string;

@@ -219,7 +219,7 @@ def create_pokemon_instance(species: str, level: int = 50, db_cache: Optional[di
             "speed": 0,
         },
         "moves": moves,
-        "status": None,  # 'BRN', 'PAR', 'SLP', 'PSN', 'FRZ'
+        "status": None,  # 'PAR', 'QUE', 'ENV', 'DOR', 'CON'
         "sleep_turns": 0,
         "is_fainted": False,
     }
@@ -263,13 +263,13 @@ def _can_apply_status(target: dict, status_code: str) -> bool:
     if target.get("status") or target.get("is_fainted"):
         return False
     types = target.get("types", [])
-    if status_code == "BRN" and "FIRE" in types:
+    if status_code in ("QUE", "BRN") and "FIRE" in types:
         return False
-    if status_code == "PAR" and "ELECTRIC" in types:
+    if status_code in ("PAR",) and "ELECTRIC" in types:
         return False
-    if status_code == "PSN" and ("POISON" in types or "STEEL" in types):
+    if status_code in ("ENV", "PSN") and ("POISON" in types or "STEEL" in types):
         return False
-    if status_code == "FRZ" and "ICE" in types:
+    if status_code in ("CON", "FRZ") and "ICE" in types:
         return False
     return True
 
@@ -334,7 +334,7 @@ def calculate_damage(attacker: dict, defender: dict, move: dict) -> dict:
     if category == "PHYSICAL":
         atk = attacker["stats"]["attack"] * stage_multiplier(attacker_stages.get("attack", 0))
         defe = defender["stats"]["defense"] * stage_multiplier(defender_stages.get("defense", 0))
-        if attacker.get("status") == "BRN":
+        if attacker.get("status") in ("QUE", "BRN"):
             atk *= 0.5
     else:
         atk = attacker["stats"]["sp_attack"] * stage_multiplier(attacker_stages.get("sp_attack", 0))
@@ -380,26 +380,26 @@ def _apply_status_or_secondary(attacker: dict, defender: dict, move: dict, actor
     if not triggers:
         return
 
-    # Status inflictions
+    # Status inflictions (abreviaturas oficiales en español: QUE, PAR, DOR, CON, ENV)
     status_map = [
-        ("BurnTarget", "BRN", "¡sufrió quemaduras!"),
+        ("BurnTarget", "QUE", "¡sufrió quemaduras!"),
         ("ParalyzeTarget", "PAR", "¡está paralizado! ¡Quizás no pueda moverse!"),
-        ("SleepTarget", "SLP", "¡se quedó dormido!"),
-        ("FreezeTarget", "FRZ", "¡se congeló por completo!"),
-        ("BadPoisonTarget", "PSN", "¡fue gravemente envenenado!"),
-        ("PoisonTarget", "PSN", "¡fue envenenado!"),
+        ("SleepTarget", "DOR", "¡se quedó dormido!"),
+        ("FreezeTarget", "CON", "¡se congeló por completo!"),
+        ("BadPoisonTarget", "ENV", "¡fue gravemente envenenado!"),
+        ("PoisonTarget", "ENV", "¡fue envenenado!"),
     ]
     for key, code, msg in status_map:
         if key in fc:
             if _can_apply_status(defender, code):
                 defender["status"] = code
-                if code == "SLP":
+                if code in ("DOR", "SLP"):
                     defender["sleep_turns"] = random.randint(1, 3)
                 events.append({
                     "type": "STATUS",
                     "target": target_side,
                     "status": code,
-                    "animation": "poison" if code == "PSN" else ("fire" if code == "BRN" else "burst"),
+                    "animation": "poison" if code in ("ENV", "PSN") else ("fire" if code in ("QUE", "BRN") else "burst"),
                     "message": f"¡{defender['name']} {msg}",
                 })
             elif is_status_move:
@@ -573,7 +573,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
             continue
 
         # Sleep check
-        if attacker.get("status") == "SLP":
+        if attacker.get("status") in ("DOR", "SLP"):
             attacker["sleep_turns"] = attacker.get("sleep_turns", 1) - 1
             if attacker["sleep_turns"] <= 0:
                 attacker["status"] = None
@@ -583,7 +583,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 continue
 
         # Freeze check
-        if attacker.get("status") == "FRZ":
+        if attacker.get("status") in ("CON", "FRZ"):
             if move.get("type") == "FIRE" or random.random() < 0.20:
                 attacker["status"] = None
                 events.append({"type": "INFO", "message": f"¡{attacker['name']} se descongeló!"})
@@ -591,9 +591,9 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 events.append({"type": "INFO", "message": f"¡{attacker['name']} está congelado y no se puede mover!"})
                 continue
 
-        # Paralyze check
+        # Paralyze check (25% probabilidad de inmovilización completa)
         if attacker.get("status") == "PAR" and random.random() < 0.25:
-            events.append({"type": "INFO", "message": f"¡{attacker['name']} está paralizado! ¡No se puede mover!"})
+            events.append({"type": "INFO", "message": f"¡{attacker['name']} está paralizado y no se puede mover!"})
             continue
 
         # Deduct PP
@@ -644,7 +644,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
         })
 
         # Fire move thaws frozen target
-        if defender.get("status") == "FRZ" and move.get("type") == "FIRE" and damage > 0:
+        if defender.get("status") in ("CON", "FRZ") and move.get("type") == "FIRE" and damage > 0:
             defender["status"] = None
             events.append({"type": "INFO", "message": f"¡{defender['name']} se descongeló!"})
 
@@ -669,7 +669,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
         pk = side_obj["team"][side_obj["active_index"]]
         if pk["is_fainted"]:
             continue
-        if pk.get("status") == "BRN":
+        if pk.get("status") in ("QUE", "BRN"):
             burn_dmg = max(1, pk["max_hp"] // 16)
             pk["current_hp"] = max(0, pk["current_hp"] - burn_dmg)
             events.append({
@@ -682,7 +682,7 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 "is_crit": False,
                 "message": f"¡{pk['name']} sufre por la quemadura!",
             })
-        elif pk.get("status") == "PSN":
+        elif pk.get("status") in ("ENV", "PSN", "VEN"):
             psn_dmg = max(1, pk["max_hp"] // 8)
             pk["current_hp"] = max(0, pk["current_hp"] - psn_dmg)
             events.append({

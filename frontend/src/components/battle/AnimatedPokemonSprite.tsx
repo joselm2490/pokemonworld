@@ -195,13 +195,13 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
     // Always draw at least frame 0 immediately
     drawCurrentFrame();
 
-    if (!shouldAnimate || totalFrames <= 1 || status === 'FRZ') {
+    if (!shouldAnimate || totalFrames <= 1 || status === 'CON' || status === 'FRZ') {
       return;
     }
 
     // Balanced Gen 5 / Essentials pacing (~15 FPS normal)
     let frameInterval = frameDelayMs;
-    if (status === 'SLP') {
+    if (status === 'DOR' || status === 'SLP') {
       frameInterval = Math.round(frameDelayMs * 2);
     } else if (status === 'PAR' || lowHp) {
       frameInterval = Math.round(frameDelayMs * 1.45);

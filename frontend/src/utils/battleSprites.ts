@@ -22,10 +22,17 @@ export const TYPE_SPRITE_INDEX: Record<PokemonType, number> = {
 };
 
 export const STATUS_SPRITE_INDEX: Record<string, number> = {
+  // Abreviaturas oficiales en español
+  DOR: 0, // Dormido (Sueño)
+  ENV: 1, // Envenenado (Veneno)
+  VEN: 1, // Alias común en español
+  QUE: 2, // Quemado (Quemadura)
+  PAR: 3, // Paralizado (Parálisis)
+  CON: 4, // Congelado (Congelación)
+  // Compatibilidad hacia atrás
   SLP: 0,
   PSN: 1,
   BRN: 2,
-  PAR: 3,
   FRZ: 4,
 };
 
