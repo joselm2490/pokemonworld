@@ -34,6 +34,7 @@ import { PokemonDetailSheet } from './PokemonDetailSheet';
 import { AddPokemonModal } from './AddPokemonModal';
 import { ArenaModal } from './ArenaModal';
 import { PokedexHubModal } from './PokedexHubModal';
+import { CajasSection } from './CajasSection';
 import { AuthModal } from '../auth/AuthModal';
 import { AuthService, TrainerUser } from '../../services/authService';
 import { PokedexService } from '../../services/pokedexService';
@@ -96,7 +97,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   };
 
   // Section Navigation (Default: 'arena' when logged in as requested)
-  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'salir'>('arena');
+  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'salir'>('arena');
   const [isArenaOpen, setIsArenaOpen] = useState(false);
   const [isPokedexHubOpen, setIsPokedexHubOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -717,6 +718,14 @@ export const Lobby: React.FC<LobbyProps> = ({
           </div>
         </>
       )}
+
+      {/* 3. SECCIÓN CAJAS PC (ADAPTADA RESPONSIVE DENTRO DEL CONTENEDOR) */}
+      {activeSection === 'cajas' && (
+        <CajasSection
+          onUpdateTeam={onUpdateTeam}
+          selectedTeam={selectedTeam}
+        />
+      )}
     </div>
 
         {/* ================= CIRCULAR FLOATING ACTION DOCK (Arena, Equipo, Cajas, Pokedex) ================= */}
@@ -768,13 +777,22 @@ export const Lobby: React.FC<LobbyProps> = ({
           {/* Button 3: Cajas */}
           <div className="flex flex-col items-center gap-1">
             <button
-              onClick={onOpenTeamBuilder}
-              className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
+              type="button"
+              onClick={() => setActiveSection('cajas')}
+              className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer border-2 ${
+                activeSection === 'cajas'
+                  ? 'bg-gradient-to-b from-[#181d24] to-[#0c1015] border-emerald-400 text-[#32f59b]'
+                  : 'bg-gradient-to-b from-[#2e353f] to-[#181d24] border-[#545f6e] hover:border-emerald-400 text-white'
+              }`}
               title="Organizar Escuadrón / Cajas PC"
             >
-              <Users className="w-5 h-5 text-white" />
+              <Users className="w-5 h-5" />
             </button>
-            <span className="text-[10px] text-slate-600 font-sans font-medium">
+            <span
+              className={`text-[10px] font-sans font-medium ${
+                activeSection === 'cajas' ? 'text-emerald-700 font-bold' : 'text-slate-600'
+              }`}
+            >
               Cajas
             </span>
           </div>

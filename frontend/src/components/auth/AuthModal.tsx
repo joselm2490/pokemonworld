@@ -156,18 +156,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   {currentUser.email || `${currentUser.username.toLowerCase()}123@gmail.com`}
                 </span>
               </div>
-
-              {/* Bottom Close Button */}
-              <div className="flex justify-center pt-2 pb-1">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="text-xs font-bold text-slate-400 hover:text-slate-700 uppercase tracking-wider flex items-center gap-1.5 py-1.5 px-4 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  <span>CERRAR</span>
-                </button>
-              </div>
             </div>
           ) : (
             /* Login & Register Forms */
@@ -372,7 +360,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             className="text-xs font-bold text-slate-400 hover:text-slate-700 uppercase tracking-wider flex items-center gap-1.5 py-1.5 px-4 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
-            <span>Cerrar</span>
+            <span>CERRAR</span>
           </button>
         </div>
       </div>
