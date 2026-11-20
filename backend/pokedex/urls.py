@@ -6,9 +6,11 @@ from .views import (
     TiposListView,
     HabilidadesListView,
     RosterListView,
+    DbStatusView,
 )
 
 urlpatterns = [
+    path('db-status/', DbStatusView.as_view(), name='db-status'),
     path('pokemon/', PokemonListView.as_view(), name='pokemon-list'),
     path('pokemon/<str:pk_or_name>/', PokemonDetailView.as_view(), name='pokemon-detail'),
     path('movimientos/', MovimientosListView.as_view(), name='movimientos-list'),

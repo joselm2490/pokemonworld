@@ -453,3 +453,18 @@ class SpriteFileView(APIView):
         response = FileResponse(open(full_path, 'rb'), content_type="image/png")
         response['Cache-Control'] = 'public, max-age=86400'
         return response
+
+
+class DbStatusView(APIView):
+    def get(self, request):
+        from django.db import connection
+        charizard = Pokemon.objects.filter(nombre_ingles__iexact='Charizard').first()
+        st = BaseStat.objects.filter(pokemon=charizard).first() if charizard else None
+        return Response({
+            "db_engine": connection.settings_dict.get('ENGINE'),
+            "db_host": connection.settings_dict.get('HOST'),
+            "db_name": connection.settings_dict.get('NAME'),
+            "commit_tag": "stats-lv100-v1",
+            "charizard_hp": st.hp if st else None,
+            "charizard_total": st.total if st else None,
+        })

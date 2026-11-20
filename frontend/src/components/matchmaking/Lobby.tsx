@@ -56,6 +56,74 @@ interface LobbyProps {
   onUpdateTeam?: (newTeam: string[]) => void;
 }
 
+interface Lv100StatPack {
+  hp: number;
+  attack: number;
+  defense: number;
+  sp_attack: number;
+  sp_defense: number;
+  speed: number;
+  total: number;
+  ability?: string;
+}
+
+const LV100_FALLBACKS: Record<string, Lv100StatPack> = {
+  CHARIZARD: { hp: 360, attack: 293, defense: 280, sp_attack: 348, sp_defense: 295, speed: 328, total: 1904, ability: 'Mar Llamas' },
+  PIKACHU: { hp: 274, attack: 229, defense: 196, sp_attack: 218, sp_defense: 218, speed: 306, total: 1441, ability: 'Electricidad Estática' },
+  BLASTOISE: { hp: 362, attack: 291, defense: 328, sp_attack: 295, sp_defense: 339, speed: 280, total: 1895, ability: 'Torrente' },
+  LUCARIO: { hp: 344, attack: 350, defense: 262, sp_attack: 361, sp_defense: 262, speed: 306, total: 1885, ability: 'Impasible' },
+  GENGAR: { hp: 324, attack: 251, defense: 240, sp_attack: 394, sp_defense: 273, speed: 350, total: 1832, ability: 'Cuerpo Maldito' },
+  GARCHOMP: { hp: 420, attack: 394, defense: 317, sp_attack: 284, sp_defense: 295, speed: 333, total: 2043, ability: 'Velo Arena' },
+  GROWLITHE: { hp: 314, attack: 262, defense: 207, sp_attack: 262, sp_defense: 218, speed: 240, total: 1503, ability: 'Intimidación' },
+  VENUSAUR: { hp: 364, attack: 289, defense: 291, sp_attack: 328, sp_defense: 328, speed: 284, total: 1884, ability: 'Espesura' },
+  SHEDINJA: { hp: 1, attack: 306, defense: 207, sp_attack: 174, sp_defense: 174, speed: 196, total: 1058, ability: 'Superguarda' },
+};
+
+function getResolvedLv100Stats(species: string, detail?: StadiumPokemonDetail): Lv100StatPack {
+  const key = species.toUpperCase().replace(/\s+/g, '_');
+  const apiStats = detail?.base_stats;
+
+  if (apiStats && apiStats.total > 800) {
+    return {
+      hp: apiStats.hp,
+      attack: apiStats.attack,
+      defense: apiStats.defense,
+      sp_attack: apiStats.sp_attack,
+      sp_defense: apiStats.sp_defense,
+      speed: apiStats.speed,
+      total: apiStats.total,
+      ability: detail?.habilidades?.[0]?.nombre,
+    };
+  }
+
+  if (apiStats) {
+    const isShed = key.includes('SHEDINJA') || apiStats.hp === 1;
+    const hp = isShed ? 1 : 2 * apiStats.hp + 204;
+    const attack = Math.floor((2 * apiStats.attack + 99) * 1.1);
+    const defense = Math.floor((2 * apiStats.defense + 99) * 1.1);
+    const sp_attack = Math.floor((2 * apiStats.sp_attack + 99) * 1.1);
+    const sp_defense = Math.floor((2 * apiStats.sp_defense + 99) * 1.1);
+    const speed = Math.floor((2 * apiStats.speed + 99) * 1.1);
+    const total = hp + attack + defense + sp_attack + sp_defense + speed;
+    return {
+      hp,
+      attack,
+      defense,
+      sp_attack,
+      sp_defense,
+      speed,
+      total,
+      ability: detail?.habilidades?.[0]?.nombre,
+    };
+  }
+
+  if (LV100_FALLBACKS[key]) {
+    return LV100_FALLBACKS[key];
+  }
+
+  return { hp: 314, attack: 262, defense: 207, sp_attack: 262, sp_defense: 218, speed: 240, total: 1503, ability: 'Presión' };
+}
+
 export const Lobby: React.FC<LobbyProps> = ({
   onStartMatch,
   onOpenTeamBuilder,
@@ -534,11 +602,11 @@ export const Lobby: React.FC<LobbyProps> = ({
             {selectedTeam.map((species, idx) => {
               const isLeader = idx === 0;
               const detail = teamDetails[species];
-              const stats = detail?.base_stats;
+              const resolved = getResolvedLv100Stats(species, detail);
               const displayName = detail?.nombre || species;
               const types = detail?.types_detail || [];
 
-              // Type 2-letter abbreviation like 'Va', 'Fr', 'Da' in Digimon
+              // Type 2-letter abbreviation in Spanish like 'Fu', 'El', 'Ag'
               const typeAbbr = types[0] ? types[0].nombre.slice(0, 2) : 'No';
               const typeColor = types[0]?.color_hex || '#10b981';
 
@@ -546,14 +614,14 @@ export const Lobby: React.FC<LobbyProps> = ({
                 <div
                   key={`${species}-${idx}`}
                   onClick={() => setInspectingSpecies(species)}
-                  className="relative rounded-lg bg-[#535962] border border-[#3e434a] shadow-md p-2.5 text-white overflow-hidden cursor-pointer group hover:brightness-105 transition-all"
+                  className="relative rounded-xl bg-[#535962] border border-[#3e434a] shadow-md p-2.5 text-white overflow-hidden cursor-pointer group hover:brightness-105 transition-all"
                 >
                   {/* Subtle 10px White Tech-Grid on Gray Card */}
                   <div
                     className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff12_1px,transparent_1px),linear-gradient(to_bottom,#ffffff12_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none"
                   />
 
-                  {/* Top Black Chamfered Header Bar: Name on Left, Vitals Counter on Right */}
+                  {/* Top Black Chamfered Header Bar: Name on Left, Total Stats Counter on Right */}
                   <div className="relative z-10 flex items-center justify-between mb-2">
                     {/* Black Chamfered Title Ribbon */}
                     <div
@@ -566,23 +634,24 @@ export const Lobby: React.FC<LobbyProps> = ({
                       )}
                     </div>
 
-                    {/* Vitals Digital Green Counter on Right */}
-                    <div className="text-right leading-none">
-                      <span className="text-[8px] text-slate-300 font-mono block">Vitals</span>
-                      <span className="text-base font-black font-mono text-[#00ff9d] tracking-tight drop-shadow-sm">
-                        {stats?.hp || 164}
-                        <span className="text-[9px] text-slate-300 font-normal"> /9,999</span>
+                    {/* Total: Suma de todos los atributos a Nivel 100 Favorable */}
+                    <div className="text-right leading-none flex items-baseline justify-end gap-1">
+                      <span className="text-[9px] text-slate-300 font-bold uppercase tracking-wider font-mono">
+                        total:
+                      </span>
+                      <span className="text-sm sm:text-base font-black font-mono text-[#00ff9d] tracking-tight drop-shadow-sm">
+                        {resolved.total.toLocaleString()}
                       </span>
                     </div>
                   </div>
 
-                  {/* Card Main Body: Left Sprite & Badges, Right Stats */}
+                  {/* Card Main Body: Left Sprite & Badges, Right All 6 Stats */}
                   <div className="relative z-10 grid grid-cols-12 gap-2 items-center">
                     {/* Left Column (Col 5): Circular Type, Rank Badge, Sprite, Info icon */}
                     <div className="col-span-5 flex flex-col items-center justify-center relative">
                       {/* Top Badges Row */}
                       <div className="w-full flex items-center justify-between px-1 mb-1">
-                        {/* Circular Type Badge like 'Va' / 'Fr' */}
+                        {/* Circular Type Badge in Spanish */}
                         <div
                           style={{ backgroundColor: typeColor }}
                           className="w-5 h-5 rounded-full border border-white/80 flex items-center justify-center text-[9px] font-black text-white shadow-xs capitalize"
@@ -591,9 +660,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                           {typeAbbr}
                         </div>
 
-                        {/* Rank Badge like 'Rank D' */}
-                        <div className="bg-[#30343a]/90 border border-slate-500 rounded px-1 py-0.2 text-[8px] font-black text-amber-300 shadow-2xs">
-                          {isLeader ? 'Rank S' : 'Rank D'}
+                        {/* Rank Badge in Spanish */}
+                        <div className="bg-[#30343a]/90 border border-slate-500 rounded px-1.5 py-0.2 text-[8px] font-black text-amber-300 shadow-2xs">
+                          {isLeader ? 'Rango S' : 'Rango D'}
                         </div>
                       </div>
 
@@ -637,53 +706,89 @@ export const Lobby: React.FC<LobbyProps> = ({
                       </div>
                     </div>
 
-                    {/* Right Column (Col 7): Clean Horizontal Stat Rows with Black Pill + Green Bonus */}
-                    <div className="col-span-7 space-y-1 font-mono text-[10px]">
-                      {/* HP */}
-                      <div className="flex items-center justify-between bg-black/25 px-2 py-0.5 rounded">
-                        <span className="text-slate-300 font-bold text-[9px]">HP</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white">{stats?.hp ? stats.hp.toLocaleString() : '314'}</span>
-                          <span className="bg-[#181c20] text-[#00ff9d] text-[8px] font-black px-1.5 py-0.2 rounded-full border border-slate-700">
-                            +0
-                          </span>
+                    {/* Right Column (Col 7): Todos los 6 Stats Reales Lv 100 en Español */}
+                    <div className="col-span-7 space-y-1 font-mono text-[9px]">
+                      {/* Grid de 6 Atributos (3 filas x 2 columnas) */}
+                      <div className="grid grid-cols-2 gap-1">
+                        {/* 1. PS (Salud) */}
+                        <div className="flex items-center justify-between bg-black/35 px-1.5 py-0.5 rounded border border-slate-700/60">
+                          <span className="text-slate-300 font-bold text-[8px] uppercase">PS</span>
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-white text-[9px]">{resolved.hp}</span>
+                            <span className="bg-[#181c20] text-[#00ff9d] text-[7px] font-black px-1 rounded-full border border-slate-700">
+                              +0
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 2. ATAQUE */}
+                        <div className="flex items-center justify-between bg-black/35 px-1.5 py-0.5 rounded border border-slate-700/60">
+                          <span className="text-slate-300 font-bold text-[8px] uppercase">ATQ</span>
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-white text-[9px]">{resolved.attack}</span>
+                            <span className="bg-[#181c20] text-[#00ff9d] text-[7px] font-black px-1 rounded-full border border-slate-700">
+                              +0
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 3. DEFENSA */}
+                        <div className="flex items-center justify-between bg-black/35 px-1.5 py-0.5 rounded border border-slate-700/60">
+                          <span className="text-slate-300 font-bold text-[8px] uppercase">DEF</span>
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-white text-[9px]">{resolved.defense}</span>
+                            <span className="bg-[#181c20] text-[#00ff9d] text-[7px] font-black px-1 rounded-full border border-slate-700">
+                              +0
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 4. ATQ. ESPECIAL */}
+                        <div className="flex items-center justify-between bg-black/35 px-1.5 py-0.5 rounded border border-slate-700/60">
+                          <span className="text-slate-300 font-bold text-[8px] uppercase">SPA</span>
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-white text-[9px]">{resolved.sp_attack}</span>
+                            <span className="bg-[#181c20] text-[#00ff9d] text-[7px] font-black px-1 rounded-full border border-slate-700">
+                              +0
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 5. DEF. ESPECIAL */}
+                        <div className="flex items-center justify-between bg-black/35 px-1.5 py-0.5 rounded border border-slate-700/60">
+                          <span className="text-slate-300 font-bold text-[8px] uppercase">SPD</span>
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-white text-[9px]">{resolved.sp_defense}</span>
+                            <span className="bg-[#181c20] text-[#00ff9d] text-[7px] font-black px-1 rounded-full border border-slate-700">
+                              +0
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 6. VELOCIDAD */}
+                        <div className="flex items-center justify-between bg-black/35 px-1.5 py-0.5 rounded border border-slate-700/60">
+                          <span className="text-slate-300 font-bold text-[8px] uppercase">VEL</span>
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-white text-[9px]">{resolved.speed}</span>
+                            <span className="bg-[#181c20] text-[#00ff9d] text-[7px] font-black px-1 rounded-full border border-slate-700">
+                              +0
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* AP / ATAQUE */}
-                      <div className="flex items-center justify-between bg-black/25 px-2 py-0.5 rounded">
-                        <span className="text-slate-300 font-bold text-[9px]">AP</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white">{stats?.attack ? stats.attack.toLocaleString() : '262'}</span>
-                          <span className="bg-[#181c20] text-[#00ff9d] text-[8px] font-black px-1.5 py-0.2 rounded-full border border-slate-700">
-                            +0
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* BP / DEFENSA & PODER */}
-                      <div className="flex items-center justify-between bg-black/25 px-2 py-0.5 rounded">
-                        <span className="text-slate-300 font-bold text-[9px]">BP</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white">{stats?.defense ? stats.defense.toLocaleString() : '207'}</span>
-                          <span className="bg-[#181c20] text-[#00ff9d] text-[8px] font-black px-1.5 py-0.2 rounded-full border border-slate-700">
-                            +0
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* ABILITY / HABILIDAD BOX */}
+                      {/* HABILIDAD PASIVA EN ESPAÑOL */}
                       <div className="pt-0.5">
                         <div className="flex items-center gap-1 text-[8px] text-slate-300">
-                          <span className="uppercase tracking-wider">ABILITY</span>
-                          <span className="bg-blue-600 text-white text-[7px] font-black px-1 rounded-xs">
-                            DEF
+                          <span className="uppercase tracking-wider font-bold">HABILIDAD</span>
+                          <span className="bg-emerald-600 text-white text-[7px] font-black px-1 rounded-xs uppercase">
+                            PASIVA
                           </span>
-                          <span className="text-slate-400 text-[8px]">Synergy</span>
+                          <span className="text-slate-400 text-[8px]">Sinergia</span>
                         </div>
                         <div className="bg-[#1c2026] text-slate-200 text-[9px] font-sans px-2 py-0.5 rounded mt-0.5 truncate border border-slate-600 flex items-center justify-between">
                           <span className="truncate">
-                            {detail?.habilidades?.[0]?.nombre || 'Mar Llamas'}
+                            {detail?.habilidades?.[0]?.nombre || resolved.ability || 'Mar Llamas'}
                           </span>
                           <span className="text-amber-400 font-mono text-[8px] font-bold ml-1 shrink-0">R</span>
                         </div>
