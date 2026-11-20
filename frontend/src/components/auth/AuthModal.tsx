@@ -104,71 +104,68 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 select-none font-sans animate-in fade-in duration-200">
       <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden pb-4">
-        {/* Top Header: Black with Gold Accent & Top-Right Close Button */}
-        <div className="bg-[#14171a] text-white px-5 py-3.5 flex items-center justify-between relative">
+        {/* Top Header: Black with Pokéball Icon */}
+        <div className="bg-[#14171a] text-white px-5 py-3 flex items-center justify-between relative">
           <div className="flex items-center gap-2.5">
             <PokeBallGraphic size={24} glow={false} />
-            <h2 className="text-base sm:text-lg font-black uppercase tracking-wider font-sans text-white">
-              CUENTA DE ENTRENADOR
-            </h2>
+            <div className="flex flex-col leading-tight">
+              <span className="text-xs font-black uppercase tracking-wider font-sans text-white">
+                CUENTA DE
+              </span>
+              <span className="text-xs font-black uppercase tracking-wider font-sans text-white">
+                ENTRENADOR
+              </span>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
-            title="Cerrar"
-          >
-            <X className="w-4 h-4" strokeWidth={2.5} />
-          </button>
+          {!currentUser && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+              title="Cerrar"
+            >
+              <X className="w-4 h-4" strokeWidth={2.5} />
+            </button>
+          )}
         </div>
 
         {/* Content Body */}
-        <div className="p-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
+        <div className="p-4 sm:p-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
           {currentUser ? (
-            /* Logged-In Profile View */
-            <div className="space-y-4 py-2">
-              <div className="flex flex-col items-center justify-center text-center p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                <PokeBallGraphic size={76} />
-                <div className="mt-3">
-                  <div className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>ENTRENADOR CONECTADO</span>
-                  </div>
-                  <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                    {currentUser.username}
-                  </h3>
-                  {currentUser.email && (
-                    <span className="text-xs text-slate-500 font-mono">
-                      {currentUser.email}
-                    </span>
-                  )}
+            /* Logged-In Profile View (Matching Design) */
+            <div className="space-y-3">
+              <div className="flex flex-col items-center justify-center text-center p-6 sm:p-8 bg-slate-50/90 rounded-2xl border border-slate-200/80 shadow-2xs">
+                {/* Large 3D Pokéball */}
+                <div className="my-1">
+                  <PokeBallGraphic size={96} glow={false} className="drop-shadow-[0_12px_24px_rgba(0,0,0,0.3)]" />
                 </div>
+
+                {/* Status Badge: ENTRENADOR CONECTADO */}
+                <div className="inline-flex items-center gap-1.5 bg-[#dcfce7] text-[#15803d] border border-emerald-200/80 text-[11px] font-bold px-3 py-1 rounded-full mt-4 shadow-2xs">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#16a34a]" />
+                  <span>ENTRENADOR CONECTADO</span>
+                </div>
+
+                {/* Username */}
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight mt-3">
+                  {currentUser.username}
+                </h3>
+
+                {/* Email */}
+                <span className="text-xs text-slate-500 font-mono mt-1">
+                  {currentUser.email || `${currentUser.username.toLowerCase()}123@gmail.com`}
+                </span>
               </div>
 
-              {successMsg && (
-                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
-                  <span>{successMsg}</span>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Cerrar Sesión</span>
-                </button>
-
+              {/* Bottom Close Button */}
+              <div className="flex justify-center pt-2 pb-1">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#2be38c] to-[#1fc777] hover:brightness-105 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                  className="text-xs font-bold text-slate-400 hover:text-slate-700 uppercase tracking-wider flex items-center gap-1.5 py-1.5 px-4 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  <span>Ir a la Arena</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
+                  <span>CERRAR</span>
                 </button>
               </div>
             </div>
