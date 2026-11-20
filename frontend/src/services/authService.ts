@@ -1,6 +1,9 @@
 import { battleLogger } from '../utils/logger';
 
-const API_BASE = import.meta.env.VITE_BACKEND_API_URL || '';
+const DEFAULT_PROD_API = 'https://pokemon-battle-server-cid8.onrender.com';
+const API_BASE =
+  import.meta.env.VITE_BACKEND_API_URL ||
+  (import.meta.env.PROD ? DEFAULT_PROD_API : '');
 
 export interface TrainerUser {
   username: string;
@@ -38,9 +41,13 @@ export const AuthService = {
     }
   },
 
-  async login(username: string, password: string): Promise<TrainerUser> {
-    const cleanUser = username.trim();
+  async login(usernameOrEmail: string, password: string): Promise<TrainerUser> {
+    const cleanUser = usernameOrEmail.trim();
     const cleanPass = password.trim();
+
+    if (!cleanUser || !cleanPass) {
+      throw new Error('Por favor ingresa tu nombre de entrenador o correo y tu contraseña.');
+    }
 
     try {
       const res = await fetch(`${API_BASE}/api/accounts/login/`, {
@@ -51,7 +58,7 @@ export const AuthService = {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'Credenciales inválidas');
+        throw new Error(data.error || 'Credenciales inválidas. Revisa tu nombre de entrenador / correo y contraseña.');
       }
 
       const user: TrainerUser = {
@@ -63,17 +70,14 @@ export const AuthService = {
       return user;
     } catch (err: any) {
       battleLogger.error('AUTH', 'Login request failed', err);
-      // If network unreachable, check if user is signing in locally
-      if (err.message && (err.message.includes('Credenciales') || err.message.includes('inactiva'))) {
+      if (err.message && (err.message.includes('Credenciales') || err.message.includes('inactiva') || err.message.includes('requeridos'))) {
         throw err;
       }
-      // Offline / Render waking up fallback: allow trainer sign-in
-      const user: TrainerUser = {
-        username: cleanUser,
-        token: 'local_' + Math.random().toString(36).substring(2, 9),
-      };
-      this.setCurrentUser(user);
-      return user;
+      throw new Error(
+        err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')
+          ? 'Conectando con el servidor de la Arena... Por favor espera unos segundos e intenta nuevamente.'
+          : (err.message || 'Error al iniciar sesión con Django.')
+      );
     }
   },
 
@@ -81,6 +85,10 @@ export const AuthService = {
     const cleanUser = username.trim();
     const cleanEmail = email.trim();
     const cleanPass = password.trim();
+
+    if (!cleanUser || !cleanPass) {
+      throw new Error('Nombre de entrenador y contraseña son obligatorios.');
+    }
 
     try {
       const res = await fetch(`${API_BASE}/api/accounts/register/`, {
@@ -95,7 +103,7 @@ export const AuthService = {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'Error al crear la cuenta de entrenador');
+        throw new Error(data.error || 'Error al registrar la cuenta de entrenador en Django.');
       }
 
       const user: TrainerUser = {
@@ -107,17 +115,12 @@ export const AuthService = {
       return user;
     } catch (err: any) {
       battleLogger.error('AUTH', 'Register request failed', err);
-      if (err.message && !err.message.includes('fetch') && !err.message.includes('Failed to fetch')) {
+      if (err.message && !err.message.includes('fetch') && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError')) {
         throw err;
       }
-      // Offline fallback
-      const user: TrainerUser = {
-        username: cleanUser,
-        email: cleanEmail,
-        token: 'local_' + Math.random().toString(36).substring(2, 9),
-      };
-      this.setCurrentUser(user);
-      return user;
+      throw new Error(
+        'El servidor Django está despertando en la nube. Por favor espera unos segundos y vuelve a pulsar Registrar Entrenador.'
+      );
     }
   },
 

@@ -43,7 +43,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setError(null);
     setSuccessMsg(null);
     if (!username.trim() || !password.trim()) {
-      setError('Por favor completa todos los campos.');
+      setError('Por favor ingresa tu nombre de entrenador o correo y tu contraseña.');
       return;
     }
 
@@ -235,7 +235,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input
                         type="text"
-                        placeholder="Ej. BrauElizalde o joselm2490"
+                        placeholder="Ej. red123 o joselm2490@gmail.com"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all"

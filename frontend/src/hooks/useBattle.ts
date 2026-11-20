@@ -59,9 +59,12 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const backendPort = import.meta.env.VITE_BACKEND_PORT || '8080';
+    const defaultProdWs = 'wss://pokemon-battle-server-cid8.onrender.com';
     const backendHost =
       import.meta.env.VITE_BACKEND_WS_URL ||
-      `${wsProtocol}//${window.location.hostname}:${backendPort}`;
+      (import.meta.env.PROD
+        ? defaultProdWs
+        : `${wsProtocol}//${window.location.hostname}:${backendPort}`);
     const socketUrl = `${backendHost}/ws/battle/${roomCode}/`;
 
     const connectStart = performance.now();

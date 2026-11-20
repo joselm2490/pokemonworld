@@ -67,7 +67,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pokemon_server.wsgi.application'
 ASGI_APPLICATION = 'pokemon_server.asgi.application'
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+SUPABASE_DATABASE_URL = "postgresql://postgres.mmpblxvymrgkzrcxxymm:Keiler%2A2490@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require"
+DATABASE_URL = os.environ.get('DATABASE_URL') or SUPABASE_DATABASE_URL
 if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(

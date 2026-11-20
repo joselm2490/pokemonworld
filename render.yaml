@@ -14,4 +14,6 @@ services:
         value: "*"
       - key: SECRET_KEY
         generateValue: true
+      - key: DATABASE_URL
+        value: postgresql://postgres.mmpblxvymrgkzrcxxymm:Keiler%2A2490@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require
 

@@ -10,18 +10,20 @@ User = get_user_model()
 
 def get_request_user(request):
     """
-    Identifica al usuario por username o token en headers o payload.
+    Identifica al usuario por username o email en headers o payload.
     """
-    username = (
+    identifier = (
         request.headers.get('X-Trainer-User') or
         request.query_params.get('username') or
         request.data.get('username')
     )
-    if username:
-        try:
-            return User.objects.get(username__iexact=str(username).strip())
-        except User.DoesNotExist:
-            pass
+    if identifier:
+        val = str(identifier).strip()
+        user = User.objects.filter(username__iexact=val).first()
+        if not user:
+            user = User.objects.filter(email__iexact=val).first()
+        if user:
+            return user
     if request.user and request.user.is_authenticated:
         return request.user
     return None
@@ -30,44 +32,48 @@ def get_request_user(request):
 class LoginView(APIView):
     """
     Endpoint para autenticación de entrenadores.
-    Soporta login mediante username o email.
+    Soporta login mediante username o email (búsqueda insensible a mayúsculas/minúsculas).
     """
     def post(self, request):
-        username = request.data.get('username', '').strip()
-        password = request.data.get('password', '').strip()
+        identifier = request.data.get('username') or request.data.get('email', '')
+        identifier = str(identifier).strip()
+        password = str(request.data.get('password', '')).strip()
 
-        if not username or not password:
+        if not identifier or not password:
             return Response(
-                {'error': 'Nombre de entrenador / email y contraseña requeridos.'},
+                {'error': 'Nombre de entrenador / correo y contraseña requeridos.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        user = authenticate(request, username=username, password=password)
-        if user is None and '@' in username:
-            try:
-                user_obj = User.objects.get(email__iexact=username)
-                user = authenticate(request, username=user_obj.username, password=password)
-            except (User.DoesNotExist, User.MultipleObjectsReturned):
-                user = None
+        # 1. Buscar usuario por username (case-insensitive)
+        user_obj = User.objects.filter(username__iexact=identifier).first()
 
-        if user is not None:
-            if not user.is_active:
+        # 2. Si no se encuentra por username, buscar por email (case-insensitive)
+        if not user_obj:
+            user_obj = User.objects.filter(email__iexact=identifier).first()
+
+        # 3. Validar contraseña con Django auth
+        if user_obj and user_obj.check_password(password):
+            if not user_obj.is_active:
                 return Response(
                     {'error': 'Esta cuenta de entrenador se encuentra inactiva.'},
                     status=status.HTTP_403_FORBIDDEN
                 )
 
-            token = f"pkmn_{user.id}_{uuid.uuid4().hex[:16]}"
+            # Asegurar que el usuario tenga sus 10 equipos en Supabase PostgreSQL
+            TrainerTeamsView.initialize_user_teams(user_obj)
+
+            token = f"pkmn_{user_obj.id}_{uuid.uuid4().hex[:16]}"
             return Response({
                 'success': True,
-                'username': user.username,
-                'email': user.email,
+                'username': user_obj.username,
+                'email': user_obj.email,
                 'token': token,
-                'message': f'¡Bienvenido a la Arena, Entrenador {user.username}!'
+                'message': f'¡Bienvenido a la Arena, Entrenador {user_obj.username}!'
             }, status=status.HTTP_200_OK)
 
         return Response(
-            {'error': 'Credenciales inválidas. Revisa tu usuario y contraseña.'},
+            {'error': 'Credenciales inválidas. Revisa tu nombre de entrenador / correo y contraseña.'},
             status=status.HTTP_401_UNAUTHORIZED
         )
 
@@ -75,11 +81,12 @@ class LoginView(APIView):
 class RegisterView(APIView):
     """
     Endpoint para registro de nuevos entrenadores.
+    Crea el usuario directamente en auth_user e inicializa sus 10 equipos.
     """
     def post(self, request):
-        username = request.data.get('username', '').strip()
-        email = request.data.get('email', '').strip()
-        password = request.data.get('password', '').strip()
+        username = str(request.data.get('username', '')).strip()
+        email = str(request.data.get('email', '')).strip()
+        password = str(request.data.get('password', '')).strip()
 
         if not username or not password:
             return Response(
@@ -111,7 +118,16 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        user = User.objects.create_user(username=username, email=email, password=password)
+        # Crear el usuario directamente en la tabla auth_user
+        user = User.objects.create_user(
+            username=username,
+            email=email if email else '',
+            password=password
+        )
+
+        # Inicializar los 10 equipos del entrenador
+        TrainerTeamsView.initialize_user_teams(user)
+
         token = f"pkmn_{user.id}_{uuid.uuid4().hex[:16]}"
 
         return Response({
@@ -139,6 +155,20 @@ class TrainerTeamsView(APIView):
         {"slot": 9, "name": "Equipo 9 (Psíquico)", "pokemon_list": ["MEWTWO", "ALAKAZAM", "GARDEVOIR", "TOGEKISS", "SYLVEON", "HATTERENE"], "is_active": False},
         {"slot": 10, "name": "Equipo 10 (Especial)", "pokemon_list": ["SNORLAX", "TOGEKISS", "TYRANITAR", "DRAGONITE", "LUCARIO", "CHARIZARD"], "is_active": False},
     ]
+
+    @classmethod
+    def initialize_user_teams(cls, user):
+        """Inicializa los 10 slots por defecto para un nuevo entrenador"""
+        for default_item in cls.DEFAULT_TEAMS:
+            TrainerTeam.objects.get_or_create(
+                user=user,
+                slot=default_item["slot"],
+                defaults={
+                    "name": default_item["name"],
+                    "pokemon_list": default_item["pokemon_list"],
+                    "is_active": default_item["is_active"],
+                }
+            )
 
     def get(self, request):
         user = get_request_user(request)

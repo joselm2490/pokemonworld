@@ -10,7 +10,10 @@ import {
 } from '../types/stadium';
 import { battleLogger } from '../utils/logger';
 
-const API_BASE = import.meta.env.VITE_BACKEND_API_URL || '';
+const DEFAULT_PROD_API = 'https://pokemon-battle-server-cid8.onrender.com';
+const API_BASE =
+  import.meta.env.VITE_BACKEND_API_URL ||
+  (import.meta.env.PROD ? DEFAULT_PROD_API : '');
 
 async function apiFetch<T>(path: string, init?: RequestInit, fallbackError = 'Error de red'): Promise<T> {
   const url = `${API_BASE}${path}`;
