@@ -68,22 +68,22 @@ WSGI_APPLICATION = 'pokemon_server.wsgi.application'
 ASGI_APPLICATION = 'pokemon_server.asgi.application'
 
 SUPABASE_DATABASE_URL = "postgresql://postgres.mmpblxvymrgkzrcxxymm:Keiler%2A2490@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require"
-DATABASE_URL = os.environ.get('DATABASE_URL') or SUPABASE_DATABASE_URL
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
+# Priorizar conexión directa a Supabase PostgreSQL tanto en Render como en local
+raw_db_url = os.environ.get('DATABASE_URL', '')
+if 'supabase.com' in raw_db_url or 'supabase.co' in raw_db_url:
+    DATABASE_URL = raw_db_url
+elif os.environ.get('SUPABASE_DATABASE_URL'):
+    DATABASE_URL = os.environ.get('SUPABASE_DATABASE_URL')
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+    DATABASE_URL = SUPABASE_DATABASE_URL
+
+DATABASES = {
+    'default': dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 CHANNEL_LAYERS = {
     'default': {
