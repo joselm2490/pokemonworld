@@ -1,41 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import {
   X,
-  Shield,
-  Zap,
-  Flame,
-  Award,
-  Layers,
   Sparkles,
   Crown,
-  Trash2,
-  AlertTriangle,
-  ArrowUp,
   Activity,
   Crosshair,
 } from 'lucide-react';
 import { StadiumPokemonDetail, StadiumMove } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
+import { getResolvedLv100Stats, getResolvedTypes } from '../../utils/pokemonStats';
 
 interface PokemonDetailSheetProps {
   species: string;
   onClose: () => void;
-  onRemoveFromTeam: (species: string) => void;
-  canRemove: boolean;
-  isLeader: boolean;
-  onSetLeader: (species: string) => void;
-  teamCount: number;
+  onRemoveFromTeam?: (species: string) => void;
+  canRemove?: boolean;
+  isLeader?: boolean;
+  onSetLeader?: (species: string) => void;
+  teamCount?: number;
 }
 
 export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
   species,
   onClose,
-  onRemoveFromTeam,
-  canRemove,
-  isLeader,
-  onSetLeader,
-  teamCount,
+  isLeader = false,
 }) => {
   const [pokemon, setPokemon] = useState<StadiumPokemonDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,26 +55,17 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
     };
   }, [species]);
 
-  const handleRemove = () => {
-    if (!canRemove) return;
-    onRemoveFromTeam(species);
-    onClose();
-  };
+  const resolved = getResolvedLv100Stats(species, pokemon);
+  const types = getResolvedTypes(species, pokemon);
 
-  const statConfigs = pokemon?.base_stats
-    ? [
-        { label: 'HP', val: pokemon.base_stats.hp, bonus: '+0', max: 720 },
-        { label: 'ATK', val: pokemon.base_stats.attack, bonus: '+0', max: 550 },
-        { label: 'DEF', val: pokemon.base_stats.defense, bonus: '+0', max: 550 },
-        { label: 'SPA', val: pokemon.base_stats.sp_attack, bonus: '+0', max: 550 },
-        { label: 'SPD', val: pokemon.base_stats.sp_defense, bonus: '+0', max: 550 },
-        { label: 'SPE', val: pokemon.base_stats.speed, bonus: '+0', max: 550 },
-      ]
-    : [];
-
-  const types = pokemon?.types_detail || [];
-  const typeAbbr = types[0] ? types[0].nombre.slice(0, 2) : 'No';
-  const typeColor = types[0]?.color_hex || '#10b981';
+  const statConfigs = [
+    { label: 'PS', val: resolved.hp, bonus: '+0' },
+    { label: 'ATQ', val: resolved.attack, bonus: '+0' },
+    { label: 'DEF', val: resolved.defense, bonus: '+0' },
+    { label: 'SPA', val: resolved.sp_attack, bonus: '+0' },
+    { label: 'SPD', val: resolved.sp_defense, bonus: '+0' },
+    { label: 'VEL', val: resolved.speed, bonus: '+0' },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 select-none font-sans animate-in fade-in duration-200">
@@ -102,29 +82,12 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {!isLeader && (
-              <button
-                onClick={() => onSetLeader(species)}
-                className="px-2.5 py-0.5 rounded bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 text-amber-300 text-[9px] font-bold transition-all flex items-center gap-1"
-                title="Mover a la posición #01"
-              >
+            {isLeader && (
+              <span className="px-2.5 py-0.5 rounded bg-amber-400/20 border border-amber-400/50 text-amber-300 text-[9px] font-bold flex items-center gap-1">
                 <Crown className="w-3 h-3 text-amber-400" />
                 <span>Líder</span>
-              </button>
+              </span>
             )}
-            <button
-              onClick={handleRemove}
-              disabled={!canRemove}
-              className={`px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 ${
-                canRemove
-                  ? 'bg-rose-600 hover:bg-rose-500 text-white cursor-pointer'
-                  : 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-60'
-              }`}
-              title={canRemove ? 'Quitar del equipo' : 'El equipo debe tener al menos 1 Pokémon'}
-            >
-              <Trash2 className="w-3 h-3" />
-              <span>Quitar</span>
-            </button>
             <button
               type="button"
               onClick={onClose}
@@ -156,7 +119,7 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
                 {/* 10px White Tech-Grid */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff12_1px,transparent_1px),linear-gradient(to_bottom,#ffffff12_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none" />
 
-                {/* Black Chamfered Title Ribbon & Vitals Counter */}
+                {/* Black Chamfered Title Ribbon & Total Counter */}
                 <div className="relative z-10 flex items-center justify-between mb-2">
                   <div
                     className="bg-[#15171b] text-white px-3 py-1 pr-6 text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5"
@@ -168,30 +131,19 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
                     </span>
                   </div>
 
-                  <div className="text-right leading-none">
-                    <span className="text-[8px] text-slate-300 font-mono block">Vitals</span>
+                  <div className="text-right leading-none flex items-baseline justify-end gap-1">
+                    <span className="text-[9px] text-slate-300 font-bold uppercase tracking-wider font-mono">
+                      total:
+                    </span>
                     <span className="text-base font-black font-mono text-[#00ff9d] tracking-tight">
-                      {pokemon.base_stats?.hp || 164}
-                      <span className="text-[9px] text-slate-300 font-normal"> /9,999</span>
+                      {resolved.total.toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                {/* Sprite & Type Badges */}
+                {/* Sprite & Info Details (sin iniciales ni rangos) */}
                 <div className="relative z-10 flex items-center gap-3">
                   <div className="relative flex flex-col items-center">
-                    <div className="flex items-center gap-1 mb-1">
-                      <div
-                        style={{ backgroundColor: typeColor }}
-                        className="w-5 h-5 rounded-full border border-white/80 flex items-center justify-center text-[9px] font-black text-white shadow-xs capitalize"
-                      >
-                        {typeAbbr}
-                      </div>
-                      <div className="bg-[#30343a] border border-slate-500 rounded px-1 py-0.2 text-[8px] font-black text-amber-300">
-                        {isLeader ? 'Rank S' : 'Rank D'}
-                      </div>
-                    </div>
-
                     <div className="w-24 h-24 flex items-center justify-center">
                       <StaticPokemonImage
                         species={species}
@@ -207,13 +159,13 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
                       <strong className="text-white">{pokemon.nombre_ingles}</strong>
                     </div>
 
-                    {/* Types */}
-                    <div className="flex items-center gap-1">
+                    {/* Tipos completos con palabra entera en español */}
+                    <div className="flex items-center gap-1 flex-wrap">
                       {types.map((t) => (
                         <span
-                          key={t.id}
+                          key={t.nombre}
                           style={{ backgroundColor: t.color_hex }}
-                          className="px-2 py-0.2 rounded-full text-[8px] font-bold text-white uppercase shadow-2xs"
+                          className="px-2 py-0.5 rounded-full text-[8px] font-bold text-white uppercase shadow-2xs tracking-wide"
                         >
                           {t.nombre}
                         </span>
@@ -224,7 +176,7 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
                     </div>
 
                     {/* Ability */}
-                    {pokemon.habilidades && pokemon.habilidades.length > 0 && (
+                    {pokemon.habilidades && pokemon.habilidades.length > 0 ? (
                       <div className="bg-black/35 rounded p-1.5 border border-slate-600">
                         <div className="flex items-center gap-1 text-[8px] text-amber-300 font-bold uppercase">
                           <Sparkles className="w-2.5 h-2.5" />
@@ -234,7 +186,14 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
                           {pokemon.habilidades[0].descripcion || 'Sin descripción disponible.'}
                         </p>
                       </div>
-                    )}
+                    ) : resolved.ability ? (
+                      <div className="bg-black/35 rounded p-1.5 border border-slate-600">
+                        <div className="flex items-center gap-1 text-[8px] text-amber-300 font-bold uppercase">
+                          <Sparkles className="w-2.5 h-2.5" />
+                          <span>Habilidad: {resolved.ability}</span>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -248,9 +207,12 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
                     <Activity className="w-3.5 h-3.5 text-[#00ff9d]" />
                     Estadísticas Nivel 100 Favorable
                   </span>
-                  <span className="text-[10px] font-mono font-bold text-[#00ff9d] bg-black/40 px-2 py-0.2 rounded border border-slate-600">
-                    BST: {pokemon.base_stats?.total || 0}
-                  </span>
+                  <div className="flex items-baseline gap-1 bg-black/40 px-2 py-0.5 rounded border border-slate-600 font-mono">
+                    <span className="text-[8px] font-bold text-slate-300 uppercase">total:</span>
+                    <span className="text-[10px] font-black text-[#00ff9d]">
+                      {resolved.total.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="relative z-10 grid grid-cols-2 gap-1.5 font-mono text-[10px]">

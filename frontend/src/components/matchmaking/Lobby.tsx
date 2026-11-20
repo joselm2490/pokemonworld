@@ -12,7 +12,6 @@ import {
   RotateCcw,
   Shield,
   Layers,
-  Plus,
   Trash2,
   Crown,
   ChevronRight,
@@ -42,6 +41,7 @@ import { AuthModal } from '../auth/AuthModal';
 import { AuthService, TrainerUser } from '../../services/authService';
 import { PokedexService } from '../../services/pokedexService';
 import { RoomSummary, StadiumPokemonDetail } from '../../types/stadium';
+import { getResolvedLv100Stats, getResolvedTypes } from '../../utils/pokemonStats';
 
 interface LobbyProps {
   onStartMatch: (roomCode: string, isAi: boolean, role: 'p1' | 'p2') => void;
@@ -54,74 +54,6 @@ interface LobbyProps {
   onOpenPractice?: () => void;
   selectedTeam: string[];
   onUpdateTeam?: (newTeam: string[]) => void;
-}
-
-interface Lv100StatPack {
-  hp: number;
-  attack: number;
-  defense: number;
-  sp_attack: number;
-  sp_defense: number;
-  speed: number;
-  total: number;
-  ability?: string;
-}
-
-const LV100_FALLBACKS: Record<string, Lv100StatPack> = {
-  CHARIZARD: { hp: 360, attack: 293, defense: 280, sp_attack: 348, sp_defense: 295, speed: 328, total: 1904, ability: 'Mar Llamas' },
-  PIKACHU: { hp: 274, attack: 229, defense: 196, sp_attack: 218, sp_defense: 218, speed: 306, total: 1441, ability: 'Electricidad Estática' },
-  BLASTOISE: { hp: 362, attack: 291, defense: 328, sp_attack: 295, sp_defense: 339, speed: 280, total: 1895, ability: 'Torrente' },
-  LUCARIO: { hp: 344, attack: 350, defense: 262, sp_attack: 361, sp_defense: 262, speed: 306, total: 1885, ability: 'Impasible' },
-  GENGAR: { hp: 324, attack: 251, defense: 240, sp_attack: 394, sp_defense: 273, speed: 350, total: 1832, ability: 'Cuerpo Maldito' },
-  GARCHOMP: { hp: 420, attack: 394, defense: 317, sp_attack: 284, sp_defense: 295, speed: 333, total: 2043, ability: 'Velo Arena' },
-  GROWLITHE: { hp: 314, attack: 262, defense: 207, sp_attack: 262, sp_defense: 218, speed: 240, total: 1503, ability: 'Intimidación' },
-  VENUSAUR: { hp: 364, attack: 289, defense: 291, sp_attack: 328, sp_defense: 328, speed: 284, total: 1884, ability: 'Espesura' },
-  SHEDINJA: { hp: 1, attack: 306, defense: 207, sp_attack: 174, sp_defense: 174, speed: 196, total: 1058, ability: 'Superguarda' },
-};
-
-function getResolvedLv100Stats(species: string, detail?: StadiumPokemonDetail): Lv100StatPack {
-  const key = species.toUpperCase().replace(/\s+/g, '_');
-  const apiStats = detail?.base_stats;
-
-  if (apiStats && apiStats.total > 800) {
-    return {
-      hp: apiStats.hp,
-      attack: apiStats.attack,
-      defense: apiStats.defense,
-      sp_attack: apiStats.sp_attack,
-      sp_defense: apiStats.sp_defense,
-      speed: apiStats.speed,
-      total: apiStats.total,
-      ability: detail?.habilidades?.[0]?.nombre,
-    };
-  }
-
-  if (apiStats) {
-    const isShed = key.includes('SHEDINJA') || apiStats.hp === 1;
-    const hp = isShed ? 1 : 2 * apiStats.hp + 204;
-    const attack = Math.floor((2 * apiStats.attack + 99) * 1.1);
-    const defense = Math.floor((2 * apiStats.defense + 99) * 1.1);
-    const sp_attack = Math.floor((2 * apiStats.sp_attack + 99) * 1.1);
-    const sp_defense = Math.floor((2 * apiStats.sp_defense + 99) * 1.1);
-    const speed = Math.floor((2 * apiStats.speed + 99) * 1.1);
-    const total = hp + attack + defense + sp_attack + sp_defense + speed;
-    return {
-      hp,
-      attack,
-      defense,
-      sp_attack,
-      sp_defense,
-      speed,
-      total,
-      ability: detail?.habilidades?.[0]?.nombre,
-    };
-  }
-
-  if (LV100_FALLBACKS[key]) {
-    return LV100_FALLBACKS[key];
-  }
-
-  return { hp: 314, attack: 262, defense: 207, sp_attack: 262, sp_defense: 218, speed: 240, total: 1503, ability: 'Presión' };
 }
 
 export const Lobby: React.FC<LobbyProps> = ({
@@ -604,11 +536,7 @@ export const Lobby: React.FC<LobbyProps> = ({
               const detail = teamDetails[species];
               const resolved = getResolvedLv100Stats(species, detail);
               const displayName = detail?.nombre || species;
-              const types = detail?.types_detail || [];
-
-              // Type 2-letter abbreviation in Spanish like 'Fu', 'El', 'Ag'
-              const typeAbbr = types[0] ? types[0].nombre.slice(0, 2) : 'No';
-              const typeColor = types[0]?.color_hex || '#10b981';
+              const types = getResolvedTypes(species, detail);
 
               return (
                 <div
@@ -647,23 +575,19 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                   {/* Card Main Body: Left Sprite & Badges, Right All 6 Stats */}
                   <div className="relative z-10 grid grid-cols-12 gap-2 items-center">
-                    {/* Left Column (Col 5): Circular Type, Rank Badge, Sprite, Info icon */}
+                    {/* Left Column (Col 5): Full Type Badge, Sprite, Info icon (sin rangos ni botón X) */}
                     <div className="col-span-5 flex flex-col items-center justify-center relative">
-                      {/* Top Badges Row */}
-                      <div className="w-full flex items-center justify-between px-1 mb-1">
-                        {/* Circular Type Badge in Spanish */}
-                        <div
-                          style={{ backgroundColor: typeColor }}
-                          className="w-5 h-5 rounded-full border border-white/80 flex items-center justify-center text-[9px] font-black text-white shadow-xs capitalize"
-                          title={types[0]?.nombre || 'Tipo'}
-                        >
-                          {typeAbbr}
-                        </div>
-
-                        {/* Rank Badge in Spanish */}
-                        <div className="bg-[#30343a]/90 border border-slate-500 rounded px-1.5 py-0.2 text-[8px] font-black text-amber-300 shadow-2xs">
-                          {isLeader ? 'Rango S' : 'Rango D'}
-                        </div>
+                      {/* Top Badges Row: Nombre completo del tipo en español (sin abreviaturas ni rangos) */}
+                      <div className="w-full flex items-center gap-1 px-1 mb-1 flex-wrap">
+                        {types.map((t) => (
+                          <span
+                            key={t.nombre}
+                            style={{ backgroundColor: t.color_hex }}
+                            className="px-2 py-0.5 rounded text-[8px] font-black text-white uppercase shadow-xs tracking-wider"
+                          >
+                            {t.nombre}
+                          </span>
+                        ))}
                       </div>
 
                       {/* Pokémon Sprite Thumbnail */}
@@ -675,34 +599,19 @@ export const Lobby: React.FC<LobbyProps> = ({
                         />
                       </div>
 
-                      {/* Bottom Info Icon ( i ) */}
-                      <div className="w-full flex items-center justify-between px-1 text-slate-300">
+                      {/* Bottom Info Icon ( i ) - Solo lectura del equipo */}
+                      <div className="w-full flex items-center justify-start px-1 text-slate-300">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setInspectingSpecies(species);
                           }}
-                          className="w-4 h-4 rounded-full bg-black/50 hover:bg-black text-slate-300 hover:text-white flex items-center justify-center text-[9px] font-bold border border-slate-400 transition-colors"
+                          className="w-4 h-4 rounded-full bg-black/50 hover:bg-black text-slate-300 hover:text-white flex items-center justify-center text-[9px] font-bold border border-slate-400 transition-colors cursor-pointer"
                           title="Ver ficha técnica completa"
                         >
                           i
                         </button>
-
-                        {/* Quick Delete X button (if team > 1) */}
-                        {selectedTeam.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemovePokemon(species);
-                            }}
-                            className="w-4 h-4 rounded-full bg-rose-950/80 hover:bg-rose-900 text-rose-200 hover:text-white flex items-center justify-center text-[9px] font-bold border border-rose-500 transition-colors"
-                            title="Quitar del equipo"
-                          >
-                            ✕
-                          </button>
-                        )}
                       </div>
                     </div>
 
@@ -798,27 +707,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                 </div>
               );
             })}
-
-            {/* Dashed Add Card (when team < 6) */}
-            {selectedTeam.length < 6 && (
-              <button
-                type="button"
-                onClick={() => setIsAddModalOpen(true)}
-                className="w-full rounded-lg border-2 border-dashed border-slate-400 hover:border-emerald-500 bg-slate-100 hover:bg-emerald-50 p-4 transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-emerald-700 cursor-pointer shadow-xs"
-              >
-                <div className="w-7 h-7 rounded-full bg-white border border-slate-400 flex items-center justify-center text-slate-700">
-                  <Plus className="w-4 h-4" />
-                </div>
-                <div className="text-left font-sans">
-                  <span className="text-xs font-black uppercase tracking-wider block text-slate-800">
-                    + Añadir Pokémon ({selectedTeam.length + 1}/6)
-                  </span>
-                  <span className="text-[9px] text-slate-500">
-                    Seleccionar desde la Pokédex
-                  </span>
-                </div>
-              </button>
-            )}
           </div>
         </>
       )}
@@ -971,11 +859,7 @@ export const Lobby: React.FC<LobbyProps> = ({
         <PokemonDetailSheet
           species={inspectingSpecies}
           onClose={() => setInspectingSpecies(null)}
-          onRemoveFromTeam={handleRemovePokemon}
-          canRemove={selectedTeam.length > 1}
           isLeader={selectedTeam[0] === inspectingSpecies}
-          onSetLeader={handleSetLeader}
-          teamCount={selectedTeam.length}
         />
       )}
 
