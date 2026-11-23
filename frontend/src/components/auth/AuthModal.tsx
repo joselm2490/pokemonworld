@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User,
   Lock,
@@ -36,6 +36,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+      setSuccessMsg(null);
+      setPassword('');
+      setConfirmPassword('');
+    }
+  }, [isOpen, currentUser]);
+
   if (!isOpen) return null;
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -71,7 +80,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setError('Nombre de entrenador y contraseña son obligatorios.');
       return;
     }
-    if (password.length < 6) {
+    if (username.trim().length < 3) {
+      setError('El nombre de entrenador debe tener al menos 3 caracteres.');
+      return;
+    }
+    if (password.trim().length < 6) {
       setError('La contraseña debe tener mínimo 6 caracteres.');
       return;
     }

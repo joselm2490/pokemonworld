@@ -1,5 +1,6 @@
 import uuid
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import get_user_model, login as django_login
+from django.db import IntegrityError, transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -60,6 +61,9 @@ class LoginView(APIView):
                     status=status.HTTP_403_FORBIDDEN
                 )
 
+            # Actualizar last_login / sesión de Django
+            django_login(request, user_obj)
+
             # Asegurar que el usuario tenga sus 10 equipos en Supabase PostgreSQL
             TrainerTeamsView.initialize_user_teams(user_obj)
 
@@ -118,16 +122,24 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Crear el usuario directamente en la tabla auth_user
-        user = User.objects.create_user(
-            username=username,
-            email=email if email else '',
-            password=password
-        )
+        try:
+            with transaction.atomic():
+                # Crear el usuario directamente en la tabla auth_user
+                user = User.objects.create_user(
+                    username=username,
+                    email=email.lower() if email else '',
+                    password=password
+                )
 
-        # Inicializar los 10 equipos del entrenador
-        TrainerTeamsView.initialize_user_teams(user)
+                # Inicializar los 10 equipos del entrenador
+                TrainerTeamsView.initialize_user_teams(user)
+        except IntegrityError:
+            return Response(
+                {'error': 'Ese nombre de entrenador o correo ya está registrado.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        django_login(request, user)
         token = f"pkmn_{user.id}_{uuid.uuid4().hex[:16]}"
 
         return Response({
@@ -158,17 +170,23 @@ class TrainerTeamsView(APIView):
 
     @classmethod
     def initialize_user_teams(cls, user):
-        """Inicializa los 10 slots por defecto para un nuevo entrenador"""
-        for default_item in cls.DEFAULT_TEAMS:
-            TrainerTeam.objects.get_or_create(
+        """Inicializa los 10 slots por defecto para un nuevo entrenador en una sola consulta"""
+        existing_slots = set(
+            TrainerTeam.objects.filter(user=user).values_list('slot', flat=True)
+        )
+        to_create = [
+            TrainerTeam(
                 user=user,
-                slot=default_item["slot"],
-                defaults={
-                    "name": default_item["name"],
-                    "pokemon_list": default_item["pokemon_list"],
-                    "is_active": default_item["is_active"],
-                }
+                slot=item["slot"],
+                name=item["name"],
+                pokemon_list=item["pokemon_list"],
+                is_active=item["is_active"],
             )
+            for item in cls.DEFAULT_TEAMS
+            if item["slot"] not in existing_slots
+        ]
+        if to_create:
+            TrainerTeam.objects.bulk_create(to_create, ignore_conflicts=True)
 
     def get(self, request):
         user = get_request_user(request)

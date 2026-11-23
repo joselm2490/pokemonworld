@@ -82,6 +82,15 @@ export const Lobby: React.FC<LobbyProps> = ({
     if (user) {
       setTrainerName(user.username);
       setNameInput(user.username);
+      try {
+        const savedTeam = localStorage.getItem('pokemon_user_team');
+        if (savedTeam && onUpdateTeam) {
+          const parsed = JSON.parse(savedTeam);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            onUpdateTeam(parsed);
+          }
+        }
+      } catch {}
     }
   };
 

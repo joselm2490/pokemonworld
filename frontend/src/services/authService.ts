@@ -38,7 +38,29 @@ export const AuthService = {
       localStorage.setItem('pokemon_trainer_name', user.username);
     } else {
       localStorage.removeItem('pokemon_auth_user');
+      localStorage.removeItem('pokemon_trainer_name');
+      localStorage.removeItem('pokemon_trainer_teams');
+      localStorage.removeItem('pokemon_active_slot');
+      localStorage.removeItem('pokemon_user_team');
     }
+  },
+
+  async syncActiveTeam(): Promise<string[] | null> {
+    try {
+      const data = await this.getTeams();
+      if (data?.teams && data.teams.length > 0) {
+        const activeTeam =
+          data.teams.find((t) => t.is_active) ||
+          data.teams.find((t) => t.slot === data.active_slot) ||
+          data.teams[0];
+        if (activeTeam?.pokemon_list?.length) {
+          localStorage.setItem('pokemon_user_team', JSON.stringify(activeTeam.pokemon_list));
+          localStorage.setItem('pokemon_active_slot', String(activeTeam.slot));
+          return activeTeam.pokemon_list;
+        }
+      }
+    } catch {}
+    return null;
   },
 
   async login(usernameOrEmail: string, password: string): Promise<TrainerUser> {
@@ -56,28 +78,31 @@ export const AuthService = {
         body: JSON.stringify({ username: cleanUser, password: cleanPass }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data.error || 'Credenciales inválidas. Revisa tu nombre de entrenador / correo y contraseña.');
+        if (data?.error) {
+          throw new Error(data.error);
+        }
+        if (res.status === 404 || res.status >= 500) {
+          throw new Error(`No se pudo conectar con el servidor Django (HTTP ${res.status}).`);
+        }
+        throw new Error('Credenciales inválidas. Revisa tu nombre de entrenador / correo y contraseña.');
       }
 
       const user: TrainerUser = {
-        username: data.username || cleanUser,
-        email: data.email,
-        token: data.token,
+        username: data?.username || cleanUser,
+        email: data?.email,
+        token: data?.token,
       };
       this.setCurrentUser(user);
+      await this.syncActiveTeam();
       return user;
     } catch (err: any) {
       battleLogger.error('AUTH', 'Login request failed', err);
-      if (err.message && (err.message.includes('Credenciales') || err.message.includes('inactiva') || err.message.includes('requeridos'))) {
-        throw err;
+      if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+        throw new Error('Conectando con el servidor de la Arena... Por favor espera unos segundos e intenta nuevamente.');
       }
-      throw new Error(
-        err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')
-          ? 'Conectando con el servidor de la Arena... Por favor espera unos segundos e intenta nuevamente.'
-          : (err.message || 'Error al iniciar sesión con Django.')
-      );
+      throw new Error(err.message || 'Error al iniciar sesión con Django.');
     }
   },
 
@@ -101,26 +126,33 @@ export const AuthService = {
         }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data.error || 'Error al registrar la cuenta de entrenador en Django.');
+        if (data?.error) {
+          throw new Error(data.error);
+        }
+        if (res.status === 404 || res.status >= 500) {
+          throw new Error(`No se pudo conectar con el servidor Django (HTTP ${res.status}).`);
+        }
+        throw new Error('Error al registrar la cuenta de entrenador en Django.');
       }
 
       const user: TrainerUser = {
-        username: data.username || cleanUser,
-        email: data.email || cleanEmail,
-        token: data.token,
+        username: data?.username || cleanUser,
+        email: data?.email || cleanEmail,
+        token: data?.token,
       };
       this.setCurrentUser(user);
+      await this.syncActiveTeam();
       return user;
     } catch (err: any) {
       battleLogger.error('AUTH', 'Register request failed', err);
-      if (err.message && !err.message.includes('fetch') && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError')) {
-        throw err;
+      if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+        throw new Error(
+          'El servidor Django está despertando en la nube. Por favor espera unos segundos y vuelve a pulsar Registrar Entrenador.'
+        );
       }
-      throw new Error(
-        'El servidor Django está despertando en la nube. Por favor espera unos segundos y vuelve a pulsar Registrar Entrenador.'
-      );
+      throw new Error(err.message || 'Error al registrar la cuenta de entrenador en Django.');
     }
   },
 
