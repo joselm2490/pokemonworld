@@ -58,6 +58,9 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
       return;
     }
 
+    let isCleanedUp = false;
+    let reconnectTimer: number | null = null;
+
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const backendPort = import.meta.env.VITE_BACKEND_PORT || '8080';
     const defaultProdWs = 'wss://pokemon-battle-server-cid8.onrender.com';
@@ -68,31 +71,38 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
         : `${wsProtocol}//${window.location.hostname}:${backendPort}`);
     const socketUrl = `${backendHost}/ws/battle/${roomCode}/`;
 
-    const connectStart = performance.now();
-    battleLogger.ws(`Connecting to ${socketUrl}`, { roomCode, isAi, playerRole });
+    const connectSocket = () => {
+      if (isCleanedUp) return;
 
-    const socket = new WebSocket(socketUrl);
-    socketRef.current = socket;
+      const connectStart = performance.now();
+      battleLogger.ws(`Connecting to ${socketUrl}`, { roomCode, isAi, playerRole });
 
-    socket.onopen = () => {
-      const connectMs = Math.round(performance.now() - connectStart);
-      battleLogger.ws(`Connected in ${connectMs}ms`, { readyState: socket.readyState });
-      battleAudio.playBGM('battle_trainer');
+      const socket = new WebSocket(socketUrl);
+      socketRef.current = socket;
 
-      const currentUser = AuthService.getCurrentUser();
-      const joinPayload = {
-        type: 'JOIN_ROOM',
-        player_name: currentUser?.username || (playerRole === 'p1' ? 'Entrenador 1' : 'Entrenador 2'),
-        player_role: playerRole,
-        is_ai: isAi,
-        team: customTeam,
+      socket.onopen = () => {
+        if (isCleanedUp) {
+          socket.close(1000);
+          return;
+        }
+        const connectMs = Math.round(performance.now() - connectStart);
+        battleLogger.ws(`Connected in ${connectMs}ms`, { readyState: socket.readyState });
+        battleAudio.playBGM('battle_trainer');
+
+        const currentUser = AuthService.getCurrentUser();
+        const joinPayload = {
+          type: 'JOIN_ROOM',
+          player_name: currentUser?.username || (playerRole === 'p1' ? 'Entrenador 1' : 'Entrenador 2'),
+          player_role: playerRole,
+          is_ai: isAi,
+          team: customTeam,
+        };
+        actionSentAtRef.current = performance.now();
+        battleLogger.ws('SEND -> JOIN_ROOM', joinPayload);
+        socket.send(JSON.stringify(joinPayload));
       };
-      actionSentAtRef.current = performance.now();
-      battleLogger.ws('SEND -> JOIN_ROOM', joinPayload);
-      socket.send(JSON.stringify(joinPayload));
-    };
 
-    socket.onmessage = async (event) => {
+      socket.onmessage = async (event) => {
       const rttMs = actionSentAtRef.current
         ? Math.round(performance.now() - actionSentAtRef.current)
         : 0;
@@ -179,24 +189,42 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
       }
     };
 
-    socket.onerror = (err) => {
-      clearTurnTimeout();
-      battleLogger.error('WS_ERROR', `Fallo de conexión WebSocket en ${socketUrl}`, err);
-      initLocalFallback();
+      socket.onerror = (err) => {
+        clearTurnTimeout();
+        battleLogger.error('WS_ERROR', `Fallo de conexión WebSocket en ${socketUrl}`, err);
+        if (!battleState) {
+          initLocalFallback();
+        }
+      };
+
+      socket.onclose = (ev) => {
+        clearTurnTimeout();
+        battleLogger.warn('WS_CLOSE', `Conexión cerrada (code=${ev.code}, clean=${ev.wasClean})`, {
+          reason: ev.reason || '(sin razón)',
+        });
+        setIsWaitingForTurn(false);
+
+        if (!isCleanedUp && ev.code !== 1000) {
+          setCurrentMessage('Conexión interrumpida. Reconectando con la Arena...');
+          reconnectTimer = window.setTimeout(() => {
+            connectSocket();
+          }, 2000);
+        }
+      };
     };
 
-    socket.onclose = (ev) => {
-      clearTurnTimeout();
-      battleLogger.warn('WS_CLOSE', `Conexión cerrada (code=${ev.code}, clean=${ev.wasClean})`, {
-        reason: ev.reason || '(sin razón)',
-      });
-      setIsWaitingForTurn(false);
-    };
+    connectSocket();
 
     return () => {
+      isCleanedUp = true;
+      if (reconnectTimer !== null) {
+        window.clearTimeout(reconnectTimer);
+      }
       clearTurnTimeout();
       battleLogger.ws(`Desconectando sala ${roomCode}`);
-      socket.close();
+      if (socketRef.current) {
+        socketRef.current.close(1000);
+      }
       battleAudio.stopBGM();
     };
   }, [roomCode, isAi, playerRole]);
