@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { battleLogger } from '../../utils/logger';
+import { toShowdownSlug } from '../../utils/speciesToDex';
 
 interface AnimatedPokemonSpriteProps {
   species: string;
@@ -54,6 +55,16 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   const lastTimeRef = useRef<number>(0);
 
   const cleanSpecies = species.toUpperCase().replace(/\s+/g, '_');
+  const isRegionalForm = /(?:_|-)(ALOLA|GALAR|HISUI|PALDEA)\b/i.test(species);
+  const showdownSlug = toShowdownSlug(species);
+  const regionalPrimaryUrl = `https://play.pokemonshowdown.com/sprites/ani${isBack ? '-back' : ''}/${showdownSlug}.gif`;
+  const regionalFallbackUrl = `https://play.pokemonshowdown.com/sprites/gen5${isBack ? '-back' : ''}/${showdownSlug}.png`;
+  const [regionalSrc, setRegionalSrc] = useState(regionalPrimaryUrl);
+
+  useEffect(() => {
+    setRegionalSrc(regionalPrimaryUrl);
+  }, [regionalPrimaryUrl]);
+
   const folder = isBack
     ? isShiny
       ? 'Back shiny'
@@ -86,7 +97,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
 
   // Load sprite image only once visible (or immediately from cache)
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || isRegionalForm) return;
 
     const cached = SPRITE_CACHE.get(spriteUrl);
     if (cached && cached.complete && cached.naturalWidth > 0) {
@@ -157,7 +168,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
 
   // Render static first frame or run animation loop only when needed
   useEffect(() => {
-    if (!loadedUrl || !imgRef.current || !canvasRef.current) return;
+    if (isRegionalForm || !loadedUrl || !imgRef.current || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -255,7 +266,25 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
         />
       )}
 
-      {!hasError ? (
+      {isRegionalForm ? (
+        <img
+          src={regionalSrc}
+          alt={species}
+          draggable={false}
+          onError={() => {
+            if (regionalSrc !== regionalFallbackUrl) {
+              setRegionalSrc(regionalFallbackUrl);
+            } else {
+              setHasError(true);
+            }
+          }}
+          style={{
+            width: `${Math.round(56 * scale)}px`,
+            height: `${Math.round(56 * scale)}px`,
+          }}
+          className={`relative z-10 object-contain pixelated transition-transform duration-200 ${animationClass}`}
+        />
+      ) : !hasError ? (
         <canvas
           ref={canvasRef}
           className={`relative z-10 pixelated transition-transform duration-200 ${animationClass}`}

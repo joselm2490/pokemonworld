@@ -618,39 +618,72 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
           </div>
         </div>
 
-        {/* Type & Generation Filters */}
-        <div className="grid grid-cols-2 gap-1.5">
-          <select
-            value={selectedType}
-            onChange={(e) => {
-              setSelectedType(e.target.value);
-              setPage(1);
-            }}
-            className="w-full px-2 py-1 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700 focus:outline-hidden focus:border-emerald-500"
-          >
-            <option value="">Todos los Tipos</option>
-            {FILTER_TYPES.map((t) => (
-              <option key={t} value={t}>
-                Tipo: {t}
-              </option>
-            ))}
-          </select>
-
+        {/* Generation Filter + Type Check Buttons */}
+        <div className="space-y-1.5">
           <select
             value={selectedGen}
             onChange={(e) => {
               setSelectedGen(e.target.value);
               setPage(1);
             }}
-            className="w-full px-2 py-1 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700 focus:outline-hidden focus:border-emerald-500"
+            className="w-full px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700 focus:outline-hidden focus:border-emerald-500"
           >
-            <option value="">Todas las Gens</option>
+            <option value="">Todas las Generaciones</option>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((g) => (
               <option key={g} value={String(g)}>
                 Generación {g}
               </option>
             ))}
           </select>
+
+          <div className="flex flex-wrap gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedType('');
+                setPage(1);
+              }}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                selectedType === ''
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+              }`}
+            >
+              {selectedType === '' && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+              <span>Todos</span>
+            </button>
+
+            {FILTER_TYPES.map((t) => {
+              const isActive = selectedType === t;
+              const bg = SPANISH_TYPE_COLORS[t] || '#64748b';
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => {
+                    setSelectedType(isActive ? '' : t);
+                    setPage(1);
+                  }}
+                  style={isActive ? { backgroundColor: bg, borderColor: bg } : undefined}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                    isActive
+                      ? 'text-white shadow-xs ring-1 ring-black/20'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {isActive ? (
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  ) : (
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: bg }}
+                    />
+                  )}
+                  <span>{t}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="text-[10px] text-slate-500">
