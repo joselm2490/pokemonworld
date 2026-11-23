@@ -11,6 +11,8 @@ import {
   Sparkles,
   ShieldCheck,
   Crown,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
 import { AuthService, TrainerTeamData, TrainerUser } from '../../services/authService';
@@ -157,11 +159,14 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'warn' } | null>(null);
 
-  // Roster catalog & filters
+  // Roster catalog, filters & pagination
+  const PAGE_SIZE = 20;
   const [catalog, setCatalog] = useState<RosterItem[]>(FALLBACK_CATALOG);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedGen, setSelectedGen] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [typesCache, setTypesCache] = useState<Record<string, TypeBadgeInfo[]>>({});
 
@@ -196,7 +201,8 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
       setLoadingCatalog(true);
       try {
         const res = await PokedexService.getPokemonList({
-          limit: 80,
+          limit: PAGE_SIZE,
+          offset: (page - 1) * PAGE_SIZE,
           q: searchQuery.trim() || undefined,
           tipo: selectedType || undefined,
           gen: selectedGen || undefined,
@@ -220,6 +226,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
             };
           });
           setCatalog(mapped);
+          setTotalCount(res.total ?? mapped.length);
           setTypesCache((prev) => {
             const next = { ...prev };
             mapped.forEach((item) => {
@@ -253,12 +260,14 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
       }
     };
 
-    const timer = setTimeout(fetchPokedex, 250);
+    const timer = setTimeout(fetchPokedex, 200);
     return () => {
       isCancelled = true;
       clearTimeout(timer);
     };
-  }, [searchQuery, selectedType, selectedGen]);
+  }, [searchQuery, selectedType, selectedGen, page]);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   // Current selected team
   const currentTeam = teams.find((t) => t.slot === selectedSlotIndex) || teams[0];
@@ -577,7 +586,10 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
               placeholder="Buscar por nombre..."
               className="w-full pl-8 pr-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-amber-400 shadow-2xs"
             />
@@ -588,7 +600,10 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
         <div className="grid grid-cols-2 gap-1.5">
           <select
             value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
+            onChange={(e) => {
+              setSelectedType(e.target.value);
+              setPage(1);
+            }}
             className="w-full px-2 py-1 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700 focus:outline-hidden focus:border-emerald-500"
           >
             <option value="">Todos los Tipos</option>
@@ -601,7 +616,10 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
 
           <select
             value={selectedGen}
-            onChange={(e) => setSelectedGen(e.target.value)}
+            onChange={(e) => {
+              setSelectedGen(e.target.value);
+              setPage(1);
+            }}
             className="w-full px-2 py-1 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700 focus:outline-hidden focus:border-emerald-500"
           >
             <option value="">Todas las Gens</option>
@@ -623,7 +641,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
             No se encontraron Pokémon con esos filtros.
           </div>
         ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 max-h-[340px] overflow-y-auto custom-scrollbar pr-0.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[340px] overflow-y-auto custom-scrollbar pr-0.5">
           {catalog.map((pkmn) => {
             const key = pkmn.species.toUpperCase().replace(/\s+/g, '_');
             const isSelected = currentTeam.pokemon_list.includes(key);
@@ -682,6 +700,33 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
           })}
         </div>
         )}
+
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+          <button
+            type="button"
+            disabled={page <= 1 || loadingCatalog}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+            title="Página anterior"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          <span className="text-[11px] font-mono font-bold text-slate-600">
+            Página {page} / {totalPages}
+          </span>
+
+          <button
+            type="button"
+            disabled={page >= totalPages || loadingCatalog}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+            title="Página siguiente"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
