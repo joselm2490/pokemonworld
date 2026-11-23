@@ -45,7 +45,7 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
     const refreshData = async () => {
       try {
         const [rData, chatData] = await Promise.all([
-          PokedexService.getRoomDetail(roomCode),
+          PokedexService.getRoomDetail(roomCode, playerName),
           PokedexService.getRoomChat(roomCode),
         ]);
         if (isMounted) {
@@ -56,6 +56,11 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
           // Find current player ready state
           const me = rData.jugadores.find((j) => j.apodo === playerName);
           if (me) setIsReady(me.listo);
+
+          if (rData.status === 'CANCELLED') {
+            onClose();
+            return;
+          }
 
           // Automatically transition both players into BattleArena when room becomes ACTIVE
           if (rData.status === 'ACTIVE') {
@@ -202,14 +207,26 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
             </div>
             <h3 className="font-black text-xs text-slate-900 truncate">{p1.apodo}</h3>
             <div className="grid grid-cols-6 gap-1 mt-2 pt-2 border-t border-slate-200/80">
-              {(p1.equipo?.length ? p1.equipo : selectedTeam.slice(0, 6)).map((sp, i) => (
-                <div
-                  key={i}
-                  className="aspect-square bg-white border border-slate-200 rounded-lg flex items-center justify-center p-0.5 overflow-hidden"
-                >
-                  <StaticPokemonImage species={sp} alt={sp} className="w-full h-full object-contain" />
-                </div>
-              ))}
+              {playerRole === 'p1' ? (
+                (p1.equipo?.length ? p1.equipo : selectedTeam.slice(0, 6)).map((sp, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square bg-white border border-slate-200 rounded-lg flex items-center justify-center p-0.5 overflow-hidden"
+                  >
+                    <StaticPokemonImage species={sp} alt={sp} className="w-full h-full object-contain" />
+                  </div>
+                ))
+              ) : (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square bg-slate-200/70 border border-slate-300 rounded-lg flex items-center justify-center text-[11px] font-black text-slate-500"
+                    title="Pokémon oculto hasta iniciar el duelo"
+                  >
+                    ?
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -243,17 +260,31 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
               {p2?.apodo || 'Esperando Oponente...'}
             </h3>
             <div className="mt-2 pt-2 border-t border-slate-200/80">
-              {p2?.equipo && p2.equipo.length > 0 ? (
-                <div className="grid grid-cols-6 gap-1">
-                  {p2.equipo.map((sp, i) => (
-                    <div
-                      key={i}
-                      className="aspect-square bg-white border border-slate-200 rounded-lg flex items-center justify-center p-0.5 overflow-hidden"
-                    >
-                      <StaticPokemonImage species={sp} alt={sp} className="w-full h-full object-contain" />
-                    </div>
-                  ))}
-                </div>
+              {p2 ? (
+                playerRole === 'p2' ? (
+                  <div className="grid grid-cols-6 gap-1">
+                    {(p2.equipo?.length ? p2.equipo : selectedTeam.slice(0, 6)).map((sp, i) => (
+                      <div
+                        key={i}
+                        className="aspect-square bg-white border border-slate-200 rounded-lg flex items-center justify-center p-0.5 overflow-hidden"
+                      >
+                        <StaticPokemonImage species={sp} alt={sp} className="w-full h-full object-contain" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-6 gap-1">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="aspect-square bg-slate-200/70 border border-slate-300 rounded-lg flex items-center justify-center text-[11px] font-black text-slate-500"
+                        title="Pokémon oculto hasta iniciar el duelo"
+                      >
+                        ?
+                      </div>
+                    ))}
+                  </div>
+                )
               ) : (
                 <div className="text-[10px] text-slate-400 italic py-1.5 text-center">
                   Esperando que se una el oponente...
@@ -426,15 +457,25 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
 
                 {/* Team Sprites Preview */}
                 <div className="flex gap-1.5 mt-3 pt-3 border-t border-zinc-800/80">
-                  {(p1.equipo?.length ? p1.equipo : selectedTeam.slice(0, 6)).map(
-                    (sp, i) => (
+                  {playerRole === 'p1' ? (
+                    (p1.equipo?.length ? p1.equipo : selectedTeam.slice(0, 6)).map((sp, i) => (
                       <div
                         key={i}
                         className="w-10 h-10 bg-zinc-900 border border-zinc-700/80 rounded-xl flex items-center justify-center p-1 overflow-hidden"
                       >
                         <StaticPokemonImage species={sp} alt={sp} className="w-full h-full" />
                       </div>
-                    )
+                    ))
+                  ) : (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-10 h-10 bg-zinc-900/80 border border-zinc-700/60 rounded-xl flex items-center justify-center text-xs font-black text-zinc-500"
+                        title="Equipo oculto hasta el duelo"
+                      >
+                        ?
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
@@ -475,15 +516,27 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
 
                 {/* Team Sprites Preview */}
                 <div className="flex gap-1.5 mt-3 pt-3 border-t border-zinc-800/80">
-                  {p2?.equipo && p2.equipo.length > 0 ? (
-                    p2.equipo.map((sp, i) => (
-                      <div
-                        key={i}
-                        className="w-10 h-10 bg-zinc-900 border border-zinc-700/80 rounded-xl flex items-center justify-center p-1 overflow-hidden"
-                      >
-                        <StaticPokemonImage species={sp} alt={sp} className="w-full h-full" />
-                      </div>
-                    ))
+                  {p2 ? (
+                    playerRole === 'p2' ? (
+                      (p2.equipo?.length ? p2.equipo : selectedTeam.slice(0, 6)).map((sp, i) => (
+                        <div
+                          key={i}
+                          className="w-10 h-10 bg-zinc-900 border border-zinc-700/80 rounded-xl flex items-center justify-center p-1 overflow-hidden"
+                        >
+                          <StaticPokemonImage species={sp} alt={sp} className="w-full h-full" />
+                        </div>
+                      ))
+                    ) : (
+                      Array.from({ length: 6 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="w-10 h-10 bg-zinc-900/80 border border-zinc-700/60 rounded-xl flex items-center justify-center text-xs font-black text-zinc-500"
+                          title="Equipo oculto hasta el duelo"
+                        >
+                          ?
+                        </div>
+                      ))
+                    )
                   ) : (
                     <div className="text-[10px] text-zinc-600 italic py-2">
                       Esperando que se una el jugador...

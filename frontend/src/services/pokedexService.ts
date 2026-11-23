@@ -125,8 +125,9 @@ export const PokedexService = {
     return apiFetch('/api/battle/rooms/open/', undefined, 'Error al listar salas abiertas');
   },
 
-  async getRoomDetail(roomCode: string): Promise<RoomDetailData> {
-    return apiFetch(`/api/battle/rooms/${roomCode}/`, undefined, 'Error al obtener detalle de la sala');
+  async getRoomDetail(roomCode: string, viewer?: string): Promise<RoomDetailData> {
+    const query = viewer ? `?viewer=${encodeURIComponent(viewer)}` : '';
+    return apiFetch(`/api/battle/rooms/${roomCode}/${query}`, undefined, 'Error al obtener detalle de la sala');
   },
 
   async joinRoom(roomCode: string, data: { player_name: string; password?: string; team?: string[] }): Promise<any> {

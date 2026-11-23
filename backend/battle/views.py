@@ -1,6 +1,8 @@
 import random
 import string
+from datetime import timedelta
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,20 +13,36 @@ def generate_room_code(length=6):
     return ''.join(random.choices(string.digits, k=length))
 
 
+def expire_stale_rooms():
+    """Cierra automáticamente las salas WAITING que lleven más de 10 minutos sin iniciar."""
+    cutoff = timezone.now() - timedelta(minutes=10)
+    BattleRoom.objects.filter(
+        status='WAITING',
+        is_ai_match=False,
+        created_at__lt=cutoff,
+    ).update(status='CANCELLED')
+
+
 class RoomCreateView(APIView):
     """
     Creación de sala de combate 6 vs 6:
-    - Código de sala de 6 dígitos numéricos
+    - Código genérico de 6 dígitos generado por el servidor
     - Contraseña opcional
     - Asignación inmediata del anfitrión con su equipo líder
     """
     def post(self, request):
+        expire_stale_rooms()
         player_name = request.data.get("player_name", "").strip() or "Entrenador"
         password = request.data.get("password", "").strip() or None
         is_ai = bool(request.data.get("is_ai", False))
-        raw_code = ''.join(ch for ch in str(request.data.get("room_code", "")) if ch.isdigit())
-        room_code = raw_code[:6] if len(raw_code) == 6 else generate_room_code(6)
         pokemon_per_player = 6
+
+        # Código genérico de 6 dígitos asignado por el sistema (no editable)
+        room_code = generate_room_code(6)
+        for _ in range(15):
+            if not BattleRoom.objects.filter(room_code=room_code).exists():
+                break
+            room_code = generate_room_code(6)
 
         format_settings = request.data.get("format_settings", {})
         if not isinstance(format_settings, dict):
@@ -85,6 +103,7 @@ class OpenRoomsListView(APIView):
     Listado de salas en espera públicas o con clave para unirse.
     """
     def get(self, request):
+        expire_stale_rooms()
         open_rooms = BattleRoom.objects.filter(
             status="WAITING", is_ai_match=False
         ).prefetch_related('jugadores').order_by('-created_at')[:25]
@@ -110,8 +129,10 @@ class RoomDetailView(APIView):
     Detalle completo del estado de la sala: jugadores conectados, equipos y estado de listo.
     """
     def get(self, request, room_code):
+        expire_stale_rooms()
         room = get_object_or_404(BattleRoom, room_code=room_code.upper())
         jugadores = room.jugadores.all()
+        viewer = (request.query_params.get("viewer") or "").strip().lower()
 
         return Response({
             "room_code": room.room_code,
@@ -125,7 +146,7 @@ class RoomDetailView(APIView):
                 "apodo": j.apodo,
                 "es_anfitrion": j.es_anfitrion,
                 "equipo_count": len(j.equipo_pokemon),
-                "equipo": j.equipo_pokemon,
+                "equipo": j.equipo_pokemon if (not viewer or j.apodo.lower() == viewer) else [],
                 "listo": j.listo,
                 "conectado": j.conectado
             } for j in jugadores]
@@ -137,6 +158,7 @@ class RoomJoinView(APIView):
     Unirse a una sala con validación de contraseña si es privada.
     """
     def post(self, request, room_code):
+        expire_stale_rooms()
         room = get_object_or_404(BattleRoom, room_code=room_code.upper())
         player_name = request.data.get("player_name", "").strip() or "Entrenador 2"
         password = request.data.get("password", "").strip()
@@ -190,7 +212,10 @@ class RoomReadyToggleView(APIView):
     Cambiar el estado de Listo (Ready check) del jugador y actualizar su equipo.
     """
     def post(self, request, room_code):
+        expire_stale_rooms()
         room = get_object_or_404(BattleRoom, room_code=room_code.upper())
+        if room.status == 'CANCELLED':
+            return Response({"error": "La sala ha expirado o fue cerrada."}, status=status.HTTP_400_BAD_REQUEST)
         player_name = request.data.get("player_name", "").strip()
         team = request.data.get("team", [])
         is_ready = request.data.get("ready")
@@ -241,7 +266,10 @@ class RoomChatView(APIView):
         } for m in mensajes])
 
     def post(self, request, room_code):
+        expire_stale_rooms()
         room = get_object_or_404(BattleRoom, room_code=room_code.upper())
+        if room.status == 'CANCELLED':
+            return Response({"error": "La sala ha expirado o fue cerrada."}, status=status.HTTP_400_BAD_REQUEST)
         emisor = request.data.get("emisor", "Entrenador").strip() or "Entrenador"
         mensaje = request.data.get("mensaje", "").strip()
 
