@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, Swords } from 'lucide-react';
+import { X, Lock, Swords, ArrowLeft } from 'lucide-react';
 import { PokedexService } from '../../services/pokedexService';
 import { AuthService } from '../../services/authService';
 
@@ -7,12 +7,14 @@ interface CreateRoomModalProps {
   onClose: () => void;
   onRoomCreated: (roomCode: string, isAi: boolean, role: 'p1' | 'p2') => void;
   selectedTeam: string[];
+  inline?: boolean;
 }
 
 export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
   onClose,
   onRoomCreated,
   selectedTeam,
+  inline = false,
 }) => {
   const currentUser = AuthService.getCurrentUser();
   const hostName = currentUser?.username || localStorage.getItem('pokemon_trainer_name') || 'Entrenador';
@@ -62,6 +64,156 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
       setLoading(false);
     }
   };
+
+  if (inline) {
+    return (
+      <div className="flex-1 flex flex-col overflow-y-auto pr-1 custom-scrollbar space-y-2.5 font-sans select-none">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+              title="Volver a Salas"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div>
+              <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 leading-tight flex items-center gap-1.5">
+                <Swords className="w-4 h-4 text-amber-500" />
+                <span>Crear Sala de Duelo</span>
+              </h2>
+              <p className="text-[10px] text-slate-500">
+                Anfitrión: <strong className="text-emerald-700">{hostName}</strong> • Duelo 6 vs 6
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-medium p-2.5 rounded-xl">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-2.5 text-xs">
+          {/* Room Code & Fixed 6v6 Format */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+              <label className="text-slate-500 font-bold block mb-1 text-[10px] uppercase">
+                Código (6 Dígitos)
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="\d{6}"
+                maxLength={6}
+                placeholder="Ej. 482910"
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-900 font-mono font-black focus:outline-hidden focus:border-emerald-500 tracking-widest text-center text-sm"
+                required
+              />
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-col justify-between">
+              <label className="text-slate-500 font-bold block mb-1 text-[10px] uppercase">
+                Formato
+              </label>
+              <div className="w-full bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1.5 text-emerald-800 font-black text-center text-[11px]">
+                Duelo 6 vs 6
+              </div>
+            </div>
+          </div>
+
+          {/* Password Protection */}
+          <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isPrivate}
+                onChange={(e) => setIsPrivate(e.target.checked)}
+                className="rounded text-emerald-600 focus:ring-0"
+              />
+              <span className="font-bold text-slate-700 text-[11px] flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-slate-500" />
+                Sala Privada (Requiere Contraseña)
+              </span>
+            </label>
+            {isPrivate && (
+              <input
+                type="password"
+                placeholder="Ingresa contraseña de acceso a la sala"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-900 font-semibold text-xs focus:outline-hidden focus:border-emerald-500"
+                required={isPrivate}
+              />
+            )}
+          </div>
+
+          {/* Format Rules */}
+          <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider block">
+              Reglas y Filtros de Partida
+            </span>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="text-slate-500 block text-[10px] font-bold uppercase mb-1">
+                  Generaciones
+                </label>
+                <select
+                  value={genFilter}
+                  onChange={(e) => setGenFilter(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 text-[11px] font-medium"
+                >
+                  <option value="todas">Todas las Generaciones</option>
+                  <option value="gen1">Solo Gen 1 (Kanto)</option>
+                  <option value="gen2">Gen 1 - 2 (Johto)</option>
+                  <option value="gen3">Gen 1 - 3 (Hoenn)</option>
+                  <option value="gen4">Gen 1 - 4 (Sinnoh)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-500 block text-[10px] font-bold uppercase mb-1">
+                  Legendarios
+                </label>
+                <select
+                  value={allowLegendaries ? 'si' : 'no'}
+                  onChange={(e) => setAllowLegendaries(e.target.value === 'si')}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 text-[11px] font-medium"
+                >
+                  <option value="no">Prohibidos (Sin Legendarios)</option>
+                  <option value="si">Permitidos</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 cursor-pointer transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="py-2.5 px-3 bg-gradient-to-r from-[#32f59b] via-[#2ce692] to-[#25db89] hover:brightness-105 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-[#19c778] transition-all flex items-center justify-center gap-1 disabled:opacity-50 cursor-pointer"
+            >
+              {loading ? 'Creando...' : 'Crear Sala'}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 font-game select-none animate-in fade-in duration-150">

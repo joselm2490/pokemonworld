@@ -174,6 +174,31 @@ export const RoomSection: React.FC<RoomSectionProps> = ({
     );
   }
 
+  if (isCreateModalOpen) {
+    return (
+      <CreateRoomModal
+        inline
+        onClose={() => setIsCreateModalOpen(false)}
+        onRoomCreated={handleRoomCreated}
+        selectedTeam={selectedTeam}
+      />
+    );
+  }
+
+  if (activeWaitingRoom) {
+    return (
+      <RoomLobbyModal
+        inline
+        roomCode={activeWaitingRoom.roomCode}
+        playerRole={activeWaitingRoom.role}
+        playerName={activeWaitingRoom.playerName}
+        selectedTeam={selectedTeam}
+        onClose={() => setActiveWaitingRoom(null)}
+        onStartDuel={handleStartDuelFromLobby}
+      />
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-y-auto pr-1 custom-scrollbar space-y-2.5 sm:space-y-3 font-sans select-none">
       {/* Header */}
@@ -401,27 +426,6 @@ export const RoomSection: React.FC<RoomSectionProps> = ({
             )}
           </div>
         </>
-      )}
-
-      {/* Create Room Modal */}
-      {isCreateModalOpen && (
-        <CreateRoomModal
-          onClose={() => setIsCreateModalOpen(false)}
-          onRoomCreated={handleRoomCreated}
-          selectedTeam={selectedTeam}
-        />
-      )}
-
-      {/* Waiting Room Lobby Modal */}
-      {activeWaitingRoom && (
-        <RoomLobbyModal
-          roomCode={activeWaitingRoom.roomCode}
-          playerRole={activeWaitingRoom.role}
-          playerName={activeWaitingRoom.playerName}
-          selectedTeam={selectedTeam}
-          onClose={() => setActiveWaitingRoom(null)}
-          onStartDuel={handleStartDuelFromLobby}
-        />
       )}
     </div>
   );

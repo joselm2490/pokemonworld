@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   X,
   Swords,
-  Users,
   CheckCircle2,
   Clock,
   Send,
   MessageSquare,
-  Shield,
   Play,
-  RotateCcw,
+  ArrowLeft,
 } from 'lucide-react';
 import { RoomDetailData, RoomMessage } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
@@ -22,6 +20,7 @@ interface RoomLobbyModalProps {
   selectedTeam: string[];
   onClose: () => void;
   onStartDuel: () => void;
+  inline?: boolean;
 }
 
 export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
@@ -31,6 +30,7 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
   selectedTeam,
   onClose,
   onStartDuel,
+  inline = false,
 }) => {
   const [room, setRoom] = useState<RoomDetailData | null>(null);
   const [messages, setMessages] = useState<RoomMessage[]>([]);
@@ -144,6 +144,220 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
       }
     }
   };
+
+  if (inline) {
+    return (
+      <div className="flex-1 flex flex-col overflow-y-auto pr-1 custom-scrollbar space-y-2.5 font-sans select-none">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+              title="Salir de la sala"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Swords className="w-4 h-4 text-amber-500" />
+                <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900">
+                  Sala #{roomCode}
+                </h2>
+                {room?.requiere_contrasena && (
+                  <span className="text-[9px] bg-rose-100 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded-full font-bold">
+                    Privada
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-slate-500">
+                Formato 6 vs 6 • {room?.format_settings?.permitir_legendarios ? 'Legendarios Sí' : 'Sin Legendarios'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Players P1 & P2 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {/* Player 1 */}
+          <div
+            className={`p-2.5 rounded-xl border transition-all ${
+              p1.listo ? 'bg-emerald-50 border-emerald-400' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] text-amber-600 font-black uppercase tracking-wider">
+                Anfitrión (P1)
+              </span>
+              {p1.listo ? (
+                <span className="flex items-center gap-1 text-[9px] font-black text-emerald-700">
+                  <CheckCircle2 className="w-3 h-3" /> LISTO
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-[9px] font-bold text-slate-500">
+                  <Clock className="w-3 h-3" /> Preparando
+                </span>
+              )}
+            </div>
+            <h3 className="font-black text-xs text-slate-900 truncate">{p1.apodo}</h3>
+            <div className="grid grid-cols-6 gap-1 mt-2 pt-2 border-t border-slate-200/80">
+              {(p1.equipo?.length ? p1.equipo : selectedTeam.slice(0, 6)).map((sp, i) => (
+                <div
+                  key={i}
+                  className="aspect-square bg-white border border-slate-200 rounded-lg flex items-center justify-center p-0.5 overflow-hidden"
+                >
+                  <StaticPokemonImage species={sp} alt={sp} className="w-full h-full object-contain" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Player 2 */}
+          <div
+            className={`p-2.5 rounded-xl border transition-all ${
+              p2?.listo ? 'bg-emerald-50 border-emerald-400' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] text-sky-600 font-black uppercase tracking-wider">
+                Invitado (P2)
+              </span>
+              {p2 ? (
+                p2.listo ? (
+                  <span className="flex items-center gap-1 text-[9px] font-black text-emerald-700">
+                    <CheckCircle2 className="w-3 h-3" /> LISTO
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-[9px] font-bold text-slate-500">
+                    <Clock className="w-3 h-3" /> Preparando
+                  </span>
+                )
+              ) : (
+                <span className="text-[9px] text-amber-600 animate-pulse font-bold">
+                  Esperando...
+                </span>
+              )}
+            </div>
+            <h3 className="font-black text-xs text-slate-900 truncate">
+              {p2?.apodo || 'Esperando Oponente...'}
+            </h3>
+            <div className="mt-2 pt-2 border-t border-slate-200/80">
+              {p2?.equipo && p2.equipo.length > 0 ? (
+                <div className="grid grid-cols-6 gap-1">
+                  {p2.equipo.map((sp, i) => (
+                    <div
+                      key={i}
+                      className="aspect-square bg-white border border-slate-200 rounded-lg flex items-center justify-center p-0.5 overflow-hidden"
+                    >
+                      <StaticPokemonImage species={sp} alt={sp} className="w-full h-full object-contain" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-[10px] text-slate-400 italic py-1.5 text-center">
+                  Esperando que se una el oponente...
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Status & Actions */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2">
+          <div className="text-[11px] text-slate-600 leading-tight">
+            <strong className="text-slate-800">Estado:</strong>{' '}
+            {bothReady
+              ? '¡Ambos listos! Pulsa Comenzar.'
+              : !p2
+              ? 'Esperando a que se una un oponente (2/2)...'
+              : 'Marca "Estoy Listo" para iniciar el combate 6 vs 6.'}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={handleToggleReady}
+              className={`py-2 px-2 rounded-xl font-black text-[11px] shadow-2xs transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                isReady
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500'
+                  : 'bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-500'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{isReady ? 'LISTO (Cancelar)' : 'ESTOY LISTO'}</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={!bothReady && !canHostStart}
+              onClick={handleStartButtonClick}
+              className={`py-2 px-2 rounded-xl font-black text-[11px] shadow-2xs flex items-center justify-center gap-1 transition-all ${
+                bothReady || canHostStart
+                  ? 'bg-gradient-to-r from-[#32f59b] via-[#2ce692] to-[#25db89] text-slate-950 border border-[#19c778] cursor-pointer animate-pulse'
+                  : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
+              }`}
+            >
+              <Play className="w-3.5 h-3.5 shrink-0" />
+              <span>COMENZAR</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Compact Room Chat */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-col flex-1 min-h-[140px]">
+          <div className="flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-slate-200 text-[11px] font-black text-slate-700 uppercase">
+            <MessageSquare className="w-3.5 h-3.5 text-amber-500" />
+            <span>Chat de la Sala</span>
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar text-[11px] max-h-[140px]">
+            {messages.length === 0 ? (
+              <p className="text-[10px] text-slate-400 italic text-center py-4">
+                No hay mensajes aún en la sala.
+              </p>
+            ) : (
+              messages.map((m) => (
+                <div
+                  key={m.id}
+                  className={`p-1.5 rounded-lg leading-snug ${
+                    m.es_sistema
+                      ? 'bg-amber-50 text-amber-800 border border-amber-200 text-[10px]'
+                      : m.emisor === playerName
+                      ? 'bg-emerald-50 text-slate-900 ml-4 border border-emerald-200'
+                      : 'bg-white text-slate-800 mr-4 border border-slate-200'
+                  }`}
+                >
+                  {!m.es_sistema && (
+                    <span className="font-black text-[9px] block text-emerald-700 mb-0.5">
+                      {m.emisor}
+                    </span>
+                  )}
+                  <span>{m.mensaje}</span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <form onSubmit={handleSendMessage} className="mt-2 flex gap-1.5">
+            <input
+              type="text"
+              placeholder="Escribe un mensaje..."
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              className="flex-1 min-w-0 bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500"
+            />
+            <button
+              type="submit"
+              className="p-1.5 rounded-lg bg-slate-900 hover:bg-black text-white transition-colors cursor-pointer shrink-0"
+            >
+              <Send className="w-3.5 h-3.5" />
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 font-game select-none animate-in fade-in duration-200">
