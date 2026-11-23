@@ -524,9 +524,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
             const species = currentTeam.pokemon_list[idx];
             const isLeader = idx === 0 && Boolean(species);
             const spKey = species ? species.toUpperCase().replace(/\s+/g, '_') : '';
-            const types = species
-              ? typesCache[spKey] || getResolvedTypes(species)
-              : [];
+            const types = species ? typesCache[spKey] || [] : [];
 
             return (
               <div
