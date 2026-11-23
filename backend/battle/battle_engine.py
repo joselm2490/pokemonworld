@@ -376,6 +376,57 @@ def _apply_status_or_secondary(attacker: dict, defender: dict, move: dict, actor
     is_status_move = move.get("category") == "STATUS"
     effect_chance = move.get("effect_chance", 100 if is_status_move else 0)
 
+    # Guaranteed Healing, Drain, and Recoil effects (in PBS moves.txt, these have effect_chance = 0)
+    # 1. Healing moves (50% max HP)
+    if "HealUserHalfOfTotalHP" in fc or "HealUserDependingOnWeather" in fc:
+        heal_amt = max(1, attacker["max_hp"] // 2)
+        attacker["current_hp"] = min(attacker["max_hp"], attacker["current_hp"] + heal_amt)
+        events.append({
+            "type": "HEAL",
+            "target": actor_side,
+            "remaining_hp": attacker["current_hp"],
+            "max_hp": attacker["max_hp"],
+            "animation": "heal",
+            "message": f"¡{attacker['name']} recuperó PS!",
+        })
+        return
+
+    # 2. Drain moves (50% or 75% of damage dealt)
+    if ("HealUserByHalfOfDamageDone" in fc or "HealUserByThreeQuartersOfDamageDone" in fc) and damage_dealt > 0 and not attacker["is_fainted"]:
+        if "ThreeQuarters" in fc:
+            heal_amt = max(1, (damage_dealt * 3) // 4)
+        else:
+            heal_amt = max(1, damage_dealt // 2)
+        attacker["current_hp"] = min(attacker["max_hp"], attacker["current_hp"] + heal_amt)
+        events.append({
+            "type": "HEAL",
+            "target": actor_side,
+            "remaining_hp": attacker["current_hp"],
+            "max_hp": attacker["max_hp"],
+            "animation": "heal",
+            "message": f"¡{attacker['name']} absorbió energía!",
+        })
+        return
+
+    # 3. Recoil moves (33% recoil)
+    if "RecoilThirdOfDamageDealt" in fc and damage_dealt > 0:
+        recoil = max(1, damage_dealt // 3)
+        attacker["current_hp"] = max(0, attacker["current_hp"] - recoil)
+        events.append({
+            "type": "DAMAGE",
+            "target": actor_side,
+            "damage": recoil,
+            "remaining_hp": attacker["current_hp"],
+            "max_hp": attacker["max_hp"],
+            "effectiveness": 1.0,
+            "is_crit": False,
+            "message": f"¡{attacker['name']} sufrió daño por el retroceso!",
+        })
+        if attacker["current_hp"] == 0:
+            attacker["is_fainted"] = True
+            events.append({"type": "FAINT", "target": actor_side, "pokemon": attacker["name"], "message": f"¡{attacker['name']} se debilitó!"})
+        return
+
     triggers = is_status_move or (effect_chance > 0 and random.randint(1, 100) <= effect_chance)
     if not triggers:
         return
@@ -405,51 +456,6 @@ def _apply_status_or_secondary(attacker: dict, defender: dict, move: dict, actor
             elif is_status_move:
                 events.append({"type": "INFO", "message": "¡Pero falló!"})
             return
-
-    # Healing moves (50% max HP)
-    if "HealUserHalfOfTotalHP" in fc or "HealUserDependingOnWeather" in fc:
-        heal_amt = max(1, attacker["max_hp"] // 2)
-        attacker["current_hp"] = min(attacker["max_hp"], attacker["current_hp"] + heal_amt)
-        events.append({
-            "type": "HEAL",
-            "target": actor_side,
-            "remaining_hp": attacker["current_hp"],
-            "max_hp": attacker["max_hp"],
-            "animation": "heal",
-            "message": f"¡{attacker['name']} recuperó PS!",
-        })
-        return
-
-    # Drain moves (50% of damage dealt)
-    if "HealUserByHalfOfDamageDone" in fc and damage_dealt > 0 and not attacker["is_fainted"]:
-        heal_amt = max(1, damage_dealt // 2)
-        attacker["current_hp"] = min(attacker["max_hp"], attacker["current_hp"] + heal_amt)
-        events.append({
-            "type": "HEAL",
-            "target": actor_side,
-            "remaining_hp": attacker["current_hp"],
-            "max_hp": attacker["max_hp"],
-            "animation": "heal",
-            "message": f"¡{attacker['name']} absorbió energía!",
-        })
-
-    # Recoil moves (33% recoil)
-    if "RecoilThirdOfDamageDealt" in fc and damage_dealt > 0:
-        recoil = max(1, damage_dealt // 3)
-        attacker["current_hp"] = max(0, attacker["current_hp"] - recoil)
-        events.append({
-            "type": "DAMAGE",
-            "target": actor_side,
-            "damage": recoil,
-            "remaining_hp": attacker["current_hp"],
-            "max_hp": attacker["max_hp"],
-            "effectiveness": 1.0,
-            "is_crit": False,
-            "message": f"¡{attacker['name']} sufrió daño por el retroceso!",
-        })
-        if attacker["current_hp"] == 0:
-            attacker["is_fainted"] = True
-            events.append({"type": "FAINT", "target": actor_side, "pokemon": attacker["name"], "message": f"¡{attacker['name']} se debilitó!"})
 
     # Stat boosters / debuffers
     if "RaiseUserAttack2" in fc:
