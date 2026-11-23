@@ -71,11 +71,18 @@ class BattleConsumer(AsyncWebsocketConsumer):
     async def handle_join_room(self, payload):
         t0 = time.perf_counter()
         player_name = payload.get("player_name", "Entrenador")
+        player_role = payload.get("player_role", "p1")
         is_ai = bool(payload.get("is_ai", False))
         force_reset = bool(payload.get("force_reset", False))
+        custom_team = payload.get("team")
 
         room, state = await self.init_room_and_state(
-            self.room_code, player_name, is_ai, force_reset
+            self.room_code,
+            player_name,
+            is_ai,
+            force_reset,
+            custom_team=custom_team,
+            player_role=player_role,
         )
 
         ACTIVE_ROOM_ACTIONS[self.room_code] = {"p1": None, "p2": None}
@@ -235,9 +242,32 @@ class BattleConsumer(AsyncWebsocketConsumer):
     async def broadcast_event(self, event):
         await self.send(text_data=json.dumps(event["event"]))
 
+    @staticmethod
+    def _normalize_species_list(raw_team, team_size=6):
+        if not isinstance(raw_team, list):
+            return []
+        cleaned = []
+        for s in raw_team:
+            if isinstance(s, dict):
+                val = s.get("species") or s.get("name") or ""
+            else:
+                val = str(s or "")
+            val = val.strip().upper().replace(" ", "_")
+            if val:
+                cleaned.append(val)
+        return cleaned[:team_size]
+
     @sync_to_async
-    def init_room_and_state(self, room_code, player_name, is_ai, force_reset=False):
-        is_ai_match = is_ai or room_code.startswith("AI-")
+    def init_room_and_state(
+        self,
+        room_code,
+        player_name,
+        is_ai,
+        force_reset=False,
+        custom_team=None,
+        player_role="p1",
+    ):
+        is_ai_match = is_ai or room_code.startswith("AI-") or room_code.startswith("PRACTICE-")
         room, created = BattleRoom.objects.get_or_create(
             room_code=room_code,
             defaults={
@@ -258,16 +288,43 @@ class BattleConsumer(AsyncWebsocketConsumer):
             room.status = "ACTIVE"
             room.save()
 
+        if is_ai_match or room.is_ai_match:
+            team_size = 6
+            room.pokemon_per_player = 6
+        else:
+            team_size = max(1, min(6, getattr(room, "pokemon_per_player", 6) or 6))
+
+        custom_species = self._normalize_species_list(custom_team, team_size)
+
         if not room.state_data or force_reset:
-            if is_ai_match or room.is_ai_match:
-                team_size = 6
-                room.pokemon_per_player = 6
-            else:
-                team_size = max(1, min(6, getattr(room, "pokemon_per_player", 6) or 6))
-            p1_species, p2_species = generate_random_teams(
+            rand_p1, rand_p2 = generate_random_teams(
                 team_size=team_size,
                 sprites_dir=settings.SPRITES_DIR,
             )
+
+            # Resolve P1 team: explicit custom_team -> RoomPlayer host -> random fallback
+            p1_species = []
+            if player_role == "p1" and custom_species:
+                p1_species = custom_species
+            else:
+                host_player = room.jugadores.filter(es_anfitrion=True).first()
+                if host_player and host_player.equipo_pokemon:
+                    p1_species = self._normalize_species_list(host_player.equipo_pokemon, team_size)
+            if not p1_species:
+                p1_species = rand_p1
+
+            # Resolve P2 team: random for AI; explicit custom_team or guest RoomPlayer for PvP
+            p2_species = []
+            if not (is_ai_match or room.is_ai_match):
+                if player_role == "p2" and custom_species:
+                    p2_species = custom_species
+                else:
+                    guest_player = room.jugadores.filter(es_anfitrion=False).first()
+                    if guest_player and guest_player.equipo_pokemon:
+                        p2_species = self._normalize_species_list(guest_player.equipo_pokemon, team_size)
+            if not p2_species:
+                p2_species = rand_p2
+
             # Build both parties in one batched DB call
             combined = create_default_party(p1_species + p2_species)
             p1_team = combined[:len(p1_species)]
@@ -292,6 +349,19 @@ class BattleConsumer(AsyncWebsocketConsumer):
             room.save()
         else:
             state = room.state_data
+            # If P2 joins an existing PvP room before turn 2 with their custom leader team, apply it
+            if (
+                not (is_ai_match or room.is_ai_match)
+                and player_role == "p2"
+                and custom_species
+                and state.get("turn", 1) == 1
+                and not state.get("is_game_over")
+            ):
+                state["p2"]["name"] = room.player2_name or player_name
+                state["p2"]["team"] = create_default_party(custom_species)
+                state["p2"]["active_index"] = 0
+                room.state_data = state
+                room.save()
 
         return room, state
 
@@ -301,15 +371,42 @@ class BattleConsumer(AsyncWebsocketConsumer):
         if not room:
             return None, None
 
-        if room.is_ai_match or room_code.startswith("AI-"):
+        if room.is_ai_match or room_code.startswith("AI-") or room_code.startswith("PRACTICE-"):
             team_size = 6
             room.pokemon_per_player = 6
         else:
             team_size = max(1, min(6, getattr(room, "pokemon_per_player", 6) or 6))
-        p1_species, p2_species = generate_random_teams(
+
+        rand_p1, rand_p2 = generate_random_teams(
             team_size=team_size,
             sprites_dir=settings.SPRITES_DIR,
         )
+
+        # Preserve P1 (and P2 in PvP) teams from existing state_data or RoomPlayer
+        existing_state = room.state_data or {}
+        p1_species = self._normalize_species_list(
+            (existing_state.get("p1") or {}).get("team"), team_size
+        )
+        if not p1_species:
+            host_player = room.jugadores.filter(es_anfitrion=True).first()
+            if host_player and host_player.equipo_pokemon:
+                p1_species = self._normalize_species_list(host_player.equipo_pokemon, team_size)
+        if not p1_species:
+            p1_species = rand_p1
+
+        if room.is_ai_match or room_code.startswith("AI-") or room_code.startswith("PRACTICE-"):
+            p2_species = rand_p2
+        else:
+            p2_species = self._normalize_species_list(
+                (existing_state.get("p2") or {}).get("team"), team_size
+            )
+            if not p2_species:
+                guest_player = room.jugadores.filter(es_anfitrion=False).first()
+                if guest_player and guest_player.equipo_pokemon:
+                    p2_species = self._normalize_species_list(guest_player.equipo_pokemon, team_size)
+            if not p2_species:
+                p2_species = rand_p2
+
         combined = create_default_party(p1_species + p2_species)
         state = {
             "turn": 1,
