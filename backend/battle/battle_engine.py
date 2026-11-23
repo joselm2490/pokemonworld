@@ -431,6 +431,21 @@ def _apply_status_or_secondary(attacker: dict, defender: dict, move: dict, actor
     if not triggers:
         return
 
+    # Leech Seed (Drenadoras)
+    if "StartLeechSeedTarget" in fc:
+        if "GRASS" in defender.get("types", []) or defender.get("leech_seeded"):
+            events.append({"type": "INFO", "message": "¡No tuvo efecto!"})
+        else:
+            defender["leech_seeded"] = True
+            events.append({
+                "type": "STATUS",
+                "target": target_side,
+                "status": defender.get("status"),
+                "animation": "burst",
+                "message": f"¡{defender['name']} fue infectado por las drenadoras!",
+            })
+        return
+
     # Status inflictions (abreviaturas oficiales en español: QUE, PAR, DOR, CON, ENV)
     status_map = [
         ("BurnTarget", "QUE", "¡sufrió quemaduras!"),
@@ -701,6 +716,33 @@ def execute_turn(state: dict, p1_action: dict, p2_action: dict, is_ai_match: boo
                 "is_crit": False,
                 "message": f"¡{pk['name']} sufre los efectos del veneno!",
             })
+
+        if pk.get("leech_seeded") and not pk["is_fainted"] and pk["current_hp"] > 0:
+            other_key = "p2" if side_key == "p1" else "p1"
+            other_obj = state[other_key]
+            other_pk = other_obj["team"][other_obj["active_index"]]
+            seed_dmg = max(1, pk["max_hp"] // 8)
+            pk["current_hp"] = max(0, pk["current_hp"] - seed_dmg)
+            events.append({
+                "type": "DAMAGE",
+                "target": side_key,
+                "damage": seed_dmg,
+                "remaining_hp": pk["current_hp"],
+                "max_hp": pk["max_hp"],
+                "effectiveness": 1.0,
+                "is_crit": False,
+                "message": f"¡Las drenadoras restaron energía a {pk['name']}!",
+            })
+            if not other_pk["is_fainted"] and other_pk["current_hp"] > 0:
+                other_pk["current_hp"] = min(other_pk["max_hp"], other_pk["current_hp"] + seed_dmg)
+                events.append({
+                    "type": "HEAL",
+                    "target": other_key,
+                    "remaining_hp": other_pk["current_hp"],
+                    "max_hp": other_pk["max_hp"],
+                    "animation": "heal",
+                    "message": f"¡{other_pk['name']} recuperó PS gracias a las drenadoras!",
+                })
         if pk["current_hp"] == 0 and not pk["is_fainted"]:
             pk["is_fainted"] = True
             events.append({
