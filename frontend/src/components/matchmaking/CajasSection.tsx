@@ -272,6 +272,28 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
   // Current selected team
   const currentTeam = teams.find((t) => t.slot === selectedSlotIndex) || teams[0];
 
+  // Fetch real types for any team member not yet in typesCache
+  useEffect(() => {
+    currentTeam.pokemon_list.forEach((sp) => {
+      const spKey = sp.toUpperCase().replace(/\s+/g, '_');
+      if (!typesCache[spKey]) {
+        PokedexService.getPokemonDetail(sp)
+          .then((detail) => {
+            if (detail?.types_detail && detail.types_detail.length > 0) {
+              setTypesCache((prev) => ({
+                ...prev,
+                [spKey]: detail.types_detail.map((t) => ({
+                  nombre: t.nombre,
+                  color_hex: t.color_hex,
+                })),
+              }));
+            }
+          })
+          .catch(() => {});
+      }
+    });
+  }, [currentTeam.pokemon_list]);
+
   const showToast = (text: string, type: 'success' | 'warn' = 'success') => {
     setMessage({ text, type });
     setTimeout(() => setMessage(null), 3200);
@@ -495,7 +517,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
           ALINEACIÓN DEL EQUIPO (MÁXIMO 6)
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 6 }).map((_, idx) => {
             const species = currentTeam.pokemon_list[idx];
             const isLeader = idx === 0 && Boolean(species);
