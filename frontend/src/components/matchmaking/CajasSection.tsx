@@ -273,11 +273,13 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
   const currentTeam = teams.find((t) => t.slot === selectedSlotIndex) || teams[0];
 
   // Fetch real types for any team member not yet in typesCache
+  const teamKey = currentTeam.pokemon_list.join(',');
   useEffect(() => {
     currentTeam.pokemon_list.forEach((sp) => {
       const spKey = sp.toUpperCase().replace(/\s+/g, '_');
       if (!typesCache[spKey]) {
-        PokedexService.getPokemonDetail(sp)
+        const lookupName = sp.includes('_') ? sp.replace(/_/g, '-') : sp;
+        PokedexService.getPokemonDetail(lookupName)
           .then((detail) => {
             if (detail?.types_detail && detail.types_detail.length > 0) {
               setTypesCache((prev) => ({
@@ -292,7 +294,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
           .catch(() => {});
       }
     });
-  }, [currentTeam.pokemon_list]);
+  }, [selectedSlotIndex, teamKey]);
 
   const showToast = (text: string, type: 'success' | 'warn' = 'success') => {
     setMessage({ text, type });

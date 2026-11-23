@@ -155,8 +155,15 @@ class PokemonDetailView(APIView):
         if str(pk_or_name).isdigit():
             pkmn = qs.filter(Q(id=int(pk_or_name)) | Q(numero_pokedex=int(pk_or_name))).first()
         else:
+            alt_hyphen = str(pk_or_name).replace('_', '-')
+            alt_space = str(pk_or_name).replace('_', ' ')
             pkmn = qs.filter(
-                Q(nombre__iexact=pk_or_name) | Q(nombre_ingles__iexact=pk_or_name)
+                Q(nombre__iexact=pk_or_name)
+                | Q(nombre_ingles__iexact=pk_or_name)
+                | Q(nombre__iexact=alt_hyphen)
+                | Q(nombre_ingles__iexact=alt_hyphen)
+                | Q(nombre__iexact=alt_space)
+                | Q(nombre_ingles__iexact=alt_space)
             ).first()
 
         if not pkmn:
