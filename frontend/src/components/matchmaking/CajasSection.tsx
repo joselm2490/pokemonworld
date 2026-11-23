@@ -17,11 +17,64 @@ import { AuthService, TrainerTeamData, TrainerUser } from '../../services/authSe
 import { PokedexService } from '../../services/pokedexService';
 import { getResolvedTypes } from '../../utils/pokemonStats';
 
+export interface TypeBadgeInfo {
+  nombre: string;
+  color_hex: string;
+}
+
 export interface RosterItem {
   species: string;
   name: string;
+  numero_pokedex?: number;
+  gen?: number;
   types: string[];
+  types_detail?: TypeBadgeInfo[];
 }
+
+const SPANISH_TYPE_COLORS: Record<string, string> = {
+  Normal: '#a8a878',
+  Fuego: '#f08030',
+  Agua: '#6890f0',
+  Planta: '#78c850',
+  Eléctrico: '#f8d030',
+  Electrico: '#f8d030',
+  Hielo: '#98d8d8',
+  Lucha: '#c03028',
+  Veneno: '#a040a0',
+  Tierra: '#e0c068',
+  Volador: '#a890f0',
+  Psíquico: '#f85888',
+  Psiquico: '#f85888',
+  Bicho: '#a8b820',
+  Roca: '#b8a038',
+  Fantasma: '#705898',
+  Dragón: '#7038f8',
+  Dragon: '#7038f8',
+  Siniestro: '#705848',
+  Acero: '#b8b8d0',
+  Hada: '#ee99ac',
+};
+
+const FILTER_TYPES = [
+  'Fuego',
+  'Agua',
+  'Planta',
+  'Eléctrico',
+  'Psíquico',
+  'Dragón',
+  'Fantasma',
+  'Lucha',
+  'Acero',
+  'Tierra',
+  'Roca',
+  'Hielo',
+  'Bicho',
+  'Veneno',
+  'Volador',
+  'Normal',
+  'Siniestro',
+  'Hada',
+];
 
 const DEFAULT_SLOTS: TrainerTeamData[] = [
   { slot: 1, name: 'Equipo 1 (Principal)', pokemon_list: ['CHARIZARD', 'PIKACHU', 'BLASTOISE', 'LUCARIO', 'GENGAR', 'GARCHOMP'], is_active: true },
@@ -104,10 +157,13 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'warn' } | null>(null);
 
-  // Roster catalog
+  // Roster catalog & filters
   const [catalog, setCatalog] = useState<RosterItem[]>(FALLBACK_CATALOG);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [selectedGen, setSelectedGen] = useState('');
   const [loadingCatalog, setLoadingCatalog] = useState(false);
+  const [typesCache, setTypesCache] = useState<Record<string, TypeBadgeInfo[]>>({});
 
   // Load user teams from backend/Supabase
   useEffect(() => {
@@ -133,33 +189,63 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
       });
   }, []);
 
-  // Fetch full pokedex catalog
+  // Fetch full pokedex catalog with search, type & generation filters
   useEffect(() => {
     let isCancelled = false;
     const fetchPokedex = async () => {
       setLoadingCatalog(true);
       try {
-        const res = await PokedexService.getPokemonList({ limit: 80, q: searchQuery.trim() });
-        if (!isCancelled && res?.results && res.results.length > 0) {
-          const mapped: RosterItem[] = res.results.map((p) => ({
-            species: p.species || p.nombre_ingles?.toUpperCase() || p.nombre?.toUpperCase(),
-            name: p.nombre || p.nombre_ingles,
-            types: p.types_detail?.map((t) => t.nombre) || p.types || ['Normal'],
-          }));
+        const res = await PokedexService.getPokemonList({
+          limit: 80,
+          q: searchQuery.trim() || undefined,
+          tipo: selectedType || undefined,
+          gen: selectedGen || undefined,
+        });
+        if (!isCancelled && res?.results) {
+          const mapped: RosterItem[] = res.results.map((p) => {
+            const detailTypes: TypeBadgeInfo[] =
+              p.types_detail && p.types_detail.length > 0
+                ? p.types_detail.map((t) => ({ nombre: t.nombre, color_hex: t.color_hex }))
+                : (p.types || ['Normal']).map((tName) => ({
+                    nombre: tName,
+                    color_hex: SPANISH_TYPE_COLORS[tName] || '#a8a878',
+                  }));
+            return {
+              species: p.species || p.nombre_ingles?.toUpperCase() || p.nombre?.toUpperCase(),
+              name: p.nombre || p.nombre_ingles,
+              numero_pokedex: p.numero_pokedex,
+              gen: p.gen,
+              types: detailTypes.map((t) => t.nombre),
+              types_detail: detailTypes,
+            };
+          });
           setCatalog(mapped);
+          setTypesCache((prev) => {
+            const next = { ...prev };
+            mapped.forEach((item) => {
+              const key = item.species.toUpperCase().replace(/\s+/g, '_');
+              if (item.types_detail && item.types_detail.length > 0) {
+                next[key] = item.types_detail;
+              }
+            });
+            return next;
+          });
         }
       } catch {
         // Filter fallback catalog
         if (!isCancelled) {
           const q = searchQuery.trim().toLowerCase();
           setCatalog(
-            FALLBACK_CATALOG.filter(
-              (p) =>
+            FALLBACK_CATALOG.filter((p) => {
+              const matchesQ =
                 !q ||
                 p.name.toLowerCase().includes(q) ||
                 p.species.toLowerCase().includes(q) ||
-                p.types.some((t) => t.toLowerCase().includes(q))
-            )
+                p.types.some((t) => t.toLowerCase().includes(q));
+              const matchesType =
+                !selectedType || p.types.some((t) => t.toLowerCase() === selectedType.toLowerCase());
+              return matchesQ && matchesType;
+            })
           );
         }
       } finally {
@@ -172,7 +258,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
       isCancelled = true;
       clearTimeout(timer);
     };
-  }, [searchQuery]);
+  }, [searchQuery, selectedType, selectedGen]);
 
   // Current selected team
   const currentTeam = teams.find((t) => t.slot === selectedSlotIndex) || teams[0];
@@ -404,7 +490,10 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
           {Array.from({ length: 6 }).map((_, idx) => {
             const species = currentTeam.pokemon_list[idx];
             const isLeader = idx === 0 && Boolean(species);
-            const types = species ? getResolvedTypes(species) : [];
+            const spKey = species ? species.toUpperCase().replace(/\s+/g, '_') : '';
+            const types = species
+              ? typesCache[spKey] || getResolvedTypes(species)
+              : [];
 
             return (
               <div
@@ -483,16 +572,45 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
             {loadingCatalog && <RefreshCw className="w-3 h-3 text-slate-400 animate-spin" />}
           </div>
 
-          <div className="relative w-full sm:w-60">
+          <div className="relative w-full sm:w-52">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por nombre o tipo..."
+              placeholder="Buscar por nombre..."
               className="w-full pl-8 pr-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-amber-400 shadow-2xs"
             />
           </div>
+        </div>
+
+        {/* Type & Generation Filters */}
+        <div className="grid grid-cols-2 gap-1.5">
+          <select
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            className="w-full px-2 py-1 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700 focus:outline-hidden focus:border-emerald-500"
+          >
+            <option value="">Todos los Tipos</option>
+            {FILTER_TYPES.map((t) => (
+              <option key={t} value={t}>
+                Tipo: {t}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedGen}
+            onChange={(e) => setSelectedGen(e.target.value)}
+            className="w-full px-2 py-1 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700 focus:outline-hidden focus:border-emerald-500"
+          >
+            <option value="">Todas las Gens</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((g) => (
+              <option key={g} value={String(g)}>
+                Generación {g}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="text-[10px] text-slate-500">
@@ -500,11 +618,22 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
         </div>
 
         {/* Catalog Grid */}
+        {catalog.length === 0 ? (
+          <div className="py-6 text-center text-xs text-slate-400">
+            No se encontraron Pokémon con esos filtros.
+          </div>
+        ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 max-h-[340px] overflow-y-auto custom-scrollbar pr-0.5">
           {catalog.map((pkmn) => {
             const key = pkmn.species.toUpperCase().replace(/\s+/g, '_');
             const isSelected = currentTeam.pokemon_list.includes(key);
-            const types = getResolvedTypes(key);
+            const types: TypeBadgeInfo[] =
+              pkmn.types_detail && pkmn.types_detail.length > 0
+                ? pkmn.types_detail
+                : pkmn.types.map((tName) => ({
+                    nombre: tName,
+                    color_hex: SPANISH_TYPE_COLORS[tName] || '#a8a878',
+                  }));
 
             return (
               <div
@@ -527,6 +656,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
                 <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center my-0.5">
                   <StaticPokemonImage
                     species={pkmn.species}
+                    dexNumber={pkmn.numero_pokedex}
                     alt={pkmn.name}
                     className="w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow-xs"
                   />
@@ -551,6 +681,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
             );
           })}
         </div>
+        )}
       </div>
     </div>
   );
