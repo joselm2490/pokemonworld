@@ -19,6 +19,7 @@ msgpack==1.2.4
 packaging==26.3
 pillow==13.0.0
 psycopg2-binary==2.9.13
+python-dotenv==1.2.4
 pycparser==3.12
 pyOpenSSL==26.4.0
 service-identity==26.1.0
