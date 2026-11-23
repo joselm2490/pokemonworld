@@ -35,6 +35,7 @@ import { AddPokemonModal } from './AddPokemonModal';
 import { ArenaModal } from './ArenaModal';
 import { PokedexHubModal } from './PokedexHubModal';
 import { CajasSection } from './CajasSection';
+import { RoomSection } from './RoomSection';
 import { AuthModal } from '../auth/AuthModal';
 import { AuthService, TrainerUser } from '../../services/authService';
 import { PokedexService } from '../../services/pokedexService';
@@ -52,6 +53,8 @@ interface LobbyProps {
   onOpenPractice?: () => void;
   selectedTeam: string[];
   onUpdateTeam?: (newTeam: string[]) => void;
+  initialSection?: 'arena' | 'equipo' | 'cajas' | 'room' | 'salir';
+  initialRoomCode?: string;
 }
 
 export const Lobby: React.FC<LobbyProps> = ({
@@ -65,6 +68,8 @@ export const Lobby: React.FC<LobbyProps> = ({
   onOpenPractice,
   selectedTeam,
   onUpdateTeam,
+  initialSection = 'arena',
+  initialRoomCode,
 }) => {
   // Auth / Trainer Profile State
   const [currentUser, setCurrentUser] = useState<TrainerUser | null>(() => AuthService.getCurrentUser());
@@ -106,7 +111,11 @@ export const Lobby: React.FC<LobbyProps> = ({
   };
 
   // Section Navigation (Default: 'arena' when logged in as requested)
-  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'salir'>('arena');
+  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'room' | 'salir'>(initialSection);
+
+  useEffect(() => {
+    setActiveSection(initialSection);
+  }, [initialSection]);
   const [isArenaOpen, setIsArenaOpen] = useState(false);
   const [isPokedexHubOpen, setIsPokedexHubOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -452,6 +461,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 disabled={!isTeamComplete}
                 onClick={() => {
                   if (!isTeamComplete) return;
+                  setActiveSection('room');
                   if (onOpenRooms) onOpenRooms();
                 }}
                 className={`w-full text-left relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-[#151c26] border border-[#26354a] shadow-md transition-all flex items-center px-4 ${
@@ -802,6 +812,17 @@ export const Lobby: React.FC<LobbyProps> = ({
         <CajasSection
           onUpdateTeam={onUpdateTeam}
           selectedTeam={selectedTeam}
+        />
+      )}
+
+      {/* 4. SECCIÓN SALAS MULTIJUGADOR (/room ADAPTADO AL CONTENEDOR) */}
+      {activeSection === 'room' && (
+        <RoomSection
+          selectedTeam={selectedTeam}
+          currentUser={currentUser}
+          initialRoomCode={initialRoomCode}
+          onGoToCajas={() => setActiveSection('cajas')}
+          onOpenAuth={() => setIsAuthOpen(true)}
         />
       )}
     </div>

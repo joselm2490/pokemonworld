@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Lobby } from './components/matchmaking/Lobby';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { RoomPage } from './pages/RoomPage';
 import { TeamPage } from './pages/TeamPage';
 import { PracticePage } from './pages/PracticePage';
 import { TutorialPage } from './pages/TutorialPage';
@@ -11,7 +10,12 @@ import { PokemonPage } from './pages/PokemonPage';
 import { AbilityPage } from './pages/AbilityPage';
 import { MovePage } from './pages/MovePage';
 
-const HomeLobby: React.FC = () => {
+interface HomeLobbyProps {
+  initialSection?: 'arena' | 'equipo' | 'cajas' | 'room' | 'salir';
+  initialRoomCode?: string;
+}
+
+const HomeLobby: React.FC<HomeLobbyProps> = ({ initialSection = 'arena', initialRoomCode }) => {
   const navigate = useNavigate();
   const [selectedTeam, setSelectedTeam] = useState<string[]>(() => {
     try {
@@ -44,6 +48,8 @@ const HomeLobby: React.FC = () => {
     <Lobby
       selectedTeam={selectedTeam}
       onUpdateTeam={handleUpdateTeam}
+      initialSection={initialSection}
+      initialRoomCode={initialRoomCode}
       onOpenTeamBuilder={() => navigate('/team')}
       onOpenPokedex={() => navigate('/pokemon')}
       onOpenMoves={() => navigate('/move')}
@@ -62,6 +68,11 @@ const HomeLobby: React.FC = () => {
   );
 };
 
+const RoomLobbyRoute: React.FC = () => {
+  const { roomCode } = useParams<{ roomCode?: string }>();
+  return <HomeLobby initialSection="room" initialRoomCode={roomCode} />;
+};
+
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
@@ -73,9 +84,9 @@ export const App: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Forth Battle PvP Multiplayer Rooms */}
-        <Route path="/room" element={<RoomPage />} />
-        <Route path="/room/:roomCode" element={<RoomPage />} />
+        {/* Forth Battle PvP Multiplayer Rooms (rendered inside Lobby container) */}
+        <Route path="/room" element={<RoomLobbyRoute />} />
+        <Route path="/room/:roomCode" element={<RoomLobbyRoute />} />
 
         {/* Team Builder (10 Teams of 6 Pokémon) */}
         <Route path="/team" element={<TeamPage />} />
