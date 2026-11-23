@@ -163,6 +163,19 @@ export const Lobby: React.FC<LobbyProps> = ({
     });
   }, [selectedTeam]);
 
+  // Sync leader team from Django/Supabase on mount if logged in
+  useEffect(() => {
+    if (currentUser) {
+      AuthService.syncActiveTeam().then((synced) => {
+        if (synced && onUpdateTeam) {
+          onUpdateTeam(synced);
+        }
+      });
+    }
+  }, []);
+
+  const isTeamComplete = selectedTeam.length === 6;
+
   const handleSaveName = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = nameInput.trim() || 'BrauElizalde';
@@ -412,10 +425,40 @@ export const Lobby: React.FC<LobbyProps> = ({
           {/* 1. SECCIÓN ARENA (IMAGEN 2 - PREDETERMINADA) */}
           {activeSection === 'arena' && (
             <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
+              {!isTeamComplete && (
+                <div className="p-2.5 sm:p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-2 shadow-2xs">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="flex-1 text-[11px] leading-snug">
+                    <p className="font-bold">
+                      Debes completar el equipo líder con 6 Pokémon para poder hacer duelos en Salas o Práctica.
+                    </p>
+                    <p className="text-[10px] text-amber-700 mt-0.5">
+                      Equipo líder actual: <strong>{selectedTeam.length}/6 Pokémon</strong>.{' '}
+                      <button
+                        type="button"
+                        onClick={() => setActiveSection('cajas')}
+                        className="underline font-bold text-amber-900 hover:text-amber-700 cursor-pointer"
+                      >
+                        Completar en Cajas
+                      </button>
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* 1. Duelo Online Card (Salas Multijugador) */}
-              <div
-                onClick={() => (onOpenRooms ? onOpenRooms() : null)}
-                className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-[#151c26] border border-[#26354a] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+              <button
+                type="button"
+                disabled={!isTeamComplete}
+                onClick={() => {
+                  if (!isTeamComplete) return;
+                  if (onOpenRooms) onOpenRooms();
+                }}
+                className={`w-full text-left relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-[#151c26] border border-[#26354a] shadow-md transition-all flex items-center px-4 ${
+                  isTeamComplete
+                    ? 'cursor-pointer group hover:brightness-105 active:scale-[0.99]'
+                    : 'opacity-50 grayscale cursor-not-allowed'
+                }`}
               >
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff15_1px,transparent_1px),linear-gradient(to_bottom,#ffffff15_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
                 <div className="relative z-10">
@@ -426,24 +469,42 @@ export const Lobby: React.FC<LobbyProps> = ({
                     ONLINE
                   </h3>
                   <span className="text-[9px] font-bold text-purple-200 tracking-wider uppercase block mt-1 font-mono">
-                    SALAS MULTIJUGADOR 6v6
+                    {isTeamComplete ? 'SALAS MULTIJUGADOR 6v6' : `BLOQUEADO (${selectedTeam.length}/6 POKÉMON)`}
                   </span>
                 </div>
 
                 <div className="absolute right-4 flex items-center gap-2 pointer-events-none">
-                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/60 flex items-center justify-center text-white">
-                    <Swords className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-white/10 border-2 border-white/80 flex items-center justify-center text-white">
-                    <Users className="w-5 h-5 text-white" />
-                  </div>
+                  {!isTeamComplete ? (
+                    <div className="w-10 h-10 rounded-full bg-white/10 border-2 border-white/60 flex items-center justify-center text-amber-300">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/60 flex items-center justify-center text-white">
+                        <Swords className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-white/10 border-2 border-white/80 flex items-center justify-center text-white">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                    </>
+                  )}
                 </div>
-              </div>
+              </button>
 
               {/* 2. Duelo Práctica Card (Combate vs IA 6v6) */}
-              <div
-                onClick={onOpenPractice || handlePlayAi}
-                className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#7a52c7] via-[#875fd3] to-[#9973e2] border-2 border-[#603baf] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+              <button
+                type="button"
+                disabled={!isTeamComplete}
+                onClick={() => {
+                  if (!isTeamComplete) return;
+                  if (onOpenPractice) onOpenPractice();
+                  else handlePlayAi();
+                }}
+                className={`w-full text-left relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#7a52c7] via-[#875fd3] to-[#9973e2] border-2 border-[#603baf] shadow-md transition-all flex items-center px-4 ${
+                  isTeamComplete
+                    ? 'cursor-pointer group hover:brightness-105 active:scale-[0.99]'
+                    : 'opacity-50 grayscale cursor-not-allowed'
+                }`}
               >
                 {/* Purple Grid Pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff30_1px,transparent_1px),linear-gradient(to_bottom,#ffffff30_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
@@ -457,23 +518,31 @@ export const Lobby: React.FC<LobbyProps> = ({
                     PRACTICA
                   </h3>
                   <span className="text-[9px] font-bold text-purple-200 tracking-wider uppercase block mt-1 font-mono">
-                    COMBATE VS IA (6 VS 6)
+                    {isTeamComplete ? 'COMBATE VS IA (6 VS 6)' : `BLOQUEADO (${selectedTeam.length}/6 POKÉMON)`}
                   </span>
                 </div>
 
-                {/* Sparring Stick Figures on Right */}
+                {/* Sparring Stick Figures or Lock on Right */}
                 <div className="absolute right-4 flex items-center gap-2 pointer-events-none text-white opacity-95">
-                  <div className="flex flex-col items-center">
-                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white mb-0.5" />
-                    <div className="w-1 h-5 bg-white" />
-                  </div>
-                  <div className="text-2xl font-black italic text-amber-300 drop-shadow-sm">⚡</div>
-                  <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 rounded-full border-2 border-white mb-0.5" />
-                    <div className="w-1 h-4 bg-white" />
-                  </div>
+                  {!isTeamComplete ? (
+                    <div className="w-10 h-10 rounded-full bg-white/15 border-2 border-white/60 flex items-center justify-center text-amber-300">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex flex-col items-center">
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-white mb-0.5" />
+                        <div className="w-1 h-5 bg-white" />
+                      </div>
+                      <div className="text-2xl font-black italic text-amber-300 drop-shadow-sm">⚡</div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-3 h-3 rounded-full border-2 border-white mb-0.5" />
+                        <div className="w-1 h-4 bg-white" />
+                      </div>
+                    </>
+                  )}
                 </div>
-              </div>
+              </button>
 
               {/* 3. Próximamente Card */}
               <div className="relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#44c4e8] via-[#52d2f4] to-[#68defd] border-2 border-[#2fa8cb] shadow-md flex items-center px-4">

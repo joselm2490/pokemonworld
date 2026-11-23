@@ -18,7 +18,7 @@ const HomeLobby: React.FC = () => {
       const saved = localStorage.getItem('pokemon_user_team');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= 1 && parsed.length <= 6) {
+        if (Array.isArray(parsed) && parsed.length <= 6) {
           return parsed;
         }
       }
@@ -34,7 +34,7 @@ const HomeLobby: React.FC = () => {
   });
 
   const handleUpdateTeam = (newTeam: string[]) => {
-    if (!newTeam || newTeam.length < 1) return;
+    if (!Array.isArray(newTeam)) return;
     const bounded = newTeam.slice(0, 6);
     setSelectedTeam(bounded);
     localStorage.setItem('pokemon_user_team', JSON.stringify(bounded));

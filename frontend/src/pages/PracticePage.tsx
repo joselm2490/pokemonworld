@@ -20,7 +20,7 @@ export const PracticePage: React.FC = () => {
           return parsed.slice(0, 6);
         }
       }
-    } catch {}
+    } catch { }
     return ['CHARIZARD', 'PIKACHU', 'BLASTOISE', 'LUCARIO', 'GENGAR', 'GARCHOMP'];
   });
 

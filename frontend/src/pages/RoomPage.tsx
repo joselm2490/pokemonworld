@@ -47,19 +47,29 @@ export const RoomPage: React.FC = () => {
     role: 'p1' | 'p2';
   } | null>(null);
 
-  // User's active team (6 Pokemon)
-  const [team] = useState<string[]>(() => {
+  // User's active leader team (6 Pokemon)
+  const [team, setTeam] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('pokemon_user_team');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.slice(0, 6);
+        if (Array.isArray(parsed) && parsed.length <= 6) {
+          return parsed;
         }
       }
     } catch {}
     return ['CHARIZARD', 'PIKACHU', 'BLASTOISE', 'LUCARIO', 'GENGAR', 'GARCHOMP'];
   });
+
+  useEffect(() => {
+    if (currentUser) {
+      AuthService.syncActiveTeam().then((synced) => {
+        if (synced) setTeam(synced);
+      });
+    }
+  }, []);
+
+  const isTeamComplete = team.length === 6;
 
   const fetchRooms = () => {
     setLoadingRooms(true);
@@ -86,6 +96,10 @@ export const RoomPage: React.FC = () => {
 
   const handleJoinByCode = async (codeToJoin?: string, passwordToUse?: string) => {
     setJoinError(null);
+    if (!isTeamComplete) {
+      setJoinError('Debes completar tu equipo líder con 6 Pokémon para poder hacer duelos en Salas o Práctica.');
+      return;
+    }
     const code = (codeToJoin || inputCode).trim().toUpperCase();
     if (!code) {
       setJoinError('Por favor ingresa un código de sala válido.');
@@ -240,6 +254,25 @@ export const RoomPage: React.FC = () => {
         ) : (
           /* Logged In Room Hub View */
           <>
+            {!isTeamComplete && (
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="space-y-0.5 text-amber-900">
+                  <p className="text-xs sm:text-sm font-black uppercase">
+                    Equipo Líder Incompleto ({team.length}/6 Pokémon)
+                  </p>
+                  <p className="text-xs text-amber-800">
+                    Debes completar tu equipo líder con 6 Pokémon para poder hacer duelos en Salas o Práctica.
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate('/')}
+                  className="px-4 py-2 bg-slate-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shrink-0"
+                >
+                  Ir a Cajas
+                </button>
+              </div>
+            )}
+
             {/* Quick Actions Bar: Create Room & Join by Code */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Card 1: Create Room */}
@@ -257,11 +290,19 @@ export const RoomPage: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-105 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                  disabled={!isTeamComplete}
+                  onClick={() => {
+                    if (!isTeamComplete) return;
+                    setIsCreateModalOpen(true);
+                  }}
+                  className={`w-full py-3 font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md transition-all ${
+                    isTeamComplete
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-105 text-slate-950 cursor-pointer'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span>Crear Nueva Sala de Duelo</span>
+                  <span>{isTeamComplete ? 'Crear Nueva Sala de Duelo' : `Bloqueado (${team.length}/6)`}</span>
                 </button>
               </div>
 
@@ -292,11 +333,17 @@ export const RoomPage: React.FC = () => {
                       placeholder="Ej. STADIUM-4821"
                       value={inputCode}
                       onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-                      className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-sky-500 uppercase shadow-inner"
+                      disabled={!isTeamComplete}
+                      className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-sky-500 uppercase shadow-inner disabled:opacity-50"
                     />
                     <button
                       type="submit"
-                      className="px-5 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shrink-0 shadow-xs"
+                      disabled={!isTeamComplete}
+                      className={`px-5 py-2 font-black text-xs uppercase tracking-wider rounded-xl transition-all shrink-0 shadow-xs ${
+                        isTeamComplete
+                          ? 'bg-sky-500 hover:bg-sky-400 text-slate-950 cursor-pointer'
+                          : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      }`}
                     >
                       Unirse
                     </button>
@@ -372,10 +419,15 @@ export const RoomPage: React.FC = () => {
                       </div>
 
                       <button
+                        disabled={!isTeamComplete}
                         onClick={() => handleJoinByCode(room.room_code)}
-                        className="w-full py-2 bg-slate-900 hover:bg-amber-400 hover:text-slate-950 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center shadow-xs"
+                        className={`w-full py-2 font-bold text-xs uppercase tracking-wider rounded-xl transition-all text-center shadow-xs ${
+                          isTeamComplete
+                            ? 'bg-slate-900 hover:bg-amber-400 hover:text-slate-950 text-white cursor-pointer'
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        }`}
                       >
-                        Unirse al Duelo
+                        {isTeamComplete ? 'Unirse al Duelo' : 'Equipo Incompleto (6 req.)'}
                       </button>
                     </div>
                   ))}
