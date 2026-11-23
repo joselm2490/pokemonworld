@@ -123,7 +123,12 @@ SPRITES_DIR = ROOT_DIR / 'Animated Pokemon Sprites'
 PBS_DIR = ROOT_DIR / 'Animated Pokemon System' / 'PBS'
 
 # CORS configuration for Vercel and local development
+from corsheaders.defaults import default_headers
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-trainer-user',
+]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

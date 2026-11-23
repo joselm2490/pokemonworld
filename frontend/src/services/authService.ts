@@ -162,13 +162,12 @@ export const AuthService = {
 
   async getTeams(): Promise<{ teams: TrainerTeamData[]; active_slot: number }> {
     const user = this.getCurrentUser();
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (user?.username) {
-      headers['X-Trainer-User'] = user.username;
-    }
+    const query = user?.username ? `?username=${encodeURIComponent(user.username)}` : '';
 
     try {
-      const res = await fetch(`${API_BASE}/api/accounts/teams/`, { headers });
+      const res = await fetch(`${API_BASE}/api/accounts/teams/${query}`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
       if (res.ok) {
         const data = await res.json();
         localStorage.setItem('pokemon_trainer_teams', JSON.stringify(data.teams));
@@ -200,16 +199,18 @@ export const AuthService = {
 
   async saveTeam(slot: number, name: string, pokemon_list: string[], is_active: boolean): Promise<TrainerTeamData> {
     const user = this.getCurrentUser();
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (user?.username) {
-      headers['X-Trainer-User'] = user.username;
-    }
 
     try {
       const res = await fetch(`${API_BASE}/api/accounts/teams/`, {
         method: 'POST',
-        headers,
-        body: JSON.stringify({ slot, name, pokemon_list, is_active }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: user?.username || '',
+          slot,
+          name,
+          pokemon_list,
+          is_active,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
