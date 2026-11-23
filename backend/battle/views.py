@@ -148,6 +148,11 @@ class RoomJoinView(APIView):
         if room.player1_name.lower() == player_name.lower():
             return Response({"error": "No puedes unirte a tu propia sala como oponente."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Impedir que un tercer jugador entre si la sala ya tiene 2 jugadores distintos
+        other_players = room.jugadores.exclude(apodo__iexact=player_name).count()
+        if other_players >= 2 or (room.player2_name and room.player2_name.lower() != player_name.lower()):
+            return Response({"error": "La sala ya está llena (2/2 jugadores)."}, status=status.HTTP_400_BAD_REQUEST)
+
         if room.password and room.password != password:
             return Response({"error": "Contraseña incorrecta"}, status=status.HTTP_403_FORBIDDEN)
 

@@ -121,6 +121,29 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
   const p2 = room?.jugadores.find((j) => !j.es_anfitrion);
 
   const bothReady = (room?.jugadores.length ?? 0) >= 2 && room?.jugadores.every((j) => j.listo);
+  const canHostStart = playerRole === 'p1' && Boolean(p2) && Boolean(p2?.listo);
+
+  const handleStartButtonClick = async () => {
+    if (bothReady) {
+      onStartDuel();
+      return;
+    }
+    if (canHostStart) {
+      try {
+        const res = await PokedexService.toggleReady(roomCode, {
+          player_name: playerName,
+          ready: true,
+          team: selectedTeam.slice(0, 6),
+        });
+        setIsReady(true);
+        if (res.sala_status === 'ACTIVE') {
+          onStartDuel();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 font-game select-none animate-in fade-in duration-200">
@@ -189,7 +212,7 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
 
                 {/* Team Sprites Preview */}
                 <div className="flex gap-1.5 mt-3 pt-3 border-t border-zinc-800/80">
-                  {(p1.equipo?.length ? p1.equipo : selectedTeam.slice(0, room?.pokemon_por_jugador || 3)).map(
+                  {(p1.equipo?.length ? p1.equipo : selectedTeam.slice(0, 6)).map(
                     (sp, i) => (
                       <div
                         key={i}
@@ -262,15 +285,18 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
                 <span className="text-xs font-bold text-white block">Estado del Duelo:</span>
                 <span className="text-[11px] text-zinc-400">
                   {bothReady
-                    ? '¡Ambos entrenadores están listos para combatir!'
-                    : 'Selecciona tu equipo y presiona "Estoy Listo" para comenzar.'}
+                    ? '¡Ambos entrenadores están listos! Pulsa Comenzar.'
+                    : !p2
+                    ? 'Esperando a que se una un oponente (2/2)...'
+                    : 'Marca "Estoy Listo" para iniciar el combate 6 vs 6.'}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
+                  type="button"
                   onClick={handleToggleReady}
-                  className={`px-5 py-2.5 rounded-xl font-black text-xs shadow-lg transition-all flex items-center gap-2 ${
+                  className={`px-4 py-2.5 rounded-xl font-black text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer ${
                     isReady
                       ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-2 border-emerald-400'
                       : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950'
@@ -280,15 +306,19 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
                   {isReady ? '¡ESTOY LISTO! (Cancelar)' : 'MARCAR COMO LISTO'}
                 </button>
 
-                {bothReady && (
-                  <button
-                    onClick={onStartDuel}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-black text-xs shadow-xl animate-bounce flex items-center gap-1.5"
-                  >
-                    <Play className="w-4 h-4" />
-                    INICIAR COMBATE
-                  </button>
-                )}
+                <button
+                  type="button"
+                  disabled={!bothReady && !canHostStart}
+                  onClick={handleStartButtonClick}
+                  className={`px-5 py-2.5 rounded-xl font-black text-xs shadow-xl flex items-center gap-1.5 transition-all ${
+                    bothReady || canHostStart
+                      ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white cursor-pointer animate-pulse'
+                      : 'bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed'
+                  }`}
+                >
+                  <Play className="w-4 h-4" />
+                  COMENZAR
+                </button>
               </div>
             </div>
           </div>
