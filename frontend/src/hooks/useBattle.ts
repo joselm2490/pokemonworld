@@ -4,6 +4,7 @@ import { ActiveEffect } from '../components/battle/BattleEffectOverlay';
 import { battleAudio } from '../utils/battleAudio';
 import { battleLogger } from '../utils/logger';
 import { preloadBattleAssets } from '../utils/battlePreloader';
+import { AuthService } from '../services/authService';
 
 interface UseBattleProps {
   roomCode: string;
@@ -78,9 +79,10 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
       battleLogger.ws(`Connected in ${connectMs}ms`, { readyState: socket.readyState });
       battleAudio.playBGM('battle_trainer');
 
+      const currentUser = AuthService.getCurrentUser();
       const joinPayload = {
         type: 'JOIN_ROOM',
-        player_name: playerRole === 'p1' ? 'Entrenador 1' : 'Entrenador 2',
+        player_name: currentUser?.username || (playerRole === 'p1' ? 'Entrenador 1' : 'Entrenador 2'),
         player_role: playerRole,
         is_ai: isAi,
         team: customTeam,

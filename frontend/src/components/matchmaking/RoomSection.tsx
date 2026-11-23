@@ -81,22 +81,30 @@ export const RoomSection: React.FC<RoomSectionProps> = ({
     return () => clearInterval(interval);
   }, [activeWaitingRoom, activeMatch]);
 
-  const handleJoinByCode = async (codeToJoin?: string) => {
+  const handleJoinByCode = async (codeToJoin?: string, requiresPassword?: boolean) => {
     setJoinError(null);
     if (!isTeamComplete) {
       setJoinError('Debes completar tu equipo líder con 6 Pokémon para poder hacer duelos en Salas o Práctica.');
       return;
     }
-    const code = (codeToJoin || inputCode).trim().toUpperCase();
-    if (!code) {
-      setJoinError('Por favor ingresa un código de sala válido.');
+    const code = (codeToJoin || inputCode).replace(/\D/g, '').slice(0, 6);
+    if (!/^\d{6}$/.test(code)) {
+      setJoinError('El código de sala debe tener exactamente 6 dígitos numéricos.');
       return;
+    }
+
+    let pwd: string | undefined;
+    if (requiresPassword) {
+      const entered = window.prompt('Esta sala es privada. Ingresa la contraseña:');
+      if (entered === null) return;
+      pwd = entered;
     }
 
     try {
       const res = await PokedexService.joinRoom(code, {
         player_name: currentUser?.username || 'Entrenador',
-        team: selectedTeam,
+        password: pwd,
+        team: selectedTeam.slice(0, 6),
       });
 
       setActiveWaitingRoom({
@@ -105,6 +113,9 @@ export const RoomSection: React.FC<RoomSectionProps> = ({
         playerName: currentUser?.username || 'Entrenador',
       });
     } catch (err: any) {
+      if (!requiresPassword && err?.message?.toLowerCase().includes('contraseña')) {
+        return handleJoinByCode(code, true);
+      }
       setJoinError(err.message || 'No se pudo ingresar a la sala.');
     }
   };
@@ -291,11 +302,13 @@ export const RoomSection: React.FC<RoomSectionProps> = ({
               >
                 <input
                   type="text"
-                  placeholder="STADIUM-1234"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="Ej. 482910"
                   value={inputCode}
-                  onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                  onChange={(e) => setInputCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   disabled={!isTeamComplete}
-                  className="flex-1 min-w-0 bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-[11px] font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-sky-500 uppercase disabled:opacity-50"
+                  className="flex-1 min-w-0 bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-[11px] font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-sky-500 tracking-widest disabled:opacity-50"
                 />
                 <button
                   type="submit"
@@ -373,7 +386,7 @@ export const RoomSection: React.FC<RoomSectionProps> = ({
                     <button
                       type="button"
                       disabled={!isTeamComplete}
-                      onClick={() => handleJoinByCode(room.room_code)}
+                      onClick={() => handleJoinByCode(room.room_code, room.requiere_contrasena)}
                       className={`w-full py-1.5 font-bold text-[11px] uppercase tracking-wider rounded-lg transition-all text-center ${
                         isTeamComplete
                           ? 'bg-slate-900 hover:bg-amber-400 hover:text-slate-950 text-white cursor-pointer'

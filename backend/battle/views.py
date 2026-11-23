@@ -8,25 +8,23 @@ from .models import BattleRoom, SalaJugador, SalaMensaje, SalaEstadistica
 
 
 def generate_room_code(length=6):
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+    return ''.join(random.choices(string.digits, k=length))
 
 
 class RoomCreateView(APIView):
     """
-    Creación de sala de combate con filtros de formato:
-    - Código de sala
+    Creación de sala de combate 6 vs 6:
+    - Código de sala de 6 dígitos numéricos
     - Contraseña opcional
-    - Formato (generaciones permitidas, permitir legendarios, 3 vs 3 o 6 vs 6)
-    - Asignación inmediata del anfitrión
+    - Asignación inmediata del anfitrión con su equipo líder
     """
     def post(self, request):
-        player_name = request.data.get("player_name", "Entrenador 1").strip() or "Entrenador 1"
+        player_name = request.data.get("player_name", "").strip() or "Entrenador"
         password = request.data.get("password", "").strip() or None
         is_ai = bool(request.data.get("is_ai", False))
-        room_code = request.data.get("room_code", "").strip().upper() or generate_room_code()
-        pokemon_per_player = int(request.data.get("pokemon_per_player", 6) or 6)
-        if pokemon_per_player not in (1, 3, 6):
-            pokemon_per_player = 6
+        raw_code = ''.join(ch for ch in str(request.data.get("room_code", "")) if ch.isdigit())
+        room_code = raw_code[:6] if len(raw_code) == 6 else generate_room_code(6)
+        pokemon_per_player = 6
 
         format_settings = request.data.get("format_settings", {})
         if not isinstance(format_settings, dict):
@@ -146,6 +144,9 @@ class RoomJoinView(APIView):
 
         if room.status != 'WAITING':
             return Response({"error": "La sala ya no está disponible"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if room.player1_name.lower() == player_name.lower():
+            return Response({"error": "No puedes unirte a tu propia sala como oponente."}, status=status.HTTP_400_BAD_REQUEST)
 
         if room.password and room.password != password:
             return Response({"error": "Contraseña incorrecta"}, status=status.HTTP_403_FORBIDDEN)

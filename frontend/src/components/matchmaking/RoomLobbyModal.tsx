@@ -56,6 +56,11 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
           // Find current player ready state
           const me = rData.jugadores.find((j) => j.apodo === playerName);
           if (me) setIsReady(me.listo);
+
+          // Automatically transition both players into BattleArena when room becomes ACTIVE
+          if (rData.status === 'ACTIVE') {
+            onStartDuel();
+          }
         }
       } catch (err) {
         console.error(err);
@@ -65,7 +70,7 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
     refreshData();
     const interval = setInterval(() => {
       if (!document.hidden) refreshData();
-    }, 5000);
+    }, 2000);
 
     return () => {
       isMounted = false;
@@ -80,7 +85,7 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
       const res = await PokedexService.toggleReady(roomCode, {
         player_name: playerName,
         ready: nextReady,
-        team: selectedTeam.slice(0, room?.pokemon_por_jugador || 3),
+        team: selectedTeam.slice(0, 6),
       });
       if (res.sala_status === 'ACTIVE') {
         onStartDuel();
@@ -110,7 +115,7 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
   const p1 = room?.jugadores.find((j) => j.es_anfitrion) || {
     apodo: room?.anfitrion || 'Anfitrión',
     listo: false,
-    equipo: selectedTeam.slice(0, room?.pokemon_por_jugador || 3),
+    equipo: selectedTeam.slice(0, 6),
   };
 
   const p2 = room?.jugadores.find((j) => !j.es_anfitrion);
@@ -136,7 +141,7 @@ export const RoomLobbyModal: React.FC<RoomLobbyModalProps> = ({
                 )}
               </div>
               <p className="text-[10px] text-zinc-400">
-                Formato {room?.pokemon_por_jugador || 3} vs {room?.pokemon_por_jugador || 3} •{' '}
+                Formato {room?.pokemon_por_jugador || 6} vs {room?.pokemon_por_jugador || 6} •{' '}
                 {room?.format_settings?.permitir_legendarios ? 'Legendarios Sí' : 'Sin Legendarios'}
               </p>
             </div>
