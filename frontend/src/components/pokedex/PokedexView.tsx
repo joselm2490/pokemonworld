@@ -8,6 +8,7 @@ import {
   Layers,
   ChevronDown,
   RotateCcw,
+  Check,
 } from 'lucide-react';
 import { StadiumPokemonSummary, TypeDetail } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
@@ -210,32 +211,18 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack, embedded = fal
             )}
           </div>
 
-          {/* Secondary Filters Grid */}
-          <div className={`grid gap-1.5 text-[11px] ${embedded ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 gap-2 text-xs'}`}>
-            {/* Type selector */}
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-slate-700 focus:outline-hidden focus:border-amber-500"
-            >
-              <option value="">Todos los Tipos</option>
-              {typesList.map((t) => (
-                <option key={t.id} value={t.nombre}>
-                  {t.nombre} ({t.nombre_ingles})
-                </option>
-              ))}
-            </select>
-
+          {/* Secondary Filters Grid (Gen, Rareza, Fase) */}
+          <div className={`grid gap-1.5 text-[11px] ${embedded ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-3 gap-2 text-xs'}`}>
             {/* Generation selector */}
             <select
               value={selectedGen}
               onChange={(e) => setSelectedGen(e.target.value)}
-              className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-slate-700 focus:outline-hidden focus:border-amber-500"
+              className="bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-700 focus:outline-hidden focus:border-amber-500"
             >
-              <option value="">Todas las Generaciones</option>
+              <option value="">Todas las Gens</option>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((g) => (
                 <option key={g} value={String(g)}>
-                  Generación {g}
+                  Gen {g}
                 </option>
               ))}
             </select>
@@ -244,7 +231,7 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack, embedded = fal
             <select
               value={selectedRareza}
               onChange={(e) => setSelectedRareza(e.target.value)}
-              className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-slate-700 focus:outline-hidden focus:border-amber-500"
+              className="bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-700 focus:outline-hidden focus:border-amber-500"
             >
               <option value="">Cualquier Rareza</option>
               <option value="estandar">Estándar</option>
@@ -256,13 +243,57 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack, embedded = fal
             <select
               value={selectedFase}
               onChange={(e) => setSelectedFase(e.target.value)}
-              className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-slate-700 focus:outline-hidden focus:border-amber-500"
+              className="bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-700 focus:outline-hidden focus:border-amber-500"
             >
               <option value="">Cualquier Fase</option>
-              <option value="1">Fase 1 (Básica)</option>
-              <option value="2">Fase 2 (1ra Evolución)</option>
-              <option value="3">Fase 3 (2da Evolución)</option>
+              <option value="1">Fase 1</option>
+              <option value="2">Fase 2</option>
+              <option value="3">Fase 3</option>
             </select>
+          </div>
+
+          {/* Type Check Buttons */}
+          <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto custom-scrollbar pr-0.5">
+            <button
+              type="button"
+              onClick={() => setSelectedType('')}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                selectedType === ''
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {selectedType === '' && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+              <span>Todos</span>
+            </button>
+
+            {typesList.map((t) => {
+              const isActive = selectedType === t.nombre;
+              const bg = t.color_hex || '#64748b';
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setSelectedType(isActive ? '' : t.nombre)}
+                  style={isActive ? { backgroundColor: bg, borderColor: bg } : undefined}
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                    isActive
+                      ? 'text-white shadow-xs ring-1 ring-black/20'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {isActive ? (
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  ) : (
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: bg }}
+                    />
+                  )}
+                  <span>{t.nombre}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 

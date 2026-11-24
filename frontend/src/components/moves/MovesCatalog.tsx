@@ -10,6 +10,7 @@ import {
   Layers,
   Flame,
   Info,
+  Check,
 } from 'lucide-react';
 import { StadiumMove, TypeDetail } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
@@ -277,47 +278,109 @@ export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack, embedded = f
             </div>
           </div>
 
-          {/* Quick Selectors */}
-          <div className={`grid gap-1.5 text-[11px] ${embedded ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-3 gap-2 text-xs'}`}>
-            {/* Type selector */}
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-700 focus:outline-hidden focus:border-amber-500"
-            >
-              <option value="">Todos los Tipos Elementales</option>
-              {typesList.map((t) => (
-                <option key={t.id} value={t.nombre}>
-                  {t.nombre} ({t.nombre_ingles})
-                </option>
-              ))}
-            </select>
+          {/* Gen selector */}
+          <select
+            value={selectedGen}
+            onChange={(e) => setSelectedGen(e.target.value)}
+            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-[11px] font-semibold text-slate-700 focus:outline-hidden focus:border-amber-500"
+          >
+            <option value="">Todas las Generaciones</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((g) => (
+              <option key={g} value={String(g)}>
+                Generación {g}
+              </option>
+            ))}
+          </select>
 
-            {/* Class selector */}
-            <select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-700 focus:outline-hidden focus:border-amber-500"
+          {/* Class Check Buttons (Físico, Especial, Estado) */}
+          <div className="flex flex-wrap gap-1">
+            <button
+              type="button"
+              onClick={() => setSelectedClass('')}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                selectedClass === ''
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+              }`}
             >
-              <option value="">Todas las Clases</option>
-              <option value="Físico">Físico (Contacto / Fuerza directa)</option>
-              <option value="Especial">Especial (Energía elemental)</option>
-              <option value="Estado">Estado (Buffs / Debuffs / Alteraciones)</option>
-            </select>
+              {selectedClass === '' && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+              <span>Todas las Clases</span>
+            </button>
 
-            {/* Gen selector */}
-            <select
-              value={selectedGen}
-              onChange={(e) => setSelectedGen(e.target.value)}
-              className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-700 focus:outline-hidden focus:border-amber-500"
+            {[
+              { label: 'Físico', color: '#ef4444' },
+              { label: 'Especial', color: '#3b82f6' },
+              { label: 'Estado', color: '#64748b' },
+            ].map((c) => {
+              const isActive = selectedClass === c.label;
+              return (
+                <button
+                  key={c.label}
+                  type="button"
+                  onClick={() => setSelectedClass(isActive ? '' : c.label)}
+                  style={isActive ? { backgroundColor: c.color, borderColor: c.color } : undefined}
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                    isActive
+                      ? 'text-white shadow-xs ring-1 ring-black/20'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {isActive ? (
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  ) : (
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: c.color }}
+                    />
+                  )}
+                  <span>{c.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Type Check Buttons */}
+          <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto custom-scrollbar pr-0.5">
+            <button
+              type="button"
+              onClick={() => setSelectedType('')}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                selectedType === ''
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+              }`}
             >
-              <option value="">Todas las Generaciones</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((g) => (
-                <option key={g} value={String(g)}>
-                  Generación {g}
-                </option>
-              ))}
-            </select>
+              {selectedType === '' && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+              <span>Todos</span>
+            </button>
+
+            {typesList.map((t) => {
+              const isActive = selectedType === t.nombre;
+              const bg = t.color_hex || '#64748b';
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setSelectedType(isActive ? '' : t.nombre)}
+                  style={isActive ? { backgroundColor: bg, borderColor: bg } : undefined}
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer border flex items-center gap-1 ${
+                    isActive
+                      ? 'text-white shadow-xs ring-1 ring-black/20'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {isActive ? (
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  ) : (
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: bg }}
+                    />
+                  )}
+                  <span>{t.nombre}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 
