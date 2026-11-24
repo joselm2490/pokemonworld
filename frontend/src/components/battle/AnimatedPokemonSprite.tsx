@@ -295,7 +295,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
             width: `${Math.round(56 * scale)}px`,
             height: `${Math.round(56 * scale)}px`,
           }}
-          className={`relative z-10 object-contain transition-transform duration-200 ${animationClass}`}
+          className={`relative z-10 object-contain object-bottom transition-transform duration-200 ${animationClass}`}
         />
       ) : !hasError ? (
         <canvas

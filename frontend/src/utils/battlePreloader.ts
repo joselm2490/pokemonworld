@@ -61,7 +61,7 @@ export async function preloadBattleAssets(
     } else {
       battleSpriteUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Back/${sp}.png`);
     }
-    iconUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Icons/${sp}.png`);
+    iconUrls.add(`/HOMENatDexIcons-main/${toShowdownSlug(pk.species)}.png`);
   }
 
   // 2. Opponent team Front animated sprites

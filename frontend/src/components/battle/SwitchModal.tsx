@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Pokemon } from '../../types/pokemon';
 import { battleAudio } from '../../utils/battleAudio';
-import { resolveLocal2DSpriteKey } from '../../utils/battleSettings';
+import { StaticPokemonImage } from '../common/StaticPokemonImage';
 
 interface SwitchModalProps {
   party: Pokemon[];
@@ -81,7 +81,6 @@ export const SwitchModal: React.FC<SwitchModalProps> = ({
         const hpRowOffset = hpRatio <= 0.2 ? -16 : hpRatio <= 0.5 ? -8 : 0;
 
         const isFemale = pokemon.gender === 'F' || (!pokemon.gender && pokemon.name.length % 2 === 0);
-        const iconUrl = `${apiBaseUrl}/sprites/Graphics/Pokemon/Icons/${resolveLocal2DSpriteKey(pokemon.species)}.png`;
 
         return (
           <button
@@ -124,23 +123,21 @@ export const SwitchModal: React.FC<SwitchModalProps> = ({
               }}
             />
 
-            {/* Official Pokémon Party Icon (cropped to first 64x64 frame of the 2-frame icon strip) */}
+            {/* Lobby 3D Static Pokémon Icon */}
             <div
-              className="absolute overflow-hidden pixelated"
+              className="absolute flex items-center justify-center"
               style={{
-                left: '12px',
-                top: '4px',
-                width: '64px',
-                height: '64px',
+                left: '14px',
+                top: '6px',
+                width: '60px',
+                height: '60px',
                 filter: isFainted ? 'grayscale(1) opacity(0.6)' : 'none',
               }}
             >
-              <img
-                src={iconUrl}
+              <StaticPokemonImage
+                species={pokemon.species}
                 alt={pokemon.name}
-                draggable={false}
-                className="pixelated max-w-none"
-                style={{ height: '64px', width: 'auto' }}
+                className="w-14 h-14 object-contain drop-shadow-sm"
               />
             </div>
 

@@ -320,7 +320,7 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                       }
                       status={playerActivePkmn.status}
                       lowHp={playerActivePkmn.current_hp <= playerActivePkmn.max_hp / 4}
-                      scale={2.6}
+                      scale={3.6}
                     />
                   </div>
 

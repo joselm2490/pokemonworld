@@ -4,12 +4,7 @@ const DUEL_SPRITE_MODE_KEY = 'pokemon_duel_sprite_mode';
 const DUEL_SPRITE_EVENT = 'pokemon-duel-sprite-mode-changed';
 
 export function getDuelSpriteMode(): DuelSpriteMode {
-  try {
-    const val = localStorage.getItem(DUEL_SPRITE_MODE_KEY);
-    return val === '3d' ? '3d' : '2d';
-  } catch {
-    return '2d';
-  }
+  return '3d';
 }
 
 export function setDuelSpriteMode(mode: DuelSpriteMode): void {

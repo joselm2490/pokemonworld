@@ -1,4 +1,5 @@
 import React from 'react';
+import { PokeBallGraphic } from './PokeBallGraphic';
 
 interface PokeballLoaderProps {
   text?: string;
@@ -11,15 +12,12 @@ export const PokeballLoader: React.FC<PokeballLoaderProps> = ({
   size = 'md',
   dark = false,
 }) => {
-  const imgSize = size === 'sm' ? 'w-10 h-10' : size === 'lg' ? 'w-20 h-20' : 'w-14 h-14';
+  const pxSize = size === 'sm' ? 40 : size === 'lg' ? 76 : 56;
   return (
-    <div className="flex flex-col items-center justify-center gap-2.5 select-none">
-      <img
-        src="/05916fa84c88b5c9d4ef210c2802f240.gif"
-        alt="Cargando"
-        className={`${imgSize} object-contain`}
-        draggable={false}
-      />
+    <div className="flex flex-col items-center justify-center gap-3 select-none">
+      <div className="animate-[spin_2.6s_linear_infinite]">
+        <PokeBallGraphic size={pxSize} glow={false} />
+      </div>
       <p
         className={`text-xs font-black uppercase tracking-widest ${
           dark ? 'text-amber-400' : 'text-slate-600'
