@@ -85,6 +85,17 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack, embedded = fal
     setOnlyChampions(false);
   };
 
+  if (embedded && selectedPokemonId !== null) {
+    return (
+      <PokedexDetailModal
+        embedded={true}
+        pokemonIdOrName={selectedPokemonId}
+        onClose={() => setSelectedPokemonId(null)}
+        onSelectPokemon={(id) => setSelectedPokemonId(id)}
+      />
+    );
+  }
+
   return (
     <div
       className={
@@ -344,8 +355,8 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack, embedded = fal
         )}
       </main>
 
-      {/* Detail Modal */}
-      {selectedPokemonId !== null && (
+      {/* Detail Modal (non-embedded mode) */}
+      {!embedded && selectedPokemonId !== null && (
         <PokedexDetailModal
           pokemonIdOrName={selectedPokemonId}
           onClose={() => setSelectedPokemonId(null)}
