@@ -5,7 +5,11 @@ import { battleLogger } from './logger';
 import { getDuelSpriteMode, resolveLocal2DSpriteKey } from './battleSettings';
 import { toShowdownSlug } from './speciesToDex';
 
-function preloadSingleImage(url: string, storeInSpriteCache = false): Promise<boolean> {
+function preloadSingleImage(
+  url: string,
+  storeInSpriteCache = false,
+  fallbackUrl?: string
+): Promise<boolean> {
   if (storeInSpriteCache && SPRITE_CACHE.has(url)) {
     return Promise.resolve(true);
   }
@@ -23,15 +27,20 @@ function preloadSingleImage(url: string, storeInSpriteCache = false): Promise<bo
     };
     img.onerror = () => {
       battleLogger.warn('PRELOAD', `No se pudo precargar ${url}`);
-      resolve(false);
+      if (fallbackUrl && fallbackUrl !== url) {
+        preloadSingleImage(fallbackUrl, storeInSpriteCache).then(resolve);
+      } else {
+        resolve(false);
+      }
     };
     img.src = url;
   });
 }
 
 /**
- * Preloads ONLY the animated battle sprites (2D or 3D depending on active setting)
- * and ONLY the GBA particle sheets needed for the moves equipped in this battle.
+ * Preloads ALL 12 Pokémon animated battle sprites (6 player + 6 opponent),
+ * their party icons, and all GBA particle sheets needed for the moves in this duel.
+ * Never resolves until every single asset has finished loading (or fallen back).
  */
 export async function preloadBattleAssets(
   state: BattleState,
@@ -43,7 +52,7 @@ export async function preloadBattleAssets(
   const playerSide = playerRole === 'p1' ? state.p1 : state.p2;
   const opponentSide = playerRole === 'p1' ? state.p2 : state.p1;
 
-  const battleSpriteUrls = new Set<string>();
+  const spriteEntries: Array<{ url: string; fallback?: string }> = [];
   const iconUrls = new Set<string>();
   const animUrls = new Set<string>([
     '/battle-ui/animations/ball_POKEBALL.png',
@@ -53,28 +62,40 @@ export async function preloadBattleAssets(
 
   const duelMode = getDuelSpriteMode();
 
-  // 1. Player team Back animated sprites + Party Icons
+  // 1. All 6 player team Back animated sprites + Party Icons
   for (const pk of playerSide.team) {
     const sp = resolveLocal2DSpriteKey(pk.species);
+    const slug = toShowdownSlug(pk.species);
     if (duelMode === '3d') {
-      battleSpriteUrls.add(`https://play.pokemonshowdown.com/sprites/ani-back/${toShowdownSlug(pk.species)}.gif`);
+      spriteEntries.push({
+        url: `https://play.pokemonshowdown.com/sprites/ani-back/${slug}.gif`,
+        fallback: `https://play.pokemonshowdown.com/sprites/gen5-back/${slug}.png`,
+      });
     } else {
-      battleSpriteUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Back/${sp}.png`);
+      spriteEntries.push({
+        url: `${apiBase}/sprites/Graphics/Pokemon/Back/${sp}.png`,
+      });
     }
-    iconUrls.add(`/HOMENatDexIcons-main/${toShowdownSlug(pk.species)}.png`);
+    iconUrls.add(`/HOMENatDexIcons-main/${slug}.png`);
   }
 
-  // 2. Opponent team Front animated sprites
+  // 2. All 6 opponent team Front animated sprites
   for (const pk of opponentSide.team) {
     const sp = resolveLocal2DSpriteKey(pk.species);
+    const slug = toShowdownSlug(pk.species);
     if (duelMode === '3d') {
-      battleSpriteUrls.add(`https://play.pokemonshowdown.com/sprites/ani/${toShowdownSlug(pk.species)}.gif`);
+      spriteEntries.push({
+        url: `https://play.pokemonshowdown.com/sprites/ani/${slug}.gif`,
+        fallback: `https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`,
+      });
     } else {
-      battleSpriteUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Front/${sp}.png`);
+      spriteEntries.push({
+        url: `${apiBase}/sprites/Graphics/Pokemon/Front/${sp}.png`,
+      });
     }
   }
 
-  // 3. GBA particle sheets actually used by the moves of these Pokémon
+  // 3. GBA particle sheets actually used by the moves of all 12 Pokémon
   const allBattlers = [...playerSide.team, ...opponentSide.team];
   for (const pk of allBattlers) {
     for (const move of pk.moves || []) {
@@ -86,11 +107,19 @@ export async function preloadBattleAssets(
     }
   }
 
+  // Deduplicate sprite URLs
+  const uniqueSprites = new Map<string, string | undefined>();
+  for (const entry of spriteEntries) {
+    if (!uniqueSprites.has(entry.url)) {
+      uniqueSprites.set(entry.url, entry.fallback);
+    }
+  }
+
   battleLogger.battle(
-    `Precargando recursos del duelo (${duelMode.toUpperCase()}): ${battleSpriteUrls.size} sprites, ${iconUrls.size} iconos, ${animUrls.size} partículas GBA`,
+    `Precargando TODOS los recursos del duelo (${duelMode.toUpperCase()}): ${uniqueSprites.size} sprites (6 tuyos + 6 rival), ${iconUrls.size} iconos, ${animUrls.size} partículas GBA`,
     {
       mode: duelMode,
-      sprites: Array.from(battleSpriteUrls),
+      sprites: Array.from(uniqueSprites.keys()),
       animations: Array.from(animUrls),
     }
   );
@@ -98,17 +127,16 @@ export async function preloadBattleAssets(
   // Store local 2D sprites in SPRITE_CACHE; 3D GIFs use browser cache without crossOrigin
   const storeSpritesInCache = duelMode === '2d';
   const tasks = [
-    ...Array.from(battleSpriteUrls).map((u) => preloadSingleImage(u, storeSpritesInCache)),
+    ...Array.from(uniqueSprites.entries()).map(([u, fb]) =>
+      preloadSingleImage(u, storeSpritesInCache, fb)
+    ),
     ...Array.from(iconUrls).map((u) => preloadSingleImage(u, false)),
     ...Array.from(animUrls).map((u) => preloadSingleImage(u, false)),
   ];
 
-  // Safety timeout (8s) so a flaky CDN image never freezes the loading screen forever
-  await Promise.race([
-    Promise.all(tasks),
-    new Promise<void>((resolve) => setTimeout(resolve, 8000)),
-  ]);
+  // Wait for ALL 12 Pokémon sprites, icons, and move animations before starting the duel
+  await Promise.all(tasks);
 
   const elapsed = Math.round(performance.now() - t0);
-  battleLogger.battle(`Precarga del duelo completada en ${elapsed}ms`);
+  battleLogger.battle(`Precarga completa del duelo finalizada en ${elapsed}ms`);
 }
