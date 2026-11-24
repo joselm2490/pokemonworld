@@ -696,7 +696,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
             No se encontraron Pokémon con esos filtros.
           </div>
         ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[340px] overflow-y-auto custom-scrollbar pr-0.5">
+        <div className="grid grid-cols-2 gap-2 max-h-[380px] overflow-y-auto custom-scrollbar pr-0.5">
           {catalog.map((pkmn) => {
             const key = pkmn.species.toUpperCase().replace(/\s+/g, '_');
             const isSelected = currentTeam.pokemon_list.includes(key);
@@ -712,43 +712,53 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
               <div
                 key={pkmn.species}
                 onClick={() => handleTogglePokemon(pkmn.species)}
-                className={`p-2 rounded-xl border cursor-pointer transition-all flex flex-col items-center relative overflow-hidden select-none active:scale-[0.98] ${
+                className={`group relative p-2.5 rounded-2xl border cursor-pointer transition-all duration-200 flex flex-col items-center justify-between select-none active:scale-[0.98] shadow-xs hover:shadow-md ${
                   isSelected
-                    ? 'bg-emerald-50/90 border-emerald-500 shadow-2xs ring-1 ring-emerald-500/50'
-                    : 'bg-slate-50/60 hover:bg-slate-100 border-slate-200 hover:border-slate-300'
+                    ? 'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/40'
+                    : 'bg-white border-slate-200 hover:border-amber-400'
                 }`}
                 title={isSelected ? 'Haga clic para quitar del equipo' : 'Haga clic para agregar al equipo'}
               >
-                {/* Selected Checkmark Badge */}
-                {isSelected && (
-                  <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-2xs">
-                    <Check className="w-2.5 h-2.5 stroke-[3]" />
-                  </div>
-                )}
+                {/* Top Badges: Dex # + Selected Checkmark */}
+                <div className="w-full flex items-center justify-between text-[10px] mb-0.5">
+                  <span className="font-extrabold text-slate-400 group-hover:text-amber-600 transition-colors">
+                    {pkmn.numero_pokedex ? `#${String(pkmn.numero_pokedex).padStart(3, '0')}` : ''}
+                  </span>
+                  {isSelected && (
+                    <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-2xs">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
 
-                <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center my-0.5">
+                {/* Sprite */}
+                <div className="w-16 h-16 flex items-center justify-center my-1 relative">
+                  <div className="absolute inset-0 bg-radial from-amber-400/5 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                   <StaticPokemonImage
                     species={pkmn.species}
                     dexNumber={pkmn.numero_pokedex}
                     alt={pkmn.name}
-                    className="w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow-xs"
+                    className="w-16 h-16 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform"
                   />
                 </div>
 
-                <span className="font-black text-slate-800 text-[10px] tracking-wide uppercase truncate max-w-full text-center font-mono">
-                  {pkmn.name}
-                </span>
+                {/* Name & Types */}
+                <div className="w-full text-center space-y-1">
+                  <h3 className="font-extrabold text-xs text-slate-900 uppercase tracking-wide truncate group-hover:text-amber-600 transition-colors">
+                    {pkmn.name}
+                  </h3>
 
-                <div className="flex items-center justify-center gap-0.5 mt-1">
-                  {types.slice(0, 2).map((t, ti) => (
-                    <span
-                      key={ti}
-                      className="text-[7px] font-bold text-white px-1 py-0.2 rounded-xs uppercase leading-tight"
-                      style={{ backgroundColor: t.color_hex }}
-                    >
-                      {t.nombre}
-                    </span>
-                  ))}
+                  <div className="flex items-center justify-center gap-1 flex-wrap">
+                    {types.slice(0, 2).map((t, ti) => (
+                      <span
+                        key={ti}
+                        className="px-1.5 py-0.5 rounded-md text-[9px] font-bold text-white uppercase shadow-xs"
+                        style={{ backgroundColor: t.color_hex }}
+                      >
+                        {t.nombre}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             );
