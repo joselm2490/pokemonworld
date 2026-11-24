@@ -16,9 +16,10 @@ import { PokedexDetailModal } from './PokedexDetailModal';
 
 interface PokedexViewProps {
   onBack: () => void;
+  embedded?: boolean;
 }
 
-export const PokedexView: React.FC<PokedexViewProps> = ({ onBack }) => {
+export const PokedexView: React.FC<PokedexViewProps> = ({ onBack, embedded = false }) => {
   const [pokemonList, setPokemonList] = useState<StadiumPokemonSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
@@ -85,41 +86,81 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f2f4f7] text-slate-800 flex flex-col font-sans select-none">
+    <div
+      className={
+        embedded
+          ? 'flex-1 flex flex-col overflow-hidden text-slate-800 font-sans select-none'
+          : 'min-h-screen bg-[#f2f4f7] text-slate-800 flex flex-col font-sans select-none'
+      }
+    >
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 sm:px-6 shadow-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+      {embedded ? (
+        <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-200 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
             <button
+              type="button"
               onClick={onBack}
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-all border border-slate-300 flex items-center gap-1.5 text-xs font-bold shadow-xs cursor-pointer"
+              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center gap-1 text-[11px] font-bold cursor-pointer shrink-0"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3.5 h-3.5" />
               <span>Volver</span>
             </button>
-            <div>
-              <h1 className="text-sm sm:text-base font-black tracking-wider uppercase flex items-center gap-2 text-slate-900">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                Pokédex Nacional Stadium
-              </h1>
-              <p className="text-[10px] text-slate-500">
-                1,082 Pokémon • Formas, Fases Evolutivas y Estadísticas
-              </p>
+            <h1 className="text-xs font-black tracking-wide uppercase flex items-center gap-1.5 text-slate-900 truncate">
+              <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+              <span className="truncate">Pokédex Nacional</span>
+            </h1>
+          </div>
+          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 shrink-0">
+            {totalCount}
+          </span>
+        </div>
+      ) : (
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 sm:px-6 shadow-xs">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onBack}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-all border border-slate-300 flex items-center gap-1.5 text-xs font-bold shadow-xs cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Volver</span>
+              </button>
+              <div>
+                <h1 className="text-sm sm:text-base font-black tracking-wider uppercase flex items-center gap-2 text-slate-900">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                  Pokédex Nacional Stadium
+                </h1>
+                <p className="text-[10px] text-slate-500">
+                  1,082 Pokémon • Formas, Fases Evolutivas y Estadísticas
+                </p>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                {totalCount} Registros Encontrados
+              </span>
             </div>
           </div>
-
-          <div className="text-right">
-            <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-              {totalCount} Registros Encontrados
-            </span>
-          </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto w-full p-4 sm:p-6 flex-1 flex flex-col gap-5">
+      <main
+        className={
+          embedded
+            ? 'flex-1 flex flex-col gap-2 overflow-hidden'
+            : 'max-w-7xl mx-auto w-full p-4 sm:p-6 flex-1 flex flex-col gap-5'
+        }
+      >
         {/* Filter Controls Card */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <section
+          className={
+            embedded
+              ? 'bg-slate-50 border border-slate-200 rounded-xl p-2 space-y-1.5 shrink-0'
+              : 'bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3'
+          }
+        >
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -159,7 +200,7 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack }) => {
           </div>
 
           {/* Secondary Filters Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div className={`grid gap-1.5 text-[11px] ${embedded ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 gap-2 text-xs'}`}>
             {/* Type selector */}
             <select
               value={selectedType}
@@ -231,12 +272,20 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack }) => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div
+            className={
+              embedded
+                ? 'flex-1 overflow-y-auto pr-1 custom-scrollbar grid grid-cols-2 gap-2 content-start'
+                : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4'
+            }
+          >
             {pokemonList.map((pkmn) => (
               <div
                 key={pkmn.id}
                 onClick={() => setSelectedPokemonId(pkmn.id)}
-                className="group relative bg-white border border-slate-200 hover:border-amber-400 p-3 rounded-2xl flex flex-col items-center justify-between cursor-pointer transition-all duration-200 hover:-translate-y-1 shadow-xs hover:shadow-md"
+                className={`group relative bg-white border border-slate-200 hover:border-amber-400 rounded-2xl flex flex-col items-center justify-between cursor-pointer transition-all duration-200 shadow-xs hover:shadow-md ${
+                  embedded ? 'p-2' : 'p-3 hover:-translate-y-1'
+                }`}
               >
                 {/* Top Badges */}
                 <div className="w-full flex items-center justify-between text-[10px] mb-1">
@@ -252,13 +301,13 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack }) => {
                 </div>
 
                 {/* Animated Sprite */}
-                <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center my-1 relative">
+                <div className={`${embedded ? 'w-16 h-16' : 'w-24 h-24 sm:w-28 sm:h-28'} flex items-center justify-center my-1 relative`}>
                   <div className="absolute inset-0 bg-radial from-amber-400/5 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                   <StaticPokemonImage
                     dexNumber={pkmn.numero_pokedex}
                     species={pkmn.species}
                     alt={pkmn.nombre}
-                    className="w-24 h-24 sm:w-28 sm:h-28 drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform"
+                    className={`${embedded ? 'w-16 h-16' : 'w-24 h-24 sm:w-28 sm:h-28'} drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform`}
                   />
                 </div>
 

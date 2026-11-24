@@ -11,7 +11,7 @@ import { AbilityPage } from './pages/AbilityPage';
 import { MovePage } from './pages/MovePage';
 
 interface HomeLobbyProps {
-  initialSection?: 'arena' | 'equipo' | 'cajas' | 'room' | 'salir';
+  initialSection?: 'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex' | 'pokemon' | 'salir';
   initialRoomCode?: string;
 }
 
@@ -96,7 +96,7 @@ export const App: React.FC = () => {
         <Route path="/tutorial" element={<TutorialPage />} />
 
         {/* Pokédex Encyclopedia & Catalogs */}
-        <Route path="/pokemon" element={<PokemonPage />} />
+        <Route path="/pokemon" element={<HomeLobby initialSection="pokemon" />} />
         <Route path="/ability" element={<AbilityPage />} />
         <Route path="/move" element={<MovePage />} />
 

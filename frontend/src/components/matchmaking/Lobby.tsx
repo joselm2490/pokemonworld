@@ -43,6 +43,7 @@ import { ArenaModal } from './ArenaModal';
 import { PokedexHubModal } from './PokedexHubModal';
 import { CajasSection } from './CajasSection';
 import { RoomSection } from './RoomSection';
+import { PokedexView } from '../pokedex/PokedexView';
 import { AuthModal } from '../auth/AuthModal';
 import { AuthService, TrainerUser } from '../../services/authService';
 import { PokedexService } from '../../services/pokedexService';
@@ -60,7 +61,7 @@ interface LobbyProps {
   onOpenPractice?: () => void;
   selectedTeam: string[];
   onUpdateTeam?: (newTeam: string[]) => void;
-  initialSection?: 'arena' | 'equipo' | 'cajas' | 'room' | 'salir';
+  initialSection?: 'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex' | 'pokemon' | 'salir';
   initialRoomCode?: string;
 }
 
@@ -118,7 +119,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   };
 
   // Section Navigation (Default: 'arena' when logged in as requested)
-  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex'>(
+  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex' | 'pokemon'>(
     initialSection === 'salir' ? 'arena' : initialSection
   );
   const [showSettingsModal, setShowSettingsModal] = useState(initialSection === 'salir');
@@ -291,6 +292,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   const handleSelectPokedexOption = (option: 'pokemon' | 'moves' | 'abilities') => {
     setIsPokedexHubOpen(false);
     if (option === 'pokemon') {
+      setActiveSection('pokemon');
       onOpenPokedex();
     } else if (option === 'moves') {
       onOpenMoves();
@@ -874,6 +876,14 @@ export const Lobby: React.FC<LobbyProps> = ({
           </button>
         </div>
       )}
+
+      {/* 6. SECCIÓN POKÉDEX NACIONAL (/pokemon ADAPTADO AL CONTENEDOR) */}
+      {activeSection === 'pokemon' && (
+        <PokedexView
+          embedded={true}
+          onBack={() => setActiveSection('pokedex')}
+        />
+      )}
     </div>
 
         {/* ================= STADIUM FLOATING ACTION DOCK (Arena, Equipo, Cajas, Pokedex) ================= */}
@@ -934,7 +944,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             type="button"
             onClick={() => setActiveSection('pokedex')}
             className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
-              activeSection === 'pokedex'
+              activeSection === 'pokedex' || activeSection === 'pokemon'
                 ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
                 : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
             }`}
