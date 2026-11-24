@@ -12,7 +12,13 @@ export type BattleSoundKey =
   | 'party_switch';
 
 class BattleAudioManager {
-  private muted: boolean = false;
+  private muted: boolean = (() => {
+    try {
+      return localStorage.getItem('pokemon_audio_muted') === 'true';
+    } catch {
+      return false;
+    }
+  })();
   private bgmAudio: HTMLAudioElement | null = null;
   private currentBgm: string | null = null;
 
@@ -22,6 +28,9 @@ class BattleAudioManager {
 
   public setMuted(muted: boolean) {
     this.muted = muted;
+    try {
+      localStorage.setItem('pokemon_audio_muted', String(muted));
+    } catch {}
     if (this.bgmAudio) {
       this.bgmAudio.muted = muted;
     }

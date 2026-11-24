@@ -25,8 +25,13 @@ import {
   Sliders,
   Clock,
   AlertCircle,
-  Backpack,
+  Settings,
+  Volume2,
+  VolumeX,
+  LogOut,
+  X,
 } from 'lucide-react';
+import { battleAudio } from '../../utils/battleAudio';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
 import { CreateRoomModal } from './CreateRoomModal';
 import { RoomLobbyModal } from './RoomLobbyModal';
@@ -111,10 +116,27 @@ export const Lobby: React.FC<LobbyProps> = ({
   };
 
   // Section Navigation (Default: 'arena' when logged in as requested)
-  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'room' | 'salir'>(initialSection);
+  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'room'>(
+    initialSection === 'salir' ? 'arena' : initialSection
+  );
+  const [showSettingsModal, setShowSettingsModal] = useState(initialSection === 'salir');
+  const [muted, setMuted] = useState<boolean>(() => battleAudio.isMuted());
+
+  const handleToggleAudio = () => {
+    const nowMuted = battleAudio.toggleMute();
+    setMuted(nowMuted);
+    if (!nowMuted) {
+      battleAudio.ensureBgmPlaying();
+    }
+  };
 
   useEffect(() => {
-    setActiveSection(initialSection);
+    if (initialSection === 'salir') {
+      setActiveSection('arena');
+      setShowSettingsModal(true);
+    } else {
+      setActiveSection(initialSection);
+    }
   }, [initialSection]);
   const [isArenaOpen, setIsArenaOpen] = useState(false);
   const [isPokedexHubOpen, setIsPokedexHubOpen] = useState(false);
@@ -378,10 +400,10 @@ export const Lobby: React.FC<LobbyProps> = ({
           </div>
 
           {/* Center: Trainer Name White Pill with Auth Dialog */}
-          <div className="flex-1 max-w-[185px]">
+          <div className="flex-1 max-w-[200px]">
             <div
               onClick={() => setIsAuthOpen(true)}
-              className="bg-white/95 hover:bg-white border border-slate-300/80 rounded-full px-2.5 sm:px-3 py-0.5 shadow-xs flex items-center justify-between cursor-pointer group transition-all"
+              className="bg-white/95 hover:bg-white border border-slate-300/80 rounded-full px-3 py-1 shadow-xs flex items-center justify-center cursor-pointer group transition-all"
               title="Cuenta de Entrenador (Iniciar sesión / Registro)"
             >
               <div className="flex items-center gap-1.5 truncate">
@@ -390,41 +412,22 @@ export const Lobby: React.FC<LobbyProps> = ({
                   {trainerName}
                 </span>
               </div>
-              <Edit2 className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 transition-colors ml-1 shrink-0" />
             </div>
           </div>
 
-          {/* Right: 4 Stars (★★★★) & Top-Right Salir Button */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="flex items-center gap-0.5 text-amber-400 text-[10px] sm:text-xs">
-              <span>★</span>
-              <span>★</span>
-              <span>★</span>
-              <span className="text-slate-300">★</span>
-            </div>
-
+          {/* Right: Settings / Ajustes Gear Button */}
+          <div className="flex items-center">
             <button
               type="button"
-              onClick={() => setActiveSection('salir')}
-              className="flex flex-col items-center justify-center -my-1 text-slate-700 hover:text-slate-900 transition-all cursor-pointer group shrink-0"
-              title="Cerrar Sesión"
+              onClick={() => setShowSettingsModal(true)}
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shadow-xs transition-all border cursor-pointer active:scale-95 ${
+                showSettingsModal
+                  ? 'bg-emerald-700 border-emerald-500 text-white ring-2 ring-emerald-400/60'
+                  : 'bg-slate-800 hover:bg-slate-900 border-slate-600 text-white'
+              }`}
+              title="Ajustes"
             >
-              <div
-                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-xs transition-all border ${
-                  activeSection === 'salir'
-                    ? 'bg-rose-950 border-rose-500 text-rose-300 ring-2 ring-rose-400'
-                    : 'bg-slate-800 hover:bg-slate-900 border-slate-600 text-white'
-                }`}
-              >
-                <Backpack className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </div>
-              <span
-                className={`text-[8px] font-sans font-medium mt-0.5 leading-none ${
-                  activeSection === 'salir' ? 'text-rose-700 font-bold' : 'text-slate-600'
-                }`}
-              >
-                Salir
-              </span>
+              <Settings className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             </button>
           </div>
         </div>
@@ -582,49 +585,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             </div>
           )}
 
-          {/* 2. SECCIÓN SALIR (IMAGEN 3) */}
-          {activeSection === 'salir' && (
-            <div className="flex-1 flex flex-col justify-between py-1 animate-in fade-in duration-200 overflow-y-auto custom-scrollbar">
-              {/* Top Image: Pikachu de 98.webp */}
-              <div className="w-full rounded-2xl overflow-hidden border-2 border-slate-300 shadow-md bg-black shrink-0">
-                <img
-                  src="/98.webp"
-                  alt="¿Deseas cerrar sesión?"
-                  className="w-full h-44 sm:h-52 object-cover"
-                />
-              </div>
-
-              {/* Confirmation Dialog Box (Matching Imagen 3) */}
-              <div className="bg-[#fff1f2] border border-[#fecdd3] rounded-2xl p-3.5 sm:p-4 text-center mt-3 shadow-xs space-y-2">
-                <div className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-black text-[#9f1239] uppercase tracking-wide">
-                  <AlertCircle className="w-4 h-4 text-[#e11d48] shrink-0" />
-                  <span>¿DESEAS CERRAR SESIÓN?</span>
-                </div>
-                <p className="text-xs text-slate-600 font-sans">
-                  Se desconectará la cuenta del entrenador{' '}
-                  <strong className="text-slate-900 font-bold">{trainerName}</strong>.
-                </p>
-                <div className="flex items-center justify-center gap-2.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="flex-1 py-2 px-4 bg-[#e11d48] hover:bg-[#be123c] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
-                  >
-                    CONFIRMAR
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveSection('arena')}
-                    className="flex-1 py-2 px-4 bg-[#e2e8f0] hover:bg-[#cbd5e1] text-slate-700 font-black text-xs uppercase tracking-wider rounded-xl transition-all active:scale-95 cursor-pointer"
-                  >
-                    CANCELAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 3. SECCIÓN EQUIPO (LISTADO DE POKÉMON TECH-GRID) */}
+          {/* 2. SECCIÓN EQUIPO (LISTADO DE POKÉMON TECH-GRID) */}
           {activeSection === 'equipo' && (
             <>
               {/* Scrollable Team Cards (Up to 6 Pokémon) */}
@@ -913,6 +874,67 @@ export const Lobby: React.FC<LobbyProps> = ({
       </div>
 
       {/* ================= MODALS ================= */}
+      {/* 0. Settings Modal (Ajustes de Combate / Cerrar Sesión) */}
+      {showSettingsModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setShowSettingsModal(false)}
+        >
+          <div
+            className="w-full max-w-xs sm:max-w-sm bg-white border-2 border-slate-200 rounded-3xl p-4 sm:p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">
+                AJUSTES DE COMBATE
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowSettingsModal(false)}
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+                title="Cerrar"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={handleToggleAudio}
+                className="w-full py-2.5 px-3.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-800 flex items-center justify-between cursor-pointer transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  {muted ? (
+                    <VolumeX className="w-4 h-4 text-rose-500" />
+                  ) : (
+                    <Volume2 className="w-4 h-4 text-emerald-600" />
+                  )}
+                  <span>{muted ? 'Activar Música' : 'Silenciar Música'}</span>
+                </div>
+                <span className="text-[10px] font-bold text-slate-500">
+                  {muted ? 'OFF' : 'ON'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSettingsModal(false);
+                  handleLogout();
+                }}
+                className="w-full py-2.5 px-3.5 bg-rose-50 hover:bg-rose-100 rounded-xl text-xs font-bold text-rose-600 flex items-center justify-between cursor-pointer border border-rose-200 transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <LogOut className="w-4 h-4 text-rose-600" />
+                  <span>Cerrar Sesión</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1. Pokemon Detail Sheet */}
       {inspectingSpecies && (
         <PokemonDetailSheet
