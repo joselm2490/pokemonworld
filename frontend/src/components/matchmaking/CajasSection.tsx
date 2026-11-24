@@ -401,7 +401,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto pr-1 custom-scrollbar space-y-2.5 sm:space-y-3 font-sans select-none">
+    <div className="flex-1 min-h-0 flex flex-col overflow-y-auto pr-1 custom-scrollbar space-y-2.5 sm:space-y-3 font-sans select-none">
       {/* 1. Header & 10-Slot Selector Tabs */}
       <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-2.5 shadow-2xs space-y-2">
         <div className="flex items-center justify-between text-xs px-1">

@@ -370,7 +370,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#f2f4f7] text-slate-800 flex flex-col justify-between font-sans select-none relative overflow-x-hidden">
+    <div className="h-[100dvh] bg-[#f2f4f7] text-slate-800 flex flex-col justify-between font-sans select-none relative overflow-hidden">
       {/* Background Energetic Mint-Green Angled Ribbons (Digimon Vital Bracelet Arena Palette) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div
@@ -388,7 +388,7 @@ export const Lobby: React.FC<LobbyProps> = ({
       </div>
 
       {/* Main Mobile Screen Wrapper (Centered Handheld Viewport) */}
-      <div className="relative z-10 max-w-sm sm:max-w-md mx-auto w-full flex-1 flex flex-col justify-between px-3 pt-3 pb-2">
+      <div className="relative z-10 max-w-sm sm:max-w-md mx-auto w-full flex-1 min-h-0 flex flex-col justify-between px-3 pt-3 pb-2">
         {/* ================= TOP TRAINER BAR (IMAGE 2) ================= */}
         <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-2 sm:mb-3">
           {/* Left: Metallic Dark Badge with Rank '2' / 'S' & Wings */}
@@ -439,8 +439,8 @@ export const Lobby: React.FC<LobbyProps> = ({
           </div>
         </div>
 
-        {/* ================= WHITE CONTAINER: DYNAMIC SECTIONS (ARENA / EQUIPO / SALIR) ================= */}
-        <div className="bg-white/95 rounded-2xl border-2 border-slate-300/80 shadow-xl p-2.5 sm:p-3 flex-1 flex flex-col overflow-hidden max-h-[72vh] sm:max-h-[76vh]">
+        {/* ================= WHITE CONTAINER: DYNAMIC SECTIONS (ARENA / EQUIPO / CAJAS / POKEDEX) ================= */}
+        <div className="bg-white/95 rounded-2xl border-2 border-slate-300/80 shadow-xl p-2.5 sm:p-3 flex-1 min-h-0 flex flex-col overflow-hidden">
           {/* 1. SECCIÓN ARENA (IMAGEN 2 - PREDETERMINADA) */}
           {activeSection === 'arena' && (
             <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1">
