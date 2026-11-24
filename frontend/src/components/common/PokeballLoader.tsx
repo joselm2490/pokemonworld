@@ -15,7 +15,7 @@ export const PokeballLoader: React.FC<PokeballLoaderProps> = ({
   return (
     <div className="flex flex-col items-center justify-center gap-2.5 select-none">
       <img
-        src="/simple_pokeball.gif"
+        src="/05916fa84c88b5c9d4ef210c2802f240.gif"
         alt="Cargando"
         className={`${imgSize} object-contain`}
         draggable={false}
