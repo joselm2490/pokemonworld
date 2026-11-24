@@ -912,10 +912,10 @@ export const Lobby: React.FC<LobbyProps> = ({
           <button
             type="button"
             onClick={() => setActiveSection('arena')}
-            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 border-2 ${
               activeSection === 'arena' || activeSection === 'room'
-                ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
-                : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
+                ? 'bg-emerald-50/90 border-emerald-400 text-emerald-700 shadow-xs'
+                : 'bg-transparent border-transparent hover:bg-slate-100/80 text-slate-600 hover:text-slate-900'
             }`}
             title="Sección Arena"
           >
@@ -929,10 +929,10 @@ export const Lobby: React.FC<LobbyProps> = ({
           <button
             type="button"
             onClick={() => setActiveSection('equipo')}
-            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 border-2 ${
               activeSection === 'equipo'
-                ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
-                : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
+                ? 'bg-emerald-50/90 border-emerald-400 text-emerald-700 shadow-xs'
+                : 'bg-transparent border-transparent hover:bg-slate-100/80 text-slate-600 hover:text-slate-900'
             }`}
             title="Mi Equipo Pokémon"
           >
@@ -946,10 +946,10 @@ export const Lobby: React.FC<LobbyProps> = ({
           <button
             type="button"
             onClick={() => setActiveSection('cajas')}
-            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 border-2 ${
               activeSection === 'cajas'
-                ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
-                : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
+                ? 'bg-emerald-50/90 border-emerald-400 text-emerald-700 shadow-xs'
+                : 'bg-transparent border-transparent hover:bg-slate-100/80 text-slate-600 hover:text-slate-900'
             }`}
             title="Organizar Escuadrón / Cajas PC"
           >
@@ -963,10 +963,10 @@ export const Lobby: React.FC<LobbyProps> = ({
           <button
             type="button"
             onClick={() => setActiveSection('pokedex')}
-            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 border-2 ${
               activeSection === 'pokedex' || activeSection === 'pokemon' || activeSection === 'moves' || activeSection === 'abilities'
-                ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
-                : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
+                ? 'bg-emerald-50/90 border-emerald-400 text-emerald-700 shadow-xs'
+                : 'bg-transparent border-transparent hover:bg-slate-100/80 text-slate-600 hover:text-slate-900'
             }`}
             title="Catálogo Pokédex"
           >
