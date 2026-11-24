@@ -6,9 +6,6 @@ import { RegisterPage } from './pages/RegisterPage';
 import { TeamPage } from './pages/TeamPage';
 import { PracticePage } from './pages/PracticePage';
 import { TutorialPage } from './pages/TutorialPage';
-import { PokemonPage } from './pages/PokemonPage';
-import { AbilityPage } from './pages/AbilityPage';
-import { MovePage } from './pages/MovePage';
 
 interface HomeLobbyProps {
   initialSection?: 'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex' | 'pokemon' | 'moves' | 'abilities' | 'salir';
