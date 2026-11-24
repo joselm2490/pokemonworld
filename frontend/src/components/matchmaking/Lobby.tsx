@@ -21,7 +21,7 @@ import {
   Flame,
   Info,
   Search,
-  Send,
+  LayoutGrid,
   Sliders,
   Clock,
   AlertCircle,
@@ -788,88 +788,71 @@ export const Lobby: React.FC<LobbyProps> = ({
       )}
     </div>
 
-        {/* ================= CIRCULAR FLOATING ACTION DOCK (Arena, Equipo, Cajas, Pokedex) ================= */}
-        <div className="flex items-center justify-around max-w-[340px] sm:max-w-[380px] mx-auto w-full px-2 my-2 sm:my-3">
+        {/* ================= STADIUM FLOATING ACTION DOCK (Arena, Equipo, Cajas, Pokedex) ================= */}
+        <div className="bg-white/95 backdrop-blur-md border-2 border-slate-300/80 rounded-2xl shadow-xl p-1.5 sm:p-2 max-w-[380px] sm:max-w-[420px] mx-auto w-full my-2 sm:my-2.5 grid grid-cols-4 gap-1.5">
           {/* Button 1: Arena */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={() => setActiveSection('arena')}
-              className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer border-2 ${
-                activeSection === 'arena'
-                  ? 'bg-gradient-to-b from-[#181d24] to-[#0c1015] border-emerald-400 text-[#32f59b]'
-                  : 'bg-gradient-to-b from-[#2e353f] to-[#181d24] border-[#545f6e] hover:border-emerald-400 text-white'
-              }`}
-              title="Sección Arena"
-            >
-              <Swords className="w-5 h-5" />
-            </button>
-            <span
-              className={`text-[10px] font-sans font-medium ${
-                activeSection === 'arena' ? 'text-emerald-700 font-bold' : 'text-slate-600'
-              }`}
-            >
+          <button
+            type="button"
+            onClick={() => setActiveSection('arena')}
+            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+              activeSection === 'arena' || activeSection === 'room'
+                ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
+                : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
+            }`}
+            title="Sección Arena"
+          >
+            <Swords className="w-6 h-6 stroke-[2.2]" />
+            <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
               Arena
             </span>
-          </div>
+          </button>
 
           {/* Button 2: Equipo */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={() => setActiveSection('equipo')}
-              className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer border-2 ${
-                activeSection === 'equipo'
-                  ? 'bg-gradient-to-b from-[#181d24] to-[#0c1015] border-emerald-400 text-[#32f59b]'
-                  : 'bg-gradient-to-b from-[#2e353f] to-[#181d24] border-[#545f6e] hover:border-emerald-400 text-white'
-              }`}
-              title="Mi Equipo Pokémon"
-            >
-              <Send className="w-5 h-5" />
-            </button>
-            <span
-              className={`text-[10px] font-sans font-medium ${
-                activeSection === 'equipo' ? 'text-emerald-700 font-bold' : 'text-slate-600'
-              }`}
-            >
+          <button
+            type="button"
+            onClick={() => setActiveSection('equipo')}
+            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+              activeSection === 'equipo'
+                ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
+                : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
+            }`}
+            title="Mi Equipo Pokémon"
+          >
+            <Shield className="w-6 h-6 stroke-[2.2]" />
+            <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
               Equipo
             </span>
-          </div>
+          </button>
 
           {/* Button 3: Cajas */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setActiveSection('cajas')}
-              className={`w-13 h-13 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer border-2 ${
-                activeSection === 'cajas'
-                  ? 'bg-gradient-to-b from-[#181d24] to-[#0c1015] border-emerald-400 text-[#32f59b]'
-                  : 'bg-gradient-to-b from-[#2e353f] to-[#181d24] border-[#545f6e] hover:border-emerald-400 text-white'
-              }`}
-              title="Organizar Escuadrón / Cajas PC"
-            >
-              <Users className="w-5 h-5" />
-            </button>
-            <span
-              className={`text-[10px] font-sans font-medium ${
-                activeSection === 'cajas' ? 'text-emerald-700 font-bold' : 'text-slate-600'
-              }`}
-            >
+          <button
+            type="button"
+            onClick={() => setActiveSection('cajas')}
+            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+              activeSection === 'cajas'
+                ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
+                : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
+            }`}
+            title="Organizar Escuadrón / Cajas PC"
+          >
+            <LayoutGrid className="w-6 h-6 stroke-[2.2]" />
+            <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
               Cajas
             </span>
-          </div>
+          </button>
 
           {/* Button 4: Pokedex */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={handleOpenPokedexHub}
-              className="w-13 h-13 rounded-full bg-gradient-to-b from-[#2e353f] to-[#181d24] border-2 border-[#545f6e] hover:border-emerald-400 text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer"
-              title="Catálogo Pokédex"
-            >
-              <BookOpen className="w-5 h-5 text-white" />
-            </button>
-            <span className="text-[10px] text-slate-600 font-sans font-medium">
-              Pokedex
+          <button
+            type="button"
+            onClick={handleOpenPokedexHub}
+            className="relative py-2 px-1 rounded-xl bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900 flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95"
+            title="Catálogo Pokédex"
+          >
+            <BookOpen className="w-6 h-6 stroke-[2.2]" />
+            <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
+              Pokédex
             </span>
-          </div>
+          </button>
         </div>
       </div>
 
