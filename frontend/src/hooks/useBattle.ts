@@ -229,12 +229,20 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
     };
   }, [roomCode, isAi, playerRole]);
 
-  const triggerEffect = (kind: 'attack' | 'pokeball', sheet: string, targetIsPlayer: boolean) => {
+  const triggerEffect = (
+    kind: 'attack' | 'pokeball',
+    sheet: string,
+    targetIsPlayer: boolean,
+    moveMeta?: { moveName?: string; moveType?: string; category?: string }
+  ) => {
     effectCounterRef.current += 1;
     setActiveEffect({
       id: effectCounterRef.current,
       kind,
       sheet,
+      moveName: moveMeta?.moveName,
+      moveType: moveMeta?.moveType,
+      category: moveMeta?.category,
       targetIsPlayer,
     });
   };
@@ -286,7 +294,11 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
           ev.category === 'STATUS'
             ? ev.actor === playerRoleRef.current
             : targetIsPlayer;
-        triggerEffect('attack', sheetKey, animTargetIsPlayer);
+        triggerEffect('attack', sheetKey, animTargetIsPlayer, {
+          moveName: ev.move,
+          moveType: ev.move_type,
+          category: ev.category,
+        });
         await delay(600);
         setActiveAttacker(null);
         setActiveEffect(null);

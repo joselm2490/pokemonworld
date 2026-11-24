@@ -21,6 +21,9 @@ frontend/.dist/
 .env
 .env.local
 
+# Local ROMs
+*.gba
+
 # OS & Editor
 .DS_Store
 Thumbs.db
