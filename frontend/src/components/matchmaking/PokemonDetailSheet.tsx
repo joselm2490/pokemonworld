@@ -9,6 +9,7 @@ import {
 import { StadiumPokemonDetail, StadiumMove } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
+import { PokeballLoader } from '../common/PokeballLoader';
 import { getResolvedLv100Stats, getResolvedTypes } from '../../utils/pokemonStats';
 
 interface PokemonDetailSheetProps {
@@ -94,11 +95,8 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
         {/* Scrollable Body */}
         <div className="p-3.5 space-y-3 overflow-y-auto custom-scrollbar flex-1">
           {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-2.5">
-              <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-slate-600 text-xs font-bold uppercase tracking-widest">
-                Cargando diagnóstico técnico...
-              </p>
+            <div className="py-20 flex flex-col items-center justify-center">
+              <PokeballLoader />
             </div>
           ) : error || !pokemon ? (
             <div className="py-12 text-center text-rose-500 text-xs font-bold">

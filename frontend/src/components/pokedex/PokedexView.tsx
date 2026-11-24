@@ -13,6 +13,7 @@ import {
 import { StadiumPokemonSummary, TypeDetail } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
+import { PokeballLoader } from '../common/PokeballLoader';
 import { PokedexDetailModal } from './PokedexDetailModal';
 
 interface PokedexViewProps {
@@ -300,10 +301,7 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack, embedded = fal
         {/* Pokemon Grid */}
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12">
-            <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-slate-500 text-xs uppercase font-bold tracking-widest">
-              Consultando catálogo de criaturas...
-            </p>
+            <PokeballLoader />
           </div>
         ) : pokemonList.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-slate-200 text-center">

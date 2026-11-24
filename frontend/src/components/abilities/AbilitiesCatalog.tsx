@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { AbilityDetail } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
+import { PokeballLoader } from '../common/PokeballLoader';
 
 interface AbilitiesCatalogProps {
   onBack: () => void;
@@ -196,11 +197,8 @@ export const AbilitiesCatalog: React.FC<AbilitiesCatalogProps> = ({ onBack, embe
         {/* Abilities Grid */}
         <section className={embedded ? 'flex-1 flex flex-col overflow-hidden' : 'flex-1'}>
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
-              <Sparkles className="w-8 h-8 text-emerald-500 animate-spin" />
-              <span className="text-xs uppercase tracking-widest font-mono">
-                Consultando Habilidades...
-              </span>
+            <div className="flex flex-col items-center justify-center py-24">
+              <PokeballLoader />
             </div>
           ) : abilities.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-400">

@@ -4,6 +4,7 @@ import { BattleArena } from '../components/battle/BattleArena';
 import { useBattle } from '../hooks/useBattle';
 import { AuthService } from '../services/authService';
 import { Bot, ArrowLeft, AlertCircle } from 'lucide-react';
+import { PokeballLoader } from '../components/common/PokeballLoader';
 
 const PracticeBattleView: React.FC<{ team: string[]; trainerName: string }> = ({ team, trainerName }) => {
   const navigate = useNavigate();
@@ -99,12 +100,7 @@ export const PracticePage: React.FC = () => {
   if (syncingTeam) {
     return (
       <div className="min-h-screen bg-[#f2f4f7] flex flex-col items-center justify-center p-4 text-slate-800 font-sans">
-        <div className="flex flex-col items-center gap-3">
-          <Bot className="w-12 h-12 text-emerald-600 animate-bounce" />
-          <h2 className="text-xl font-black uppercase tracking-wider text-slate-900">
-            Cargando Equipo Líder...
-          </h2>
-        </div>
+        <PokeballLoader size="lg" />
       </div>
     );
   }

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { StadiumMove, TypeDetail } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
+import { PokeballLoader } from '../common/PokeballLoader';
 
 interface MovesCatalogProps {
   onBack: () => void;
@@ -387,10 +388,7 @@ export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack, embedded = f
         {/* Moves Table / Cards Grid */}
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12">
-            <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-              Cargando movimientos...
-            </p>
+            <PokeballLoader />
           </div>
         ) : moves.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-slate-200 text-center">

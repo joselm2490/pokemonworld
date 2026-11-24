@@ -11,6 +11,7 @@ import {
 import { StadiumPokemonDetail } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
+import { PokeballLoader } from '../common/PokeballLoader';
 
 interface PokedexDetailModalProps {
   pokemonIdOrName: number | string;
@@ -51,21 +52,15 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
   if (loading) {
     if (embedded) {
       return (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-slate-600 font-sans select-none">
-          <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-slate-600 text-xs font-bold uppercase tracking-widest">
-            Accediendo a la Pokédex...
-          </p>
+        <div className="flex-1 flex flex-col items-center justify-center p-6 font-sans select-none">
+          <PokeballLoader />
         </div>
       );
     }
     return (
       <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div className="bg-zinc-900 border-2 border-amber-500/50 p-6 rounded-2xl flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
-          <p className="text-amber-400 text-xs font-bold uppercase tracking-widest">
-            Accediendo a la Pokédex...
-          </p>
+          <PokeballLoader dark={true} />
         </div>
       </div>
     );

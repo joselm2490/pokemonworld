@@ -14,6 +14,7 @@ import {
 import { StadiumPokemonSummary } from '../../types/stadium';
 import { PokedexService } from '../../services/pokedexService';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
+import { PokeballLoader } from '../common/PokeballLoader';
 
 interface AddPokemonModalProps {
   isOpen: boolean;
@@ -144,11 +145,8 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
         {/* Grid of Pokemon Cards */}
         <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
           {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-2.5">
-              <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
-                Buscando especímenes...
-              </p>
+            <div className="py-20 flex flex-col items-center justify-center">
+              <PokeballLoader />
             </div>
           ) : pokemonList.length === 0 ? (
             <div className="py-14 text-center text-slate-400 text-xs italic">

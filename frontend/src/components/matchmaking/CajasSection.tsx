@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
+import { PokeballLoader } from '../common/PokeballLoader';
 import { AuthService, TrainerTeamData, TrainerUser } from '../../services/authService';
 import { PokedexService } from '../../services/pokedexService';
 import { getResolvedTypes } from '../../utils/pokemonStats';
@@ -694,7 +695,11 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
         </div>
 
         {/* Catalog Grid */}
-        {catalog.length === 0 ? (
+        {loadingCatalog ? (
+          <div className="py-10 flex items-center justify-center">
+            <PokeballLoader />
+          </div>
+        ) : catalog.length === 0 ? (
           <div className="py-6 text-center text-xs text-slate-400">
             No se encontraron Pokémon con esos filtros.
           </div>
