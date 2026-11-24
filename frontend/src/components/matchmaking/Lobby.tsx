@@ -11,6 +11,7 @@ import {
   Play,
   RotateCcw,
   Shield,
+  ShieldCheck,
   Layers,
   Trash2,
   Crown,
@@ -33,6 +34,7 @@ import {
 } from 'lucide-react';
 import { battleAudio } from '../../utils/battleAudio';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
+import { PokeBallGraphic } from '../common/PokeBallGraphic';
 import { CreateRoomModal } from './CreateRoomModal';
 import { RoomLobbyModal } from './RoomLobbyModal';
 import { PokemonDetailSheet } from './PokemonDetailSheet';
@@ -116,7 +118,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   };
 
   // Section Navigation (Default: 'arena' when logged in as requested)
-  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'room'>(
+  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex'>(
     initialSection === 'salir' ? 'arena' : initialSection
   );
   const [showSettingsModal, setShowSettingsModal] = useState(initialSection === 'salir');
@@ -284,7 +286,6 @@ export const Lobby: React.FC<LobbyProps> = ({
 
   const handleClosePokedexHub = () => {
     setIsPokedexHubOpen(false);
-    setIsArenaOpen(true);
   };
 
   const handleSelectPokedexOption = (option: 'pokemon' | 'moves' | 'abilities') => {
@@ -786,6 +787,93 @@ export const Lobby: React.FC<LobbyProps> = ({
           onOpenAuth={() => setIsAuthOpen(true)}
         />
       )}
+
+      {/* 5. SECCIÓN POKÉDEX (ENCICLOPEDIA, MOVIMIENTOS, HABILIDADES) */}
+      {activeSection === 'pokedex' && (
+        <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1 py-0.5">
+          {/* Tarjeta 1: Pokémones (Roja) */}
+          <button
+            type="button"
+            onClick={() => handleSelectPokedexOption('pokemon')}
+            className="w-full text-left relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#ef4444] via-[#dc2626] to-[#b91c1c] border-2 border-[#991b1b] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff30_1.5px,transparent_1.5px)] [background-size:12px_12px] opacity-40 pointer-events-none" />
+            <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
+              <div>
+                <div className="inline-block bg-[#162024] text-[#ff8080] text-[8px] font-black tracking-widest px-2 py-0.5 rounded-sm uppercase">
+                  ENCICLOPEDIA NACIONAL
+                </div>
+                <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] tracking-tighter uppercase italic leading-none pt-1">
+                  POKÉMONES
+                </h3>
+              </div>
+              <div className="bg-black/80 text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1.5 w-fit shadow-xs border border-red-900/60">
+                <span className="w-2 h-2 rounded-full bg-[#ff5252] animate-pulse" />
+                <span>1025 ESPECIES • STATS &amp; TIPOS</span>
+              </div>
+            </div>
+            <div className="absolute right-2 -bottom-1 w-24 h-24 flex items-center justify-center pointer-events-none group-hover:scale-110 transition-transform duration-300">
+              <PokeBallGraphic size={84} glow={true} />
+            </div>
+          </button>
+
+          {/* Tarjeta 2: Movimientos (Naranja / Ámbar) */}
+          <button
+            type="button"
+            onClick={() => handleSelectPokedexOption('moves')}
+            className="w-full text-left relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#f59e0b] via-[#ea580c] to-[#c2410c] border-2 border-[#9a3412] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+          >
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff25_1px,transparent_1px),linear-gradient(to_bottom,#ffffff25_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
+            <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
+              <div>
+                <div className="inline-block bg-[#162024] text-amber-300 text-[8px] font-black tracking-widest px-2 py-0.5 rounded-sm uppercase">
+                  ARSENAL TÁCTICO
+                </div>
+                <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] tracking-tighter uppercase italic leading-none pt-1">
+                  MOVIMIENTOS
+                </h3>
+              </div>
+              <div className="bg-black/80 text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1.5 w-fit shadow-xs border border-orange-950">
+                <Zap className="w-2.5 h-2.5 text-amber-400" />
+                <span>953 ATAQUES • POTENCIA &amp; PP</span>
+              </div>
+            </div>
+            <div className="absolute right-4 flex items-center gap-2 pointer-events-none">
+              <div className="w-12 h-12 rounded-full bg-white/15 border-2 border-white/80 flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform">
+                <Swords className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </button>
+
+          {/* Tarjeta 3: Habilidades (Verde Esmeralda) */}
+          <button
+            type="button"
+            onClick={() => handleSelectPokedexOption('abilities')}
+            className="w-full text-left relative h-26 min-h-[104px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-r from-[#10b981] via-[#059669] to-[#047857] border-2 border-[#065f46] shadow-md cursor-pointer group hover:brightness-105 active:scale-[0.99] transition-all flex items-center px-4"
+          >
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff25_1px,transparent_1px),linear-gradient(to_bottom,#ffffff25_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
+            <div className="relative z-10 flex flex-col justify-between h-full py-2.5">
+              <div>
+                <div className="inline-block bg-[#162024] text-emerald-300 text-[8px] font-black tracking-widest px-2 py-0.5 rounded-sm uppercase">
+                  TALENTOS &amp; SINERGIAS
+                </div>
+                <h3 className="text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] tracking-tighter uppercase italic leading-none pt-1">
+                  HABILIDADES
+                </h3>
+              </div>
+              <div className="bg-black/80 text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1.5 w-fit shadow-xs border border-emerald-950">
+                <Sparkles className="w-2.5 h-2.5 text-emerald-300" />
+                <span>EFECTOS PASIVOS EN DUELO</span>
+              </div>
+            </div>
+            <div className="absolute right-4 flex items-center gap-2 pointer-events-none">
+              <div className="w-12 h-12 rounded-full bg-white/15 border-2 border-white/80 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                <ShieldCheck className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </button>
+        </div>
+      )}
     </div>
 
         {/* ================= STADIUM FLOATING ACTION DOCK (Arena, Equipo, Cajas, Pokedex) ================= */}
@@ -844,8 +932,12 @@ export const Lobby: React.FC<LobbyProps> = ({
           {/* Button 4: Pokedex */}
           <button
             type="button"
-            onClick={handleOpenPokedexHub}
-            className="relative py-2 px-1 rounded-xl bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900 flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95"
+            onClick={() => setActiveSection('pokedex')}
+            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+              activeSection === 'pokedex'
+                ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
+                : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
+            }`}
             title="Catálogo Pokédex"
           >
             <BookOpen className="w-6 h-6 stroke-[2.2]" />
@@ -935,34 +1027,7 @@ export const Lobby: React.FC<LobbyProps> = ({
         currentTeam={selectedTeam}
       />
 
-      {/* 3. Arena Mode Selector Modal (Main View) */}
-      <ArenaModal
-        isOpen={isArenaOpen}
-        onClose={() => setIsArenaOpen(false)}
-        onStartAiBattle={onOpenPractice || handlePlayAi}
-        onOpenCreateRoom={() => (onOpenRooms ? onOpenRooms() : setShowCreateModal(true))}
-        onOpenAuth={() => (onOpenAuth ? onOpenAuth() : setIsAuthOpen(true))}
-        onOpenRooms={onOpenRooms}
-        onOpenPokedex={handleOpenPokedexHub}
-        onLogout={handleLogout}
-        trainerName={trainerName}
-        isLoggedIn={!!currentUser}
-        openRooms={openRooms}
-        loadingRooms={loadingRooms}
-        onRefreshRooms={fetchRooms}
-        onJoinRoom={handleDirectJoin}
-        joinError={joinError}
-        selectedTeamCount={selectedTeam.length}
-      />
-
-      {/* 4. Pokédex Hub Modal (Pokémones, Movimientos, Habilidades, Volver) */}
-      <PokedexHubModal
-        isOpen={isPokedexHubOpen}
-        onClose={handleClosePokedexHub}
-        onSelectOption={handleSelectPokedexOption}
-      />
-
-      {/* 5. Trainer Account / Auth Modal */}
+      {/* 3. Trainer Account / Auth Modal */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
