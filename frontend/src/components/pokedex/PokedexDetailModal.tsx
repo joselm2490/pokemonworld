@@ -231,11 +231,10 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
                     onClick={() => onSelectPokemon(pokemon.evoluciones.preevolucion!.id)}
                     className="flex-1 flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-lg border border-slate-200 text-left cursor-pointer min-w-0"
                   >
-                    <img
-                      src={pokemon.evoluciones.preevolucion.icon_url}
-                      alt=""
+                    <StaticPokemonImage
+                      species={pokemon.evoluciones.preevolucion.nombre}
+                      alt={pokemon.evoluciones.preevolucion.nombre}
                       className="w-6 h-6 object-contain shrink-0"
-                      onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
                     <div className="overflow-hidden">
                       <span className="text-[8px] text-slate-400 block">Pre-evo</span>
@@ -265,11 +264,10 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
                     onClick={() => onSelectPokemon(pokemon.evoluciones.evolucion!.id)}
                     className="flex-1 flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-lg border border-slate-200 text-left cursor-pointer min-w-0"
                   >
-                    <img
-                      src={pokemon.evoluciones.evolucion.icon_url}
-                      alt=""
+                    <StaticPokemonImage
+                      species={pokemon.evoluciones.evolucion.nombre}
+                      alt={pokemon.evoluciones.evolucion.nombre}
                       className="w-6 h-6 object-contain shrink-0"
-                      onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
                     <div className="overflow-hidden">
                       <span className="text-[8px] text-slate-400 block">Evoluciona</span>
@@ -624,11 +622,10 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
                       className="flex-1 flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 p-1.5 rounded-lg border border-zinc-600 transition-all text-left"
                     >
                       <div className="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={pokemon.evoluciones.preevolucion.icon_url}
-                          alt=""
+                        <StaticPokemonImage
+                          species={pokemon.evoluciones.preevolucion.nombre}
+                          alt={pokemon.evoluciones.preevolucion.nombre}
                           className="w-full h-full object-contain"
-                          onError={(e) => (e.currentTarget.style.display = 'none')}
                         />
                       </div>
                       <div className="overflow-hidden">
@@ -663,11 +660,10 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
                       className="flex-1 flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 p-1.5 rounded-lg border border-zinc-600 transition-all text-left"
                     >
                       <div className="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={pokemon.evoluciones.evolucion.icon_url}
-                          alt=""
+                        <StaticPokemonImage
+                          species={pokemon.evoluciones.evolucion.nombre}
+                          alt={pokemon.evoluciones.evolucion.nombre}
                           className="w-full h-full object-contain"
-                          onError={(e) => (e.currentTarget.style.display = 'none')}
                         />
                       </div>
                       <div className="overflow-hidden">

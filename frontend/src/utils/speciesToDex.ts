@@ -26,16 +26,25 @@ export function getHomeIconUrl(speciesOrName?: string, _dexNumber?: number): str
   return `/HOMENatDexIcons-main/${slug}.png`;
 }
 
+const DEX_TO_SLUG: Record<number, string> = Object.entries(SPECIES_TO_DEX).reduce(
+  (acc, [sp, dex]) => {
+    if (!acc[dex] && !/_(ALOLA|GALAR|HISUI|PALDEA)/.test(sp)) {
+      acc[dex] = toShowdownSlug(sp);
+    }
+    return acc;
+  },
+  {} as Record<number, string>
+);
+
 export function getStaticPokemonImageUrl(speciesOrName?: string, dexNumber?: number): string {
-  if (dexNumber && dexNumber > 0) {
-    return `/pokemon-static/${dexNumber}.png`;
-  }
   if (speciesOrName) {
-    const clean = speciesOrName.toUpperCase().trim().replace(/[\s-]+/g, '_');
-    const found = SPECIES_TO_DEX[clean];
-    if (found) {
-      return `/pokemon-static/${found}.png`;
+    const slug = toShowdownSlug(speciesOrName);
+    if (slug) {
+      return `/HOMENatDexIcons-main/${slug}.png`;
     }
   }
-  return '/pokemon-static/25.png';
+  if (dexNumber && DEX_TO_SLUG[dexNumber]) {
+    return `/HOMENatDexIcons-main/${DEX_TO_SLUG[dexNumber]}.png`;
+  }
+  return '/HOMENatDexIcons-main/pikachu.png';
 }
