@@ -151,45 +151,48 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
         <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-3">
           {/* Hero Card */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-3">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-28 h-28 flex items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-2xs p-2">
-                <StaticPokemonImage
-                  dexNumber={pokemon.numero_pokedex}
-                  species={pokemon.species}
-                  alt={pokemon.nombre}
-                  className="w-24 h-24 object-contain drop-shadow-md"
-                />
+            <div className="flex items-start gap-2.5">
+              {/* Left: Sprite + Type Pills */}
+              <div className="flex flex-col items-center gap-1.5 shrink-0">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-2xs p-1.5">
+                  <StaticPokemonImage
+                    dexNumber={pokemon.numero_pokedex}
+                    species={pokemon.species}
+                    alt={pokemon.nombre}
+                    className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-md"
+                  />
+                </div>
+                <div className="flex gap-1 flex-wrap justify-center max-w-[116px]">
+                  {pokemon.types_detail.map((t) => (
+                    <span
+                      key={t.id}
+                      style={{ backgroundColor: t.color_hex }}
+                      className="px-2 py-0.5 rounded-full text-[9px] font-bold text-white shadow-2xs uppercase tracking-wider"
+                    >
+                      {t.nombre}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-1.5">
-                {pokemon.types_detail.map((t) => (
-                  <span
-                    key={t.id}
-                    style={{ backgroundColor: t.color_hex }}
-                    className="px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-2xs uppercase tracking-wider"
-                  >
-                    {t.nombre}
-                  </span>
-                ))}
-              </div>
-            </div>
 
-            {/* Metrics 2x2 */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-white p-2 rounded-xl border border-slate-200">
-                <span className="text-slate-400 block text-[9px] font-bold uppercase">Generación</span>
-                <span className="font-black text-slate-800 text-xs">Gen {pokemon.gen}</span>
-              </div>
-              <div className="bg-white p-2 rounded-xl border border-slate-200">
-                <span className="text-slate-400 block text-[9px] font-bold uppercase">Fase Evolutiva</span>
-                <span className="font-black text-slate-800 text-xs">Fase {pokemon.fase}</span>
-              </div>
-              <div className="bg-white p-2 rounded-xl border border-slate-200">
-                <span className="text-slate-400 block text-[9px] font-bold uppercase">Peso</span>
-                <span className="font-black text-slate-800 text-xs">{pokemon.peso_kg ?? '?'} kg</span>
-              </div>
-              <div className="bg-white p-2 rounded-xl border border-slate-200">
-                <span className="text-slate-400 block text-[9px] font-bold uppercase">Altura</span>
-                <span className="font-black text-slate-800 text-xs">{pokemon.altura_m ?? '?'} m</span>
+              {/* Right: Metrics 2x2 */}
+              <div className="flex-1 grid grid-cols-2 gap-1.5 text-xs min-w-0">
+                <div className="bg-white p-2 rounded-xl border border-slate-200">
+                  <span className="text-slate-400 block text-[8px] font-bold uppercase truncate">Generación</span>
+                  <span className="font-black text-slate-800 text-xs">Gen {pokemon.gen}</span>
+                </div>
+                <div className="bg-white p-2 rounded-xl border border-slate-200">
+                  <span className="text-slate-400 block text-[8px] font-bold uppercase truncate">Fase Evolutiva</span>
+                  <span className="font-black text-slate-800 text-xs">Fase {pokemon.fase}</span>
+                </div>
+                <div className="bg-white p-2 rounded-xl border border-slate-200">
+                  <span className="text-slate-400 block text-[8px] font-bold uppercase truncate">Peso</span>
+                  <span className="font-black text-slate-800 text-xs">{pokemon.peso_kg ?? '?'} kg</span>
+                </div>
+                <div className="bg-white p-2 rounded-xl border border-slate-200">
+                  <span className="text-slate-400 block text-[8px] font-bold uppercase truncate">Altura</span>
+                  <span className="font-black text-slate-800 text-xs">{pokemon.altura_m ?? '?'} m</span>
+                </div>
               </div>
             </div>
 
