@@ -12,6 +12,9 @@ The project is decoupled into two modular, production-ready applications:
 pokemonworld/
 ├── backend/                       # Django 6.1 + ASGI Channels (WebSockets)
 │   ├── accounts/                  # User accounts & Superuser initialization
+│   ├── assets/
+│   │   ├── Animated Pokemon Sprites/  # Front, Back, Shiny spritesheets (1,600+ species)
+│   │   └── Animated Pokemon System/   # PBS files with positioning and scale metrics
 │   ├── battle/                    # Battle Engine (Gen 9 Damage, Turns, WebSockets)
 │   ├── pokedex/                   # Roster data, PBS metrics parser & Sprite serving
 │   ├── pokemon_server/            # Django ASGI & settings configuration
@@ -20,19 +23,16 @@ pokemonworld/
 │   ├── render.yaml                # Render Blueprint deployment configuration
 │   └── requirements.txt
 │
-├── frontend/                      # React 18 + TypeScript + Vite + Tailwind CSS
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── battle/            # BattleArena, AnimatedPokemonSprite, StatusCard, ActionPanel
-│   │   │   ├── matchmaking/       # Lobby (PvP room creation, join code, AI match)
-│   │   │   └── team/              # TeamBuilder (6-party roster selector)
-│   │   ├── hooks/                 # useBattle WebSocket hook
-│   │   ├── types/                 # TypeScript interfaces (Pokemon, BattleState, Moves)
-│   │   └── utils/                 # Gen 9 Type colors and calculations
-│   └── vercel.json                # Vercel deployment configuration
-│
-├── Animated Pokemon Sprites/      # Front, Back, Shiny spritesheets (1,600+ species)
-└── Animated Pokemon System/       # PBS files with positioning and scale metrics
+└── frontend/                      # React 18 + TypeScript + Vite + Tailwind CSS
+    ├── src/
+    │   ├── components/
+    │   │   ├── battle/            # BattleArena, AnimatedPokemonSprite, StatusCard, ActionPanel
+    │   │   ├── matchmaking/       # Lobby (PvP room creation, join code, AI match)
+    │   │   └── team/              # TeamBuilder (6-party roster selector)
+    │   ├── hooks/                 # useBattle WebSocket hook
+    │   ├── types/                 # TypeScript interfaces (Pokemon, BattleState, Moves)
+    │   └── utils/                 # Gen 9 Type colors and calculations
+    └── vercel.json                # Vercel deployment configuration
 ```
 
 ---

@@ -22,9 +22,7 @@ frontend/.dist/
 .env.local
 
 # Raw downloaded resource packs (extracted UI assets live in frontend/public/)
-Pokemon Essentials v21.1 2023-07-30/
-Deluxe Battle Kit/
-Enhanced Battle UI (1)/
+frontend/raw-packs/
 
 # OS & Editor
 .DS_Store

@@ -119,8 +119,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Sprites & PBS data directory paths
-SPRITES_DIR = ROOT_DIR / 'Animated Pokemon Sprites'
-PBS_DIR = ROOT_DIR / 'Animated Pokemon System' / 'PBS'
+SPRITES_DIR = BASE_DIR / 'assets' / 'Animated Pokemon Sprites'
+PBS_DIR = BASE_DIR / 'assets' / 'Animated Pokemon System' / 'PBS'
 
 # CORS configuration for Vercel and local development
 from corsheaders.defaults import default_headers
