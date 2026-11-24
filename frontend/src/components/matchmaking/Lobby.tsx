@@ -45,6 +45,7 @@ import { CajasSection } from './CajasSection';
 import { RoomSection } from './RoomSection';
 import { PokedexView } from '../pokedex/PokedexView';
 import { MovesCatalog } from '../moves/MovesCatalog';
+import { AbilitiesCatalog } from '../abilities/AbilitiesCatalog';
 import { AuthModal } from '../auth/AuthModal';
 import { AuthService, TrainerUser } from '../../services/authService';
 import { PokedexService } from '../../services/pokedexService';
@@ -62,7 +63,7 @@ interface LobbyProps {
   onOpenPractice?: () => void;
   selectedTeam: string[];
   onUpdateTeam?: (newTeam: string[]) => void;
-  initialSection?: 'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex' | 'pokemon' | 'moves' | 'salir';
+  initialSection?: 'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex' | 'pokemon' | 'moves' | 'abilities' | 'salir';
   initialRoomCode?: string;
 }
 
@@ -120,7 +121,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   };
 
   // Section Navigation (Default: 'arena' when logged in as requested)
-  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex' | 'pokemon' | 'moves'>(
+  const [activeSection, setActiveSection] = useState<'arena' | 'equipo' | 'cajas' | 'room' | 'pokedex' | 'pokemon' | 'moves' | 'abilities'>(
     initialSection === 'salir' ? 'arena' : initialSection
   );
   const [showSettingsModal, setShowSettingsModal] = useState(initialSection === 'salir');
@@ -298,8 +299,9 @@ export const Lobby: React.FC<LobbyProps> = ({
     } else if (option === 'moves') {
       setActiveSection('moves');
       onOpenMoves();
-    } else if (option === 'abilities' && onOpenAbilities) {
-      onOpenAbilities();
+    } else if (option === 'abilities') {
+      setActiveSection('abilities');
+      if (onOpenAbilities) onOpenAbilities();
     }
   };
 
@@ -894,6 +896,14 @@ export const Lobby: React.FC<LobbyProps> = ({
           onBack={() => setActiveSection('pokedex')}
         />
       )}
+
+      {/* 8. SECCIÓN HABILIDADES (/ability ADAPTADO AL CONTENEDOR) */}
+      {activeSection === 'abilities' && (
+        <AbilitiesCatalog
+          embedded={true}
+          onBack={() => setActiveSection('pokedex')}
+        />
+      )}
     </div>
 
         {/* ================= STADIUM FLOATING ACTION DOCK (Arena, Equipo, Cajas, Pokedex) ================= */}
@@ -954,7 +964,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             type="button"
             onClick={() => setActiveSection('pokedex')}
             className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
-              activeSection === 'pokedex' || activeSection === 'pokemon' || activeSection === 'moves'
+              activeSection === 'pokedex' || activeSection === 'pokemon' || activeSection === 'moves' || activeSection === 'abilities'
                 ? 'bg-gradient-to-b from-[#1a222d] to-[#0d1218] text-[#32f59b] shadow-md ring-2 ring-emerald-400/70'
                 : 'bg-slate-100/85 hover:bg-slate-200/85 text-slate-600 hover:text-slate-900'
             }`}
