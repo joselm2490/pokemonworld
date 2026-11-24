@@ -406,14 +406,67 @@ export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack, embedded = f
                 : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'
             }
           >
-            {moves.map((mv) => (
-              <div
-                key={mv.id}
-                onClick={() => setActiveMove(mv)}
-                className={`bg-white border border-slate-200 hover:border-amber-400 rounded-2xl flex flex-col justify-between shadow-xs hover:shadow-md cursor-pointer transition-all ${
-                  embedded ? 'p-3 gap-2' : 'p-4 gap-3 hover:-translate-y-0.5'
-                }`}
-              >
+            {moves.map((mv) =>
+              embedded ? (
+                <div
+                  key={mv.id}
+                  onClick={() => setActiveMove(mv)}
+                  className="bg-white border border-slate-200 hover:border-amber-400 px-3 py-2.5 rounded-2xl flex items-center justify-between gap-2.5 shadow-xs hover:shadow-md cursor-pointer transition-all active:scale-[0.99]"
+                >
+                  {/* Left: Name + Type & Class Badges */}
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <h3 className="font-black text-xs sm:text-sm text-slate-900 uppercase tracking-tight truncate">
+                      {mv.nombre}
+                    </h3>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <span
+                        style={{ backgroundColor: mv.tipo_color }}
+                        className="px-2 py-0.5 rounded-full text-[9px] font-bold text-white shadow-2xs uppercase tracking-wider"
+                      >
+                        {mv.tipo}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                          mv.clase === 'Físico'
+                            ? 'bg-red-100 text-red-700 border border-red-300'
+                            : mv.clase === 'Especial'
+                            ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                            : 'bg-slate-100 text-slate-700 border border-slate-300'
+                        }`}
+                      >
+                        {mv.clase}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right: Potencia / Precisión / PP box */}
+                  <div className="grid grid-cols-3 gap-2.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-center shrink-0">
+                    <div>
+                      <span className="text-[8px] text-slate-400 block uppercase font-bold">Potencia</span>
+                      <span className="font-black text-amber-700 text-xs">
+                        {mv.potencia ?? mv.potencia_texto ?? '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8px] text-slate-400 block uppercase font-bold">Precisión</span>
+                      <span className="font-black text-slate-800 text-xs">
+                        {mv.precision ? `${mv.precision}%` : mv.precision_texto ?? '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8px] text-slate-400 block uppercase font-bold">PP</span>
+                      <span className="font-black text-slate-700 text-xs">
+                        {mv.pp ?? mv.pp_texto ?? '-'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  key={mv.id}
+                  onClick={() => setActiveMove(mv)}
+                  className="bg-white border border-slate-200 hover:border-amber-400 p-4 rounded-2xl flex flex-col justify-between gap-3 shadow-xs hover:shadow-md cursor-pointer transition-all hover:-translate-y-0.5"
+                >
                 {/* Header Move Card */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -500,7 +553,8 @@ export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack, embedded = f
                   )}
                 </div>
               </div>
-            ))}
+              )
+            )}
           </div>
         )}
       </main>
