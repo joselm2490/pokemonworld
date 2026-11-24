@@ -220,7 +220,7 @@ export const TeamBuilder: React.FC<TeamBuilderProps> = ({
                 <StaticPokemonImage
                   species={pkmn.species}
                   alt={pkmn.name}
-                  className="w-20 h-20 drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)]"
+                  className="w-20 h-20"
                 />
               </div>
 

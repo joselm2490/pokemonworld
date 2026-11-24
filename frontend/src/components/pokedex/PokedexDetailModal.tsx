@@ -159,7 +159,7 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
                     dexNumber={pokemon.numero_pokedex}
                     species={pokemon.species}
                     alt={pokemon.nombre}
-                    className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-md"
+                    className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
                   />
                 </div>
                 <div className="flex gap-1 flex-wrap justify-center max-w-[116px]">
@@ -533,7 +533,7 @@ export const PokedexDetailModal: React.FC<PokedexDetailModalProps> = ({
                   dexNumber={pokemon.numero_pokedex}
                   species={pokemon.species}
                   alt={pokemon.nombre}
-                  className="w-36 h-36 sm:w-44 sm:h-44 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
+                  className="w-36 h-36 sm:w-44 sm:h-44"
                 />
               </div>
               {/* Type Pills */}

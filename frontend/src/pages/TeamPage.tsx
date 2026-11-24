@@ -380,7 +380,7 @@ export const TeamPage: React.FC = () => {
                       <StaticPokemonImage
                         species={species}
                         alt={species}
-                        className="w-20 h-20 my-auto drop-shadow-md group-hover:scale-105 transition-transform"
+                        className="w-20 h-20 my-auto group-hover:scale-105 transition-transform"
                       />
                       <span className="text-xs font-black text-slate-900 uppercase truncate font-mono mt-1 max-w-[90%] text-center">
                         {species}
@@ -448,7 +448,7 @@ export const TeamPage: React.FC = () => {
                     <StaticPokemonImage
                       species={pkmn.species}
                       alt={pkmn.name}
-                      className="w-14 h-14 drop-shadow-md"
+                      className="w-14 h-14"
                     />
                   </div>
 

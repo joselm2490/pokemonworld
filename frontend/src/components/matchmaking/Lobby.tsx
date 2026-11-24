@@ -661,7 +661,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                         <StaticPokemonImage
                           species={species}
                           alt={displayName}
-                          className="w-18 h-18 object-contain drop-shadow-[0_6px_10px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform"
+                          className="w-18 h-18 object-contain group-hover:scale-105 transition-transform"
                         />
                       </div>
 

@@ -349,7 +349,7 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ onBack, embedded = fal
                     dexNumber={pkmn.numero_pokedex}
                     species={pkmn.species}
                     alt={pkmn.nombre}
-                    className={`${embedded ? 'w-16 h-16' : 'w-24 h-24 sm:w-28 sm:h-28'} drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform`}
+                    className={`${embedded ? 'w-16 h-16' : 'w-24 h-24 sm:w-28 sm:h-28'} group-hover:scale-110 transition-transform`}
                   />
                 </div>
 

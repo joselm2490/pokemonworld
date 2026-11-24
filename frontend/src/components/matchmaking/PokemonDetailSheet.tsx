@@ -140,7 +140,7 @@ export const PokemonDetailSheet: React.FC<PokemonDetailSheetProps> = ({
                       <StaticPokemonImage
                         species={species}
                         alt={pokemon.nombre}
-                        className="w-22 h-22 object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,0.7)]"
+                        className="w-22 h-22 object-contain"
                       />
                     </div>
                   </div>

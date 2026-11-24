@@ -560,7 +560,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
                       <StaticPokemonImage
                         species={species}
                         alt={species}
-                        className="w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow-sm"
+                        className="w-12 h-12 sm:w-14 sm:h-14 object-contain"
                       />
                     </div>
 
@@ -741,7 +741,7 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
                     species={pkmn.species}
                     dexNumber={pkmn.numero_pokedex}
                     alt={pkmn.name}
-                    className="w-16 h-16 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform"
+                    className="w-16 h-16 object-contain group-hover:scale-110 transition-transform"
                   />
                 </div>
 
