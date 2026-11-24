@@ -919,7 +919,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             }`}
             title="Sección Arena"
           >
-            <Swords className="w-6 h-6 stroke-[2.2]" />
+            <img src="/icons/nav-arena.png" alt="Arena" className="w-8 h-8 object-contain" draggable={false} />
             <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
               Arena
             </span>
@@ -936,7 +936,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             }`}
             title="Mi Equipo Pokémon"
           >
-            <Shield className="w-6 h-6 stroke-[2.2]" />
+            <img src="/icons/nav-equipo.png" alt="Equipo" className="w-8 h-8 object-contain" draggable={false} />
             <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
               Equipo
             </span>
@@ -953,7 +953,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             }`}
             title="Organizar Escuadrón / Cajas PC"
           >
-            <LayoutGrid className="w-6 h-6 stroke-[2.2]" />
+            <img src="/icons/nav-cajas.png" alt="Cajas" className="w-8 h-8 object-contain" draggable={false} />
             <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
               Cajas
             </span>
@@ -970,7 +970,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             }`}
             title="Catálogo Pokédex"
           >
-            <BookOpen className="w-6 h-6 stroke-[2.2]" />
+            <img src="/icons/nav-pokedex.png" alt="Pokédex" className="w-8 h-8 object-contain" draggable={false} />
             <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
               Pokédex
             </span>
