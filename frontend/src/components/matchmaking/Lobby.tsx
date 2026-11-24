@@ -912,68 +912,56 @@ export const Lobby: React.FC<LobbyProps> = ({
           <button
             type="button"
             onClick={() => setActiveSection('arena')}
-            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 border-2 ${
+            className={`relative py-1.5 px-1 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 border-2 ${
               activeSection === 'arena' || activeSection === 'room'
-                ? 'bg-emerald-50/90 border-emerald-400 text-emerald-700 shadow-xs'
-                : 'bg-transparent border-transparent hover:bg-slate-100/80 text-slate-600 hover:text-slate-900'
+                ? 'bg-emerald-50/90 border-emerald-400 shadow-xs'
+                : 'bg-transparent border-transparent hover:bg-slate-100/80'
             }`}
-            title="Sección Arena"
+            title="Arena"
           >
-            <img src="/icons/nav-arena.png" alt="Arena" className="w-8 h-8 object-contain" draggable={false} />
-            <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
-              Arena
-            </span>
+            <img src="/icons/nav-arena.png" alt="Arena" className="w-11 h-11 sm:w-12 sm:h-12 object-contain" draggable={false} />
           </button>
 
           {/* Button 2: Equipo */}
           <button
             type="button"
             onClick={() => setActiveSection('equipo')}
-            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 border-2 ${
+            className={`relative py-1.5 px-1 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 border-2 ${
               activeSection === 'equipo'
-                ? 'bg-emerald-50/90 border-emerald-400 text-emerald-700 shadow-xs'
-                : 'bg-transparent border-transparent hover:bg-slate-100/80 text-slate-600 hover:text-slate-900'
+                ? 'bg-emerald-50/90 border-emerald-400 shadow-xs'
+                : 'bg-transparent border-transparent hover:bg-slate-100/80'
             }`}
-            title="Mi Equipo Pokémon"
+            title="Equipo"
           >
-            <img src="/icons/nav-equipo.png" alt="Equipo" className="w-8 h-8 object-contain" draggable={false} />
-            <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
-              Equipo
-            </span>
+            <img src="/icons/nav-equipo.png" alt="Equipo" className="w-11 h-11 sm:w-12 sm:h-12 object-contain" draggable={false} />
           </button>
 
           {/* Button 3: Cajas */}
           <button
             type="button"
             onClick={() => setActiveSection('cajas')}
-            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 border-2 ${
+            className={`relative py-1.5 px-1 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 border-2 ${
               activeSection === 'cajas'
-                ? 'bg-emerald-50/90 border-emerald-400 text-emerald-700 shadow-xs'
-                : 'bg-transparent border-transparent hover:bg-slate-100/80 text-slate-600 hover:text-slate-900'
+                ? 'bg-emerald-50/90 border-emerald-400 shadow-xs'
+                : 'bg-transparent border-transparent hover:bg-slate-100/80'
             }`}
-            title="Organizar Escuadrón / Cajas PC"
+            title="Cajas PC"
           >
-            <img src="/icons/nav-cajas.png" alt="Cajas" className="w-8 h-8 object-contain" draggable={false} />
-            <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
-              Cajas
-            </span>
+            <img src="/icons/nav-cajas.png" alt="Cajas" className="w-11 h-11 sm:w-12 sm:h-12 object-contain" draggable={false} />
           </button>
 
           {/* Button 4: Pokedex */}
           <button
             type="button"
             onClick={() => setActiveSection('pokedex')}
-            className={`relative py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 border-2 ${
+            className={`relative py-1.5 px-1 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 border-2 ${
               activeSection === 'pokedex' || activeSection === 'pokemon' || activeSection === 'moves' || activeSection === 'abilities'
-                ? 'bg-emerald-50/90 border-emerald-400 text-emerald-700 shadow-xs'
-                : 'bg-transparent border-transparent hover:bg-slate-100/80 text-slate-600 hover:text-slate-900'
+                ? 'bg-emerald-50/90 border-emerald-400 shadow-xs'
+                : 'bg-transparent border-transparent hover:bg-slate-100/80'
             }`}
-            title="Catálogo Pokédex"
+            title="Pokédex"
           >
-            <img src="/icons/nav-pokedex.png" alt="Pokédex" className="w-8 h-8 object-contain" draggable={false} />
-            <span className="text-[11px] font-sans font-extrabold tracking-tight leading-none">
-              Pokédex
-            </span>
+            <img src="/icons/nav-pokedex.png" alt="Pokédex" className="w-11 h-11 sm:w-12 sm:h-12 object-contain" draggable={false} />
           </button>
         </div>
       </div>
