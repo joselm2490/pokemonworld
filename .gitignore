@@ -21,9 +21,6 @@ frontend/.dist/
 .env
 .env.local
 
-# Raw downloaded resource packs (extracted UI assets live in frontend/public/)
-frontend/raw-packs/
-
 # OS & Editor
 .DS_Store
 Thumbs.db
