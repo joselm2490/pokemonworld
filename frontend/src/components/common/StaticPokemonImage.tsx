@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getShowdownSpriteUrl, getStaticPokemonImageUrl } from '../../utils/speciesToDex';
+import { getHomeIconUrl, getShowdownSpriteUrl, getStaticPokemonImageUrl } from '../../utils/speciesToDex';
 
 interface StaticPokemonImageProps {
   species?: string;
@@ -14,16 +14,16 @@ export const StaticPokemonImage: React.FC<StaticPokemonImageProps> = ({
   alt,
   className = '',
 }) => {
+  const homeIcon = getHomeIconUrl(species, dexNumber);
   const primaryShowdown = getShowdownSpriteUrl(species);
   const localStatic = getStaticPokemonImageUrl(species, dexNumber);
 
-  const [step, setStep] = useState<'primary' | 'fallback' | 'failed'>(
-    primaryShowdown ? 'primary' : 'fallback'
-  );
+  const initialStep = homeIcon ? 'home' : primaryShowdown ? 'primary' : 'fallback';
+  const [step, setStep] = useState<'home' | 'primary' | 'fallback' | 'failed'>(initialStep);
 
   useEffect(() => {
-    setStep(primaryShowdown ? 'primary' : 'fallback');
-  }, [species, dexNumber, primaryShowdown]);
+    setStep(homeIcon ? 'home' : primaryShowdown ? 'primary' : 'fallback');
+  }, [species, dexNumber, homeIcon, primaryShowdown]);
 
   if (step === 'failed') {
     return (
@@ -35,7 +35,12 @@ export const StaticPokemonImage: React.FC<StaticPokemonImageProps> = ({
     );
   }
 
-  const src = step === 'primary' && primaryShowdown ? primaryShowdown : localStatic;
+  const src =
+    step === 'home' && homeIcon
+      ? homeIcon
+      : step === 'primary' && primaryShowdown
+      ? primaryShowdown
+      : localStatic;
 
   return (
     <img
@@ -45,7 +50,9 @@ export const StaticPokemonImage: React.FC<StaticPokemonImageProps> = ({
       decoding="async"
       draggable={false}
       onError={() => {
-        if (step === 'primary') {
+        if (step === 'home') {
+          setStep(primaryShowdown ? 'primary' : 'fallback');
+        } else if (step === 'primary') {
           setStep('fallback');
         } else {
           setStep('failed');

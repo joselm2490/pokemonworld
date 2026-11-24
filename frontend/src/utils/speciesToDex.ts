@@ -19,6 +19,32 @@ export function getShowdownSpriteUrl(speciesOrName?: string): string | null {
   return `https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`;
 }
 
+export function getHomeIconUrl(speciesOrName?: string, dexNumber?: number): string | null {
+  const clean = speciesOrName ? speciesOrName.toUpperCase().trim().replace(/[\s-]+/g, '_') : '';
+
+  if (clean === 'TAUROS_PALDEA_COMBAT') return '/HOMENatDexIcons-main/pm0128_11_51_00_big.png';
+  if (clean === 'TAUROS_PALDEA_BLAZE') return '/HOMENatDexIcons-main/pm0128_12_51_00_big.png';
+  if (clean === 'TAUROS_PALDEA_AQUA') return '/HOMENatDexIcons-main/pm0128_13_51_00_big.png';
+
+  const resolvedDex =
+    dexNumber && dexNumber > 0
+      ? dexNumber
+      : clean
+      ? SPECIES_TO_DEX[clean] || SPECIES_TO_DEX[clean.replace(/_(ALOLA|GALAR|HISUI|PALDEA)$/, '')]
+      : undefined;
+
+  if (!resolvedDex) return null;
+  const dex4 = String(resolvedDex).padStart(4, '0');
+
+  let regionCode = '00';
+  if (clean.endsWith('_ALOLA')) regionCode = '11';
+  else if (clean.endsWith('_GALAR')) regionCode = '31';
+  else if (clean.endsWith('_HISUI')) regionCode = '41';
+  else if (clean.endsWith('_PALDEA')) regionCode = '51';
+
+  return `/HOMENatDexIcons-main/pm${dex4}_00_${regionCode}_00_big.png`;
+}
+
 export function getStaticPokemonImageUrl(speciesOrName?: string, dexNumber?: number): string {
   if (dexNumber && dexNumber > 0) {
     return `/pokemon-static/${dexNumber}.png`;
