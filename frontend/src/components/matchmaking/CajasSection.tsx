@@ -600,6 +600,9 @@ export const CajasSection: React.FC<CajasSectionProps> = ({
             <span className="text-[11px] font-black text-slate-800 uppercase tracking-wider">
               BANCO DE POKÉMON / CAJA PC
             </span>
+            <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+              {totalCount}
+            </span>
             {loadingCatalog && <RefreshCw className="w-3 h-3 text-slate-400 animate-spin" />}
           </div>
 
