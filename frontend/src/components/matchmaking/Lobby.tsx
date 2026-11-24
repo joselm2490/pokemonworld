@@ -33,6 +33,11 @@ import {
   X,
 } from 'lucide-react';
 import { battleAudio } from '../../utils/battleAudio';
+import {
+  DuelSpriteMode,
+  getDuelSpriteMode,
+  setDuelSpriteMode,
+} from '../../utils/battleSettings';
 import { StaticPokemonImage } from '../common/StaticPokemonImage';
 import { PokeBallGraphic } from '../common/PokeBallGraphic';
 import { CreateRoomModal } from './CreateRoomModal';
@@ -126,6 +131,12 @@ export const Lobby: React.FC<LobbyProps> = ({
   );
   const [showSettingsModal, setShowSettingsModal] = useState(initialSection === 'salir');
   const [muted, setMuted] = useState<boolean>(() => battleAudio.isMuted());
+  const [duelMode, setDuelMode] = useState<DuelSpriteMode>(() => getDuelSpriteMode());
+
+  const handleChangeDuelMode = (mode: DuelSpriteMode) => {
+    setDuelSpriteMode(mode);
+    setDuelMode(mode);
+  };
 
   const handleToggleAudio = () => {
     const nowMuted = battleAudio.toggleMute();
@@ -992,6 +1003,41 @@ export const Lobby: React.FC<LobbyProps> = ({
             </div>
 
             <div className="space-y-2.5">
+              <div className="p-3 bg-slate-100 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-800">
+                    Estilo de Duelos
+                  </span>
+                  <span className="text-[10px] font-black uppercase text-indigo-600">
+                    {duelMode === '3d' ? 'Todos 3D' : 'Todos 2D'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleChangeDuelMode('2d')}
+                    className={`py-2 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-tight transition-all cursor-pointer ${
+                      duelMode === '2d'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                    }`}
+                  >
+                    Duelos 2D
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChangeDuelMode('3d')}
+                    className={`py-2 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-tight transition-all cursor-pointer ${
+                      duelMode === '3d'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                    }`}
+                  >
+                    Duelos 3D
+                  </button>
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={handleToggleAudio}

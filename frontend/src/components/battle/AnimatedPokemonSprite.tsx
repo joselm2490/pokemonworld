@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { battleLogger } from '../../utils/logger';
 import { toShowdownSlug } from '../../utils/speciesToDex';
+import {
+  DuelSpriteMode,
+  getDuelSpriteMode,
+  resolveLocal2DSpriteKey,
+  subscribeDuelSpriteMode,
+} from '../../utils/battleSettings';
 
 interface AnimatedPokemonSpriteProps {
   species: string;
@@ -54,16 +60,23 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   const animFrameIdRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
 
-  const cleanSpecies = species.toUpperCase().replace(/\s+/g, '_');
-  const isRegionalForm = /(?:_|-)(ALOLA|GALAR|HISUI|PALDEA)\b/i.test(species);
-  const showdownSlug = toShowdownSlug(species);
-  const regionalPrimaryUrl = `https://play.pokemonshowdown.com/sprites/ani${isBack ? '-back' : ''}/${showdownSlug}.gif`;
-  const regionalFallbackUrl = `https://play.pokemonshowdown.com/sprites/gen5${isBack ? '-back' : ''}/${showdownSlug}.png`;
-  const [regionalSrc, setRegionalSrc] = useState(regionalPrimaryUrl);
+  const [duelMode, setDuelMode] = useState<DuelSpriteMode>(() => getDuelSpriteMode());
 
   useEffect(() => {
-    setRegionalSrc(regionalPrimaryUrl);
-  }, [regionalPrimaryUrl]);
+    return subscribeDuelSpriteMode(setDuelMode);
+  }, []);
+
+  const cleanSpecies = resolveLocal2DSpriteKey(species);
+  const use3dSprite = duelMode === '3d';
+  const showdownSlug = toShowdownSlug(species);
+  const showdownPrimaryUrl = `https://play.pokemonshowdown.com/sprites/ani${isBack ? '-back' : ''}/${showdownSlug}.gif`;
+  const showdownFallbackUrl = `https://play.pokemonshowdown.com/sprites/gen5${isBack ? '-back' : ''}/${showdownSlug}.png`;
+  const [showdownSrc, setShowdownSrc] = useState(showdownPrimaryUrl);
+
+  useEffect(() => {
+    setShowdownSrc(showdownPrimaryUrl);
+    setHasError(false);
+  }, [showdownPrimaryUrl, duelMode]);
 
   const folder = isBack
     ? isShiny
@@ -97,7 +110,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
 
   // Load sprite image only once visible (or immediately from cache)
   useEffect(() => {
-    if (!isVisible || isRegionalForm) return;
+    if (!isVisible || use3dSprite) return;
 
     const cached = SPRITE_CACHE.get(spriteUrl);
     if (cached && cached.complete && cached.naturalWidth > 0) {
@@ -168,7 +181,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
 
   // Render static first frame or run animation loop only when needed
   useEffect(() => {
-    if (isRegionalForm || !loadedUrl || !imgRef.current || !canvasRef.current) return;
+    if (use3dSprite || !loadedUrl || !imgRef.current || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -266,14 +279,14 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
         />
       )}
 
-      {isRegionalForm ? (
+      {use3dSprite ? (
         <img
-          src={regionalSrc}
+          src={showdownSrc}
           alt={species}
           draggable={false}
           onError={() => {
-            if (regionalSrc !== regionalFallbackUrl) {
-              setRegionalSrc(regionalFallbackUrl);
+            if (showdownSrc !== showdownFallbackUrl) {
+              setShowdownSrc(showdownFallbackUrl);
             } else {
               setHasError(true);
             }
@@ -282,7 +295,7 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
             width: `${Math.round(56 * scale)}px`,
             height: `${Math.round(56 * scale)}px`,
           }}
-          className={`relative z-10 object-contain pixelated transition-transform duration-200 ${animationClass}`}
+          className={`relative z-10 object-contain transition-transform duration-200 ${animationClass}`}
         />
       ) : !hasError ? (
         <canvas

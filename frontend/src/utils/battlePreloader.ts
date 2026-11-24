@@ -1,6 +1,8 @@
 import { BattleState } from '../types/pokemon';
 import { SPRITE_CACHE } from '../components/battle/AnimatedPokemonSprite';
 import { battleLogger } from './logger';
+import { getDuelSpriteMode, resolveLocal2DSpriteKey } from './battleSettings';
+import { toShowdownSlug } from './speciesToDex';
 
 const TYPE_TO_ANIMATION_FILE: Record<string, string> = {
   NORMAL: 'normal.png',
@@ -67,17 +69,27 @@ export async function preloadBattleAssets(
     '/battle-ui/animations/ballBurst_star.png',
   ]);
 
+  const duelMode = getDuelSpriteMode();
+
   // 1. Only player team Back animated sprites + Party Icons
   for (const pk of playerSide.team) {
-    const sp = pk.species.toUpperCase().replace(/\s+/g, '_');
-    battleSpriteUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Back/${sp}.png`);
+    const sp = resolveLocal2DSpriteKey(pk.species);
+    if (duelMode === '3d') {
+      battleSpriteUrls.add(`https://play.pokemonshowdown.com/sprites/ani-back/${toShowdownSlug(pk.species)}.gif`);
+    } else {
+      battleSpriteUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Back/${sp}.png`);
+    }
     iconUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Icons/${sp}.png`);
   }
 
   // 2. Only opponent team Front animated sprites
   for (const pk of opponentSide.team) {
-    const sp = pk.species.toUpperCase().replace(/\s+/g, '_');
-    battleSpriteUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Front/${sp}.png`);
+    const sp = resolveLocal2DSpriteKey(pk.species);
+    if (duelMode === '3d') {
+      battleSpriteUrls.add(`https://play.pokemonshowdown.com/sprites/ani/${toShowdownSlug(pk.species)}.gif`);
+    } else {
+      battleSpriteUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Front/${sp}.png`);
+    }
   }
 
   // 3. Only attack animation sheets actually used by the moves of these Pokémon
