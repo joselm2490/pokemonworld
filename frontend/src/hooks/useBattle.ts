@@ -150,13 +150,14 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
             p1: data.state?.p1?.team?.map((p: any) => p.species),
             p2: data.state?.p2?.team?.map((p: any) => p.species),
           });
+          // Wait until ALL 2D/3D sprites, icons, and GBA particles finish loading before starting the duel
+          await preloadBattleAssets(data.state, playerRoleRef.current);
+          if (isCleanedUp) return;
           setBattleState(data.state);
           setIsWaitingForTurn(false);
           setCurrentMessage('');
           triggerEffect('pokeball', 'burst', true);
           battleAudio.playSE('throw', 0.55);
-          // Preload ONLY the animated sprites & attack animation sheets needed for THIS duel
-          void preloadBattleAssets(data.state, playerRoleRef.current);
         } else if (data.type === 'TURN_RESOLVED') {
           clearTurnTimeout();
           setIsWaitingForTurn(true);

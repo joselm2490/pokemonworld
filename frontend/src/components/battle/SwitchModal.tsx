@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Pokemon } from '../../types/pokemon';
 import { battleAudio } from '../../utils/battleAudio';
+import { resolveLocal2DSpriteKey } from '../../utils/battleSettings';
 
 interface SwitchModalProps {
   party: Pokemon[];
@@ -80,7 +81,7 @@ export const SwitchModal: React.FC<SwitchModalProps> = ({
         const hpRowOffset = hpRatio <= 0.2 ? -16 : hpRatio <= 0.5 ? -8 : 0;
 
         const isFemale = pokemon.gender === 'F' || (!pokemon.gender && pokemon.name.length % 2 === 0);
-        const iconUrl = `${apiBaseUrl}/sprites/Graphics/Pokemon/Icons/${pokemon.species.toUpperCase()}.png`;
+        const iconUrl = `${apiBaseUrl}/sprites/Graphics/Pokemon/Icons/${resolveLocal2DSpriteKey(pokemon.species)}.png`;
 
         return (
           <button

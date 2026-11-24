@@ -1,29 +1,9 @@
 import { BattleState } from '../types/pokemon';
 import { SPRITE_CACHE } from '../components/battle/AnimatedPokemonSprite';
+import { resolveGbaMoveAnimation } from '../components/battle/gbaMoveAnimations';
 import { battleLogger } from './logger';
 import { getDuelSpriteMode, resolveLocal2DSpriteKey } from './battleSettings';
 import { toShowdownSlug } from './speciesToDex';
-
-const TYPE_TO_ANIMATION_FILE: Record<string, string> = {
-  NORMAL: 'normal.png',
-  FIRE: 'fire.png',
-  WATER: 'water.png',
-  ELECTRIC: 'electric.png',
-  GRASS: 'grass.png',
-  ICE: 'ice.png',
-  FIGHTING: 'fighting.png',
-  POISON: 'poison.png',
-  GROUND: 'ground.png',
-  FLYING: 'flying.png',
-  PSYCHIC: 'psychic.png',
-  BUG: 'bug.png',
-  ROCK: 'rock.png',
-  GHOST: 'dark.png',
-  DARK: 'dark.png',
-  DRAGON: 'dragon.png',
-  STEEL: 'steel.png',
-  FAIRY: 'fairy.png',
-};
 
 function preloadSingleImage(url: string, storeInSpriteCache = false): Promise<boolean> {
   if (storeInSpriteCache && SPRITE_CACHE.has(url)) {
@@ -31,7 +11,10 @@ function preloadSingleImage(url: string, storeInSpriteCache = false): Promise<bo
   }
   return new Promise((resolve) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    // Showdown CDN does not send CORS headers; only set crossOrigin for backend/local canvas sprites
+    if (!url.startsWith('https://play.pokemonshowdown.com')) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => {
       if (storeInSpriteCache) {
         SPRITE_CACHE.set(url, img);
@@ -47,9 +30,8 @@ function preloadSingleImage(url: string, storeInSpriteCache = false): Promise<bo
 }
 
 /**
- * Preloads ONLY the animated battle sprites (Back for player team, Front for opponent team,
- * Icons for player party) and ONLY the attack animation sheets needed for the moves
- * equipped on the exact Pokémon participating in this battle.
+ * Preloads ONLY the animated battle sprites (2D or 3D depending on active setting)
+ * and ONLY the GBA particle sheets needed for the moves equipped in this battle.
  */
 export async function preloadBattleAssets(
   state: BattleState,
@@ -71,7 +53,7 @@ export async function preloadBattleAssets(
 
   const duelMode = getDuelSpriteMode();
 
-  // 1. Only player team Back animated sprites + Party Icons
+  // 1. Player team Back animated sprites + Party Icons
   for (const pk of playerSide.team) {
     const sp = resolveLocal2DSpriteKey(pk.species);
     if (duelMode === '3d') {
@@ -82,7 +64,7 @@ export async function preloadBattleAssets(
     iconUrls.add(`${apiBase}/sprites/Graphics/Pokemon/Icons/${sp}.png`);
   }
 
-  // 2. Only opponent team Front animated sprites
+  // 2. Opponent team Front animated sprites
   for (const pk of opponentSide.team) {
     const sp = resolveLocal2DSpriteKey(pk.species);
     if (duelMode === '3d') {
@@ -92,37 +74,41 @@ export async function preloadBattleAssets(
     }
   }
 
-  // 3. Only attack animation sheets actually used by the moves of these Pokémon
+  // 3. GBA particle sheets actually used by the moves of these Pokémon
   const allBattlers = [...playerSide.team, ...opponentSide.team];
   for (const pk of allBattlers) {
     for (const move of pk.moves || []) {
-      const animFile = TYPE_TO_ANIMATION_FILE[move.type?.toUpperCase() || 'NORMAL'] || 'normal.png';
-      animUrls.add(`/battle-ui/animations/${animFile}`);
-      if (move.category === 'STATUS') {
-        animUrls.add('/battle-ui/animations/burst.png');
-      }
-      if (move.function_code && move.function_code.includes('Heal')) {
-        animUrls.add('/battle-ui/animations/heal.png');
+      const spec = resolveGbaMoveAnimation(move.name, move.type, move.category);
+      animUrls.add(`/battle-ui/gba-particles/${spec.particleTag}.png`);
+      if (spec.secondaryTag) {
+        animUrls.add(`/battle-ui/gba-particles/${spec.secondaryTag}.png`);
       }
     }
   }
 
   battleLogger.battle(
-    `Precargando SOLO los recursos de este duelo: ${battleSpriteUrls.size} sprites animados, ${iconUrls.size} iconos de equipo, ${animUrls.size} hojas de animación`,
+    `Precargando recursos del duelo (${duelMode.toUpperCase()}): ${battleSpriteUrls.size} sprites, ${iconUrls.size} iconos, ${animUrls.size} partículas GBA`,
     {
+      mode: duelMode,
       sprites: Array.from(battleSpriteUrls),
       animations: Array.from(animUrls),
     }
   );
 
-  // Prioritize active lead Pokémon sprites first, then the rest in parallel
-  const tasks: Promise<boolean>[] = [
-    ...Array.from(battleSpriteUrls).map((u) => preloadSingleImage(u, true)),
+  // Store local 2D sprites in SPRITE_CACHE; 3D GIFs use browser cache without crossOrigin
+  const storeSpritesInCache = duelMode === '2d';
+  const tasks = [
+    ...Array.from(battleSpriteUrls).map((u) => preloadSingleImage(u, storeSpritesInCache)),
     ...Array.from(iconUrls).map((u) => preloadSingleImage(u, false)),
     ...Array.from(animUrls).map((u) => preloadSingleImage(u, false)),
   ];
 
-  await Promise.all(tasks);
-  const elapsedMs = Math.round(performance.now() - t0);
-  battleLogger.battle(`Precarga del duelo completada en ${elapsedMs}ms`);
+  // Safety timeout (8s) so a flaky CDN image never freezes the loading screen forever
+  await Promise.race([
+    Promise.all(tasks),
+    new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+  ]);
+
+  const elapsed = Math.round(performance.now() - t0);
+  battleLogger.battle(`Precarga del duelo completada en ${elapsed}ms`);
 }
