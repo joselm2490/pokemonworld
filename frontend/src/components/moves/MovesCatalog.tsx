@@ -16,9 +16,10 @@ import { PokedexService } from '../../services/pokedexService';
 
 interface MovesCatalogProps {
   onBack: () => void;
+  embedded?: boolean;
 }
 
-export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack }) => {
+export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack, embedded = false }) => {
   const [moves, setMoves] = useState<StadiumMove[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
@@ -69,42 +70,199 @@ export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack }) => {
     };
   }, [query, selectedType, selectedClass, selectedGen]);
 
-  return (
-    <div className="min-h-screen bg-[#f2f4f7] text-slate-800 flex flex-col font-sans select-none">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 sm:px-6 shadow-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+  if (embedded && activeMove) {
+    return (
+      <div className="flex-1 flex flex-col overflow-hidden text-slate-800 font-sans select-none">
+        {/* Compact Light Header */}
+        <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-200 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
             <button
-              onClick={onBack}
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-all border border-slate-300 flex items-center gap-1.5 text-xs font-bold shadow-xs cursor-pointer"
+              type="button"
+              onClick={() => setActiveMove(null)}
+              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center gap-1 text-[11px] font-bold cursor-pointer shrink-0"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3.5 h-3.5" />
               <span>Volver</span>
             </button>
-            <div>
-              <h1 className="text-sm sm:text-base font-black tracking-wider uppercase flex items-center gap-2 text-slate-900">
-                <Zap className="w-4 h-4 text-amber-500" />
-                Catálogo Oficial de Movimientos
-              </h1>
-              <p className="text-[10px] text-slate-500">
-                953 Movimientos Oficiales (Gen 1 - Gen 9, Movimientos Z y Gigamax)
-              </p>
+            <div className="min-w-0">
+              <h2 className="text-xs sm:text-sm font-black uppercase text-slate-900 truncate">
+                {activeMove.nombre}
+              </h2>
+              <span className="text-[10px] text-slate-400 italic block truncate">
+                {activeMove.nombre_ingles} • Gen {activeMove.gen}
+              </span>
             </div>
           </div>
 
-          <div>
-            <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-              {totalCount} Movimientos
+          <div className="flex items-center gap-1 shrink-0">
+            <span
+              style={{ backgroundColor: activeMove.tipo_color }}
+              className="px-2 py-0.5 rounded-full text-[9px] font-bold text-white shadow-2xs uppercase"
+            >
+              {activeMove.tipo}
+            </span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                activeMove.clase === 'Físico'
+                  ? 'bg-red-100 text-red-700 border border-red-300'
+                  : activeMove.clase === 'Especial'
+                  ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                  : 'bg-slate-100 text-slate-700 border border-slate-300'
+              }`}
+            >
+              {activeMove.clase}
             </span>
           </div>
         </div>
-      </header>
+
+        {/* Scrollable Detail Content */}
+        <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-3">
+          <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200 text-center">
+            <div className="bg-white p-2 rounded-xl border border-slate-200">
+              <span className="text-[9px] text-slate-400 block uppercase font-bold">Potencia</span>
+              <span className="font-black text-amber-600 text-sm">
+                {activeMove.potencia ?? activeMove.potencia_texto ?? '-'}
+              </span>
+            </div>
+            <div className="bg-white p-2 rounded-xl border border-slate-200">
+              <span className="text-[9px] text-slate-400 block uppercase font-bold">Precisión</span>
+              <span className="font-black text-slate-900 text-sm">
+                {activeMove.precision ? `${activeMove.precision}%` : activeMove.precision_texto ?? '-'}
+              </span>
+            </div>
+            <div className="bg-white p-2 rounded-xl border border-slate-200">
+              <span className="text-[9px] text-slate-400 block uppercase font-bold">PP</span>
+              <span className="font-black text-slate-700 text-sm">
+                {activeMove.pp ?? activeMove.pp_texto ?? '-'}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2">
+            <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider block">
+              Efecto en Combate
+            </span>
+            <p className="text-xs text-slate-700 leading-relaxed bg-white p-2.5 rounded-xl border border-slate-200">
+              {activeMove.descripcion || 'Sin descripción detallada.'}
+            </p>
+            {activeMove.efecto_secundario && (
+              <p className="text-[11px] text-slate-600 bg-white p-2 rounded-xl border border-slate-200">
+                <strong className="text-slate-900">Efecto Secundario:</strong> {activeMove.efecto_secundario} (Prob: {activeMove.probabilidad_efecto}%)
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+            <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-bold border border-slate-200">
+              Gen {activeMove.gen}
+            </span>
+            {activeMove.codigo && (
+              <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-mono border border-slate-200">
+                Cod: {activeMove.codigo}
+              </span>
+            )}
+            {activeMove.prioridad !== 0 && (
+              <span className="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg font-bold border border-purple-200">
+                Prioridad {activeMove.prioridad > 0 ? `+${activeMove.prioridad}` : activeMove.prioridad}
+              </span>
+            )}
+            {activeMove.contacto && (
+              <span className="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg font-semibold border border-amber-200">
+                Contacto físico
+              </span>
+            )}
+            {activeMove.es_gigamax && (
+              <span className="bg-rose-100 text-rose-700 border border-rose-300 px-2.5 py-1 rounded-lg font-bold">
+                GIGAMAX
+              </span>
+            )}
+            {activeMove.es_movimiento_z && (
+              <span className="bg-emerald-100 text-emerald-700 border border-emerald-300 px-2.5 py-1 rounded-lg font-bold">
+                MOVIMIENTO Z
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={
+        embedded
+          ? 'flex-1 flex flex-col overflow-hidden text-slate-800 font-sans select-none'
+          : 'min-h-screen bg-[#f2f4f7] text-slate-800 flex flex-col font-sans select-none'
+      }
+    >
+      {/* Header */}
+      {embedded ? (
+        <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-200 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center gap-1 text-[11px] font-bold cursor-pointer shrink-0"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Volver</span>
+            </button>
+            <h1 className="text-xs font-black tracking-wide uppercase flex items-center gap-1.5 text-slate-900 truncate">
+              <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span className="truncate">Movimientos</span>
+            </h1>
+          </div>
+          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 shrink-0">
+            {totalCount}
+          </span>
+        </div>
+      ) : (
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 sm:px-6 shadow-xs">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onBack}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-all border border-slate-300 flex items-center gap-1.5 text-xs font-bold shadow-xs cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Volver</span>
+              </button>
+              <div>
+                <h1 className="text-sm sm:text-base font-black tracking-wider uppercase flex items-center gap-2 text-slate-900">
+                  <Zap className="w-4 h-4 text-amber-500" />
+                  Catálogo Oficial de Movimientos
+                </h1>
+                <p className="text-[10px] text-slate-500">
+                  953 Movimientos Oficiales (Gen 1 - Gen 9, Movimientos Z y Gigamax)
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                {totalCount} Movimientos
+              </span>
+            </div>
+          </div>
+        </header>
+      )}
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto w-full p-4 sm:p-6 flex-1 flex flex-col gap-5">
+      <main
+        className={
+          embedded
+            ? 'flex-1 flex flex-col gap-2 overflow-hidden'
+            : 'max-w-7xl mx-auto w-full p-4 sm:p-6 flex-1 flex flex-col gap-5'
+        }
+      >
         {/* Filters Bar */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <section
+          className={
+            embedded
+              ? 'bg-slate-50 border border-slate-200 rounded-xl p-2 space-y-1.5 shrink-0'
+              : 'bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3'
+          }
+        >
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -120,7 +278,7 @@ export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack }) => {
           </div>
 
           {/* Quick Selectors */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+          <div className={`grid gap-1.5 text-[11px] ${embedded ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-3 gap-2 text-xs'}`}>
             {/* Type selector */}
             <select
               value={selectedType}
@@ -178,12 +336,20 @@ export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack }) => {
             <p className="text-slate-500 text-xs mt-1">Prueba con otros términos de búsqueda.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div
+            className={
+              embedded
+                ? 'flex-1 overflow-y-auto pr-1 custom-scrollbar grid grid-cols-1 gap-2 content-start'
+                : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'
+            }
+          >
             {moves.map((mv) => (
               <div
                 key={mv.id}
                 onClick={() => setActiveMove(mv)}
-                className="bg-white border border-slate-200 hover:border-amber-400 p-4 rounded-2xl flex flex-col justify-between gap-3 shadow-xs hover:shadow-md cursor-pointer transition-all hover:-translate-y-0.5"
+                className={`bg-white border border-slate-200 hover:border-amber-400 rounded-2xl flex flex-col justify-between shadow-xs hover:shadow-md cursor-pointer transition-all ${
+                  embedded ? 'p-3 gap-2' : 'p-4 gap-3 hover:-translate-y-0.5'
+                }`}
               >
                 {/* Header Move Card */}
                 <div className="flex items-start justify-between gap-2">
@@ -276,8 +442,8 @@ export const MovesCatalog: React.FC<MovesCatalogProps> = ({ onBack }) => {
         )}
       </main>
 
-      {/* Modal Single Move */}
-      {activeMove && (
+      {/* Modal Single Move (non-embedded mode) */}
+      {!embedded && activeMove && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-zinc-900 border-2 border-zinc-700 w-full max-w-md rounded-3xl p-5 shadow-2xl space-y-4">
             <div className="flex justify-between items-start">
