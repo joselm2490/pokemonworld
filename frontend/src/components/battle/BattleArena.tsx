@@ -335,6 +335,37 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                     <PokemonStatusCard pokemon={opponentActivePkmn} isPlayer={false} />
                   </div>
 
+                  {/* Opponent 6-Pokémon Party Pokéball Status Strip (below foe databox) */}
+                  <div
+                    className="absolute flex items-center gap-[2px] pointer-events-none pixelated"
+                    style={{ left: '8px', top: '100px', zIndex: 20 }}
+                  >
+                    {Array.from({ length: 6 }).map((_, idx) => {
+                      const foePkmn = opponentSide.team[idx];
+                      const iconSrc = !foePkmn
+                        ? '/battle-ui/ui/icon_ball_empty.png'
+                        : foePkmn.is_fainted || foePkmn.current_hp <= 0
+                        ? '/battle-ui/ui/icon_ball_faint.png'
+                        : '/battle-ui/ui/icon_ball.png';
+                      return (
+                        <img
+                          key={idx}
+                          src={iconSrc}
+                          alt={
+                            !foePkmn
+                              ? 'Vacío'
+                              : foePkmn.is_fainted || foePkmn.current_hp <= 0
+                              ? 'Debilitado'
+                              : 'Activo'
+                          }
+                          draggable={false}
+                          className="pixelated"
+                          style={{ width: '24px', height: '24px' }}
+                        />
+                      );
+                    })}
+                  </div>
+
                   {/* Official Player Databox (Bottom-Right, x:252 y:192) */}
                   <div
                     className="absolute"
@@ -343,15 +374,15 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                     <PokemonStatusCard pokemon={playerActivePkmn} isPlayer={true} />
                   </div>
 
-                  {/* Clickable Enhanced Battle UI Menu Prompts (menu_prompts.png at x:0 y:236) */}
+                  {/* Clickable Enhanced Battle UI Menu Prompt: INFO [A] only */}
                   {!isWaitingForTurn && !battleState.is_game_over && (
                     <div
-                      className="absolute pixelated"
+                      className="absolute pixelated overflow-hidden"
                       style={{
                         left: '0px',
-                        top: '236px',
+                        top: '262px',
                         width: '164px',
-                        height: '52px',
+                        height: '26px',
                         backgroundImage: 'url(/battle-ui/enhanced/menu_prompts.png)',
                         backgroundRepeat: 'no-repeat',
                         backgroundPosition: `0px ${showMoves ? -52 : 0}px`,
@@ -373,26 +404,6 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
                           style={{ left: '76px', top: '4px', fontSize: '20px' }}
                         >
                           A
-                        </span>
-                      </button>
-
-                      {/* Bottom prompt: BALL / MOVE [S] */}
-                      <button
-                        type="button"
-                        title={showMoves ? 'Inspeccionar detalles de ataque (S)' : 'Detalles de ataque en menú Lucha'}
-                        onClick={() => {
-                          if (showMoves) {
-                            battleAudio.playSE('decision', 0.45);
-                            setInfoMode('move');
-                          }
-                        }}
-                        className="absolute left-0 top-[26px] w-[110px] h-[26px] bg-transparent border-0 cursor-pointer"
-                      >
-                        <span
-                          className="absolute font-pkmn font-bold pkmn-text-key leading-none"
-                          style={{ left: '76px', top: '4px', fontSize: '20px' }}
-                        >
-                          S
                         </span>
                       </button>
                     </div>
