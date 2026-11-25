@@ -382,18 +382,26 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
         setActiveEffect(null);
       } else if (ev.type === 'STATUS') {
         setCurrentMessage(ev.message || '');
-        const statusTypeMap: Record<string, string> = {
-          PAR: 'ELECTRIC',
-          BRN: 'FIRE',
-          PSN: 'POISON',
-          TOX: 'POISON',
-          FRZ: 'ICE',
-          SLP: 'PSYCHIC',
-        };
-        triggerEffect('attack', ev.animation || 'burst', targetIsPlayer, {
-          moveType: statusTypeMap[ev.status || ''] || 'PSYCHIC',
-          category: 'STATUS',
-        });
+        const statusCode = (ev.status || '').toUpperCase();
+        if (statusCode === 'PAR') {
+          setActiveHitTarget(targetSide);
+          battleAudio.playSE('damage_weak', 0.6);
+          triggerEffect('paralyzed', 'electric', targetIsPlayer);
+        } else if (statusCode === 'SLP') {
+          battleAudio.playSE('party_switch', 0.5);
+          triggerEffect('sleep', 'psychic', targetIsPlayer);
+        } else {
+          const statusTypeMap: Record<string, string> = {
+            BRN: 'FIRE',
+            PSN: 'POISON',
+            TOX: 'POISON',
+            FRZ: 'ICE',
+          };
+          triggerEffect('attack', ev.animation || 'burst', targetIsPlayer, {
+            moveType: statusTypeMap[statusCode] || 'PSYCHIC',
+            category: 'STATUS',
+          });
+        }
         if (ev.status) {
           const newStatus = ev.status;
           patchLiveState((prev) => {
@@ -405,10 +413,25 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
           });
         }
         await delay(720);
+        setActiveHitTarget(null);
         setActiveEffect(null);
       } else if (ev.type === 'MISS' || ev.type === 'INFO') {
         setCurrentMessage(ev.message || '');
-        await delay(750);
+        const msgLower = (ev.message || '').toLowerCase();
+        if (msgLower.includes('paralizado y no se puede mover')) {
+          setActiveHitTarget(targetSide);
+          battleAudio.playSE('damage_weak', 0.55);
+          triggerEffect('paralyzed', 'electric', targetIsPlayer);
+          await delay(700);
+          setActiveHitTarget(null);
+          setActiveEffect(null);
+        } else if (msgLower.includes('profundamente dormido')) {
+          triggerEffect('sleep', 'psychic', targetIsPlayer);
+          await delay(700);
+          setActiveEffect(null);
+        } else {
+          await delay(750);
+        }
       } else if (ev.type === 'FAINT') {
         battleAudio.playSE('faint', 0.75);
         setCurrentMessage(ev.message || '¡El Pokémon se debilitó!');
