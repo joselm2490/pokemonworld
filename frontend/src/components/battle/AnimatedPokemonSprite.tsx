@@ -73,9 +73,11 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   const showdownRemoteUrl = `https://play.pokemonshowdown.com/sprites/ani${isBack ? '-back' : ''}/${showdownSlug}.gif`;
   const showdownFallbackUrl = `https://play.pokemonshowdown.com/sprites/gen5${isBack ? '-back' : ''}/${showdownSlug}.png`;
   const [showdownSrc, setShowdownSrc] = useState(showdownPrimaryUrl);
+  const [naturalSize3d, setNaturalSize3d] = useState<{ w: number; h: number } | null>(null);
 
   useEffect(() => {
     setShowdownSrc(showdownPrimaryUrl);
+    setNaturalSize3d(null);
     setHasError(false);
   }, [showdownPrimaryUrl, duelMode]);
 
@@ -285,6 +287,20 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
           src={showdownSrc}
           alt={species}
           draggable={false}
+          onLoad={(e) => {
+            const nw = e.currentTarget.naturalWidth;
+            const nh = e.currentTarget.naturalHeight;
+            if (nw > 0 && nh > 0) {
+              const factor = isBack ? 1.75 : 1.35;
+              const maxW = isBack ? 260 : 170;
+              const maxH = isBack ? 225 : 140;
+              const clampRatio = Math.min(1, maxW / (nw * factor), maxH / (nh * factor));
+              setNaturalSize3d({
+                w: Math.round(nw * factor * clampRatio),
+                h: Math.round(nh * factor * clampRatio),
+              });
+            }
+          }}
           onError={() => {
             if (showdownSrc === showdownPrimaryUrl) {
               setShowdownSrc(showdownRemoteUrl);
@@ -294,10 +310,11 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
               setHasError(true);
             }
           }}
-          style={{
-            width: `${Math.round(56 * scale)}px`,
-            height: `${Math.round(56 * scale)}px`,
-          }}
+          style={
+            naturalSize3d
+              ? { width: `${naturalSize3d.w}px`, height: `${naturalSize3d.h}px` }
+              : { maxWidth: isBack ? '260px' : '170px', maxHeight: isBack ? '225px' : '140px' }
+          }
           className={`relative z-10 object-contain object-bottom transition-transform duration-200 ${animationClass}`}
         />
       ) : !hasError ? (
