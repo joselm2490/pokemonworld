@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { resolveGbaMoveAnimation, GbaMoveAnimSpec } from './gbaMoveAnimations';
+import { resolveGbaMoveAnimation } from './gbaMoveAnimations';
 
 export interface ActiveEffect {
   id: number;
@@ -15,51 +15,163 @@ interface BattleEffectOverlayProps {
   effect: ActiveEffect | null;
 }
 
-// Module-level image cache so GBA particle sprites load once and render without flicker
-const particleImageCache = new Map<number, HTMLImageElement>();
-
-function getParticleImage(tag: number): HTMLImageElement {
-  const existing = particleImageCache.get(tag);
-  if (existing) return existing;
-  const img = new Image();
-  img.src = `/battle-ui/gba-particles/${tag}.png`;
-  particleImageCache.set(tag, img);
-  return img;
-}
-
-function drawParticleFrame(
+function drawGlowOrb(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
   x: number,
   y: number,
-  scale: number,
-  frameIdx: number,
-  spec?: Pick<GbaMoveAnimSpec, 'frameW' | 'frameH' | 'frames'>,
-  alpha = 1,
-  rotation = 0
+  radius: number,
+  color: string,
+  accent: string,
+  alpha = 1
 ) {
-  if (!img.complete || img.naturalWidth === 0) return;
-  // All gba-particles/*.png are 4x Scale2x HD upscaled
-  const HD_FACTOR = 4;
-  const fw = spec?.frameW ? spec.frameW * HD_FACTOR : img.naturalWidth;
-  const fh = spec?.frameH ? spec.frameH * HD_FACTOR : Math.min(img.naturalWidth, img.naturalHeight);
-  const cols = Math.max(1, Math.floor(img.naturalWidth / fw));
-  const rows = Math.max(1, Math.floor(img.naturalHeight / fh));
-  const totalFrames = spec?.frames || cols * rows;
-  const idx = ((frameIdx % totalFrames) + totalFrames) % totalFrames;
-  const sx = (idx % cols) * fw;
-  const sy = Math.floor(idx / cols) * fh;
-
-  const dw = (fw / HD_FACTOR) * scale;
-  const dh = (fh / HD_FACTOR) * scale;
-
+  if (radius <= 0.5 || alpha <= 0.01) return;
   ctx.save();
   ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
+  ctx.globalCompositeOperation = 'lighter';
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+  grad.addColorStop(0, accent);
+  grad.addColorStop(0.35, color);
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawShockwaveRing(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  color: string,
+  accent: string,
+  lineWidth: number,
+  alpha: number
+) {
+  if (radius <= 1 || alpha <= 0.01) return;
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.shadowColor = accent;
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSlashArc(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  angle: number,
+  progress: number,
+  color: string,
+  accent: string
+) {
+  ctx.save();
   ctx.translate(x, y);
-  if (rotation !== 0) ctx.rotate(rotation);
-  ctx.drawImage(img, sx, sy, fw, fh, -dw / 2, -dh / 2, dw, dh);
+  ctx.rotate(angle);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = Math.sin(progress * Math.PI);
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 14;
+
+  const span = 54;
+  const tipX = -span + progress * span * 2;
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(tipX - 38, -14);
+  ctx.quadraticCurveTo(tipX - 8, 0, tipX, 14);
+  ctx.stroke();
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 8;
+  ctx.globalAlpha *= 0.55;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawLightningBolt(
+  ctx: CanvasRenderingContext2D,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  seed: number,
+  color: string,
+  accent: string,
+  alpha: number
+) {
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const steps = 9;
+  const pts: Array<[number, number]> = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const jitter = i === 0 || i === steps ? 0 : Math.sin(seed * 7.3 + i * 3.1) * 18;
+    pts.push([x1 + (x2 - x1) * t + jitter, y1 + (y2 - y1) * t]);
+  }
+
+  // Outer electric glow
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 7;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 16;
+  ctx.beginPath();
+  pts.forEach(([px, py], idx) => (idx === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py)));
+  ctx.stroke();
+
+  // White-hot inner core
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2.5;
+  ctx.shadowBlur = 6;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawFangJaws(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  openDist: number,
+  color: string,
+  accent: string,
+  alpha: number
+) {
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 12;
+
+  const drawRow = (dir: -1 | 1, offsetY: number) => {
+    ctx.beginPath();
+    const teeth = [-26, -12, 0, 12, 26];
+    teeth.forEach((tx, idx) => {
+      const h = idx === 0 || idx === 4 ? 18 : 12;
+      ctx.moveTo(x + tx - 6, y + offsetY);
+      ctx.lineTo(x + tx, y + offsetY + dir * h);
+      ctx.lineTo(x + tx + 6, y + offsetY);
+    });
+    ctx.closePath();
+    ctx.fillStyle = accent;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  };
+
+  drawRow(1, -openDist - 12);
+  drawRow(-1, openDist + 12);
   ctx.restore();
 }
 
@@ -79,9 +191,9 @@ export const BattleEffectOverlay: React.FC<BattleEffectOverlayProps> = ({ effect
     let rafId = 0;
 
     const targetX = effect.targetIsPlayer ? 128 : 384;
-    const targetY = effect.targetIsPlayer ? 210 : 148;
+    const targetY = effect.targetIsPlayer ? 204 : 146;
     const attackerX = effect.targetIsPlayer ? 384 : 128;
-    const attackerY = effect.targetIsPlayer ? 148 : 210;
+    const attackerY = effect.targetIsPlayer ? 146 : 204;
 
     if (effect.kind === 'pokeball') {
       const ballImg = new Image();
@@ -149,207 +261,158 @@ export const BattleEffectOverlay: React.FC<BattleEffectOverlayProps> = ({ effect
       };
     }
 
-    // Authentic GBA / Radical Red Particle Animation Engine
+    // Modern HD Canvas 2D Battle VFX Engine (60 FPS glowing particles, beams, lightning & shockwaves)
     const spec = resolveGbaMoveAnimation(effect.moveName, effect.moveType, effect.category);
-    const primaryImg = getParticleImage(spec.particleTag);
-    const secondaryImg = spec.secondaryTag ? getParticleImage(spec.secondaryTag) : null;
-
-    const count = spec.count || 10;
-    const scale = spec.scale || 1.7;
-    const durationMs = 580;
+    const count = spec.count || 14;
+    const durationMs = 600;
     const startTime = performance.now();
 
-    const animateGbaMove = (now: number) => {
+    const animateHdVfx = (now: number) => {
       if (cancelled) return;
       const elapsed = now - startTime;
       const t = Math.min(1, elapsed / durationMs);
 
       ctx.clearRect(0, 0, 512, 288);
 
-      // GBA-style background screen tint / flash
-      if (spec.screenTint && t < 0.92) {
-        const tintAlpha = Math.sin(t * Math.PI);
+      // Subtle atmospheric screen flash/tint
+      if (spec.screenTint && t < 0.94) {
         ctx.save();
-        ctx.globalAlpha = tintAlpha;
+        ctx.globalAlpha = Math.sin(t * Math.PI);
         ctx.fillStyle = spec.screenTint;
         ctx.fillRect(0, 0, 512, 288);
         ctx.restore();
       }
 
-      const frameTick = Math.floor(elapsed / 55);
-
       if (spec.pattern === 'stream') {
+        // Charge flash on attacker
+        if (t < 0.35) {
+          drawGlowOrb(ctx, attackerX, attackerY, 26 * (1 - t / 0.35), spec.color, spec.accent, 0.8);
+        }
+        // Glowing projectile stream + trail
         for (let i = 0; i < count; i++) {
-          const delayT = (i / count) * 0.48;
-          const lt = (t - delayT) / 0.52;
+          const delayT = (i / count) * 0.45;
+          const lt = (t - delayT) / 0.55;
           if (lt < 0 || lt > 1) continue;
-          const wave = Math.sin(lt * Math.PI * 3 + i) * 7;
+          const wave = Math.sin(lt * Math.PI * 3 + i * 0.9) * 8;
           const px = attackerX + (targetX - attackerX) * lt + wave;
           const py = attackerY + (targetY - attackerY) * lt - wave * 0.5;
-          const fade = lt > 0.85 ? (1 - lt) / 0.15 : 1;
-          drawParticleFrame(ctx, primaryImg, px, py, scale, frameTick + i, spec, fade);
+          const rad = (14 + (i % 3) * 4) * (1 - lt * 0.25);
+          drawGlowOrb(ctx, px, py, rad, spec.color, spec.accent, 0.9);
         }
-        if (secondaryImg && t > 0.4) {
-          const bt = (t - 0.4) / 0.6;
-          for (let i = 0; i < 4; i++) {
-            const ang = (i * Math.PI) / 2 + bt * 2;
-            const dist = bt * 28;
-            drawParticleFrame(
-              ctx,
-              secondaryImg,
-              targetX + Math.cos(ang) * dist,
-              targetY + Math.sin(ang) * dist,
-              scale * 0.85,
-              frameTick + i,
-              undefined,
-              1 - bt
-            );
-          }
+        // Impact shockwave & sparks
+        if (t > 0.38) {
+          const bt = (t - 0.38) / 0.62;
+          drawShockwaveRing(ctx, targetX, targetY, 10 + bt * 56, spec.color, spec.accent, 4 * (1 - bt), 1 - bt);
+          drawGlowOrb(ctx, targetX, targetY, 44 * (1 - bt * 0.5), spec.color, spec.accent, 1 - bt);
         }
       } else if (spec.pattern === 'drain') {
         for (let i = 0; i < count; i++) {
           const delayT = (i / count) * 0.45;
           const lt = (t - delayT) / 0.55;
           if (lt < 0 || lt > 1) continue;
-          const arc = Math.sin(lt * Math.PI) * 26;
+          const arc = Math.sin(lt * Math.PI) * 32;
           const px = targetX + (attackerX - targetX) * lt;
           const py = targetY + (attackerY - targetY) * lt - arc;
-          drawParticleFrame(ctx, primaryImg, px, py, scale, frameTick + i, spec, 1 - lt * 0.25);
+          drawGlowOrb(ctx, px, py, 14, spec.color, spec.accent, 0.9);
+        }
+        if (t > 0.5) {
+          const bt = (t - 0.5) / 0.5;
+          drawShockwaveRing(ctx, attackerX, attackerY, 10 + bt * 42, spec.color, spec.accent, 3, 1 - bt);
         }
       } else if (spec.pattern === 'sky_strike') {
-        for (let i = 0; i < count; i++) {
-          const delayT = (i / count) * 0.4;
-          const lt = (t - delayT) / 0.6;
-          if (lt < 0 || lt > 1) continue;
-          const offsetX = ((i % 5) - 2) * 18;
-          const startY = Math.max(-20, targetY - 140);
-          const py = startY + (targetY - startY) * Math.min(1, lt * 1.35);
-          const fade = lt > 0.8 ? (1 - lt) / 0.2 : 1;
-          drawParticleFrame(ctx, primaryImg, targetX + offsetX, py, scale, frameTick + i, spec, fade);
-        }
-        if (secondaryImg && t > 0.25) {
-          const bt = (t - 0.25) / 0.75;
-          for (let i = 0; i < 6; i++) {
-            const ang = (i * Math.PI) / 3 + bt * 1.5;
-            const dist = bt * 38;
-            drawParticleFrame(
-              ctx,
-              secondaryImg,
-              targetX + Math.cos(ang) * dist,
-              targetY + Math.sin(ang) * dist,
-              scale * 0.8,
-              frameTick + i,
-              undefined,
-              1 - bt
-            );
+        if (spec.style === 'bolt') {
+          const flicker = Math.sin(t * Math.PI * 10) > -0.4 ? 1 : 0.35;
+          drawLightningBolt(ctx, targetX - 18, 0, targetX, targetY, Math.floor(elapsed / 50), spec.color, spec.accent, (1 - t * 0.4) * flicker);
+          drawLightningBolt(ctx, targetX + 20, 0, targetX + 4, targetY + 6, Math.floor(elapsed / 40) + 3, spec.color, spec.accent, (1 - t * 0.5) * flicker);
+          drawShockwaveRing(ctx, targetX, targetY, 12 + t * 60, spec.color, spec.accent, 4 * (1 - t), 1 - t);
+          drawGlowOrb(ctx, targetX, targetY, 48 * Math.sin(t * Math.PI), spec.color, spec.accent, 0.95);
+        } else {
+          for (let i = 0; i < count; i++) {
+            const delayT = (i / count) * 0.45;
+            const lt = (t - delayT) / 0.55;
+            if (lt < 0 || lt > 1) continue;
+            const ox = ((i % 5) - 2) * 20;
+            const sy = Math.max(-20, targetY - 145);
+            const py = sy + (targetY - sy) * Math.min(1, lt * 1.3);
+            drawGlowOrb(ctx, targetX + ox, py, 16, spec.color, spec.accent, 1 - lt * 0.3);
+            if (lt > 0.65) {
+              const bt = (lt - 0.65) / 0.35;
+              drawShockwaveRing(ctx, targetX + ox, targetY, bt * 28, spec.color, spec.accent, 2.5, 1 - bt);
+            }
           }
         }
       } else if (spec.pattern === 'slash_claw') {
-        const cuts = Math.min(4, Math.max(2, Math.floor(count / 2)));
+        const cuts = 3;
         for (let i = 0; i < cuts; i++) {
-          const delayT = i * 0.16;
-          const lt = (t - delayT) / 0.55;
+          const lt = (t - i * 0.16) / 0.55;
           if (lt < 0 || lt > 1) continue;
-          const ox = (i % 2 === 0 ? -1 : 1) * (1 - lt) * 18;
-          const oy = -18 + lt * 36;
-          const rot = i % 2 === 0 ? -0.35 : 0.35;
-          drawParticleFrame(ctx, primaryImg, targetX + ox, targetY + oy, scale, Math.floor(lt * 4), spec, 1 - lt * 0.3, rot);
+          const ang = i === 0 ? -0.65 : i === 1 ? 0.65 : 0;
+          drawSlashArc(ctx, targetX, targetY, ang, lt, spec.color, spec.accent);
         }
-        if (secondaryImg && t > 0.2) {
-          drawParticleFrame(ctx, secondaryImg, targetX, targetY, scale * 0.9, frameTick, undefined, 1 - t);
-        }
+        drawShockwaveRing(ctx, targetX, targetY, 8 + t * 52, spec.color, spec.accent, 3 * (1 - t), 1 - t);
       } else if (spec.pattern === 'bite_fang') {
         const snap = t < 0.45 ? t / 0.45 : 1;
-        const openDist = (1 - Math.sin(snap * (Math.PI / 2))) * 34;
+        const openDist = (1 - Math.sin(snap * (Math.PI / 2))) * 32;
         const fade = t > 0.75 ? (1 - t) / 0.25 : 1;
-        // Top & bottom jaw snap
-        drawParticleFrame(ctx, primaryImg, targetX, targetY - openDist - 8, scale, 0, spec, fade);
-        drawParticleFrame(ctx, primaryImg, targetX, targetY + openDist + 8, scale, 1, spec, fade, Math.PI);
-        if (secondaryImg && t > 0.35) {
+        drawFangJaws(ctx, targetX, targetY, openDist, spec.color, spec.accent, fade);
+        if (t > 0.35) {
           const bt = (t - 0.35) / 0.65;
-          for (let i = 0; i < 4; i++) {
-            const ang = (i * Math.PI) / 2 + bt;
-            drawParticleFrame(
-              ctx,
-              secondaryImg,
-              targetX + Math.cos(ang) * bt * 34,
-              targetY + Math.sin(ang) * bt * 34,
-              scale * 0.75,
-              frameTick + i,
-              undefined,
-              1 - bt
-            );
-          }
+          drawShockwaveRing(ctx, targetX, targetY, 8 + bt * 58, spec.color, spec.accent, 4 * (1 - bt), 1 - bt);
+          drawGlowOrb(ctx, targetX, targetY, 42 * (1 - bt), spec.color, spec.accent, 0.9 * (1 - bt));
         }
       } else if (spec.pattern === 'punch_impact') {
-        const hits = Math.min(4, Math.max(2, Math.floor(count / 2)));
+        const hits = 3;
         for (let i = 0; i < hits; i++) {
-          const delayT = i * 0.14;
-          const lt = (t - delayT) / 0.48;
+          const lt = (t - i * 0.16) / 0.55;
           if (lt < 0 || lt > 1) continue;
-          const ox = ((i % 2 === 0 ? -1 : 1) * 16) * (1 - lt * 0.5);
-          const oy = (i < 2 ? -10 : 10) * (1 - lt * 0.5);
-          const popScale = scale * (0.85 + Math.sin(lt * Math.PI) * 0.35);
-          drawParticleFrame(ctx, primaryImg, targetX + ox, targetY + oy, popScale, frameTick + i, spec, 1 - lt * 0.35);
-        }
-        if (secondaryImg && t > 0.2) {
-          const bt = (t - 0.2) / 0.8;
-          for (let i = 0; i < 6; i++) {
-            const ang = (i * Math.PI) / 3 + bt * 1.8;
-            drawParticleFrame(
-              ctx,
-              secondaryImg,
-              targetX + Math.cos(ang) * bt * 40,
-              targetY + Math.sin(ang) * bt * 40,
-              scale * 0.75,
-              frameTick + i,
-              undefined,
-              1 - bt
-            );
-          }
+          const ox = (i - 1) * 18;
+          const oy = i === 1 ? -12 : 8;
+          drawGlowOrb(ctx, targetX + ox, targetY + oy, 36 * (1 - lt * 0.4), spec.color, spec.accent, 1 - lt);
+          drawShockwaveRing(ctx, targetX + ox, targetY + oy, 10 + lt * 46, spec.color, spec.accent, 3.5 * (1 - lt), 1 - lt);
         }
       } else if (spec.pattern === 'wave_surge') {
         for (let i = 0; i < count; i++) {
-          const lt = Math.min(1, Math.max(0, (t - (i / count) * 0.3) / 0.7));
+          const lt = Math.min(1, Math.max(0, (t - (i / count) * 0.25) / 0.75));
           if (lt <= 0) continue;
-          const spreadX = ((i / (count - 1 || 1)) - 0.5) * 110;
-          const riseY = Math.sin(lt * Math.PI) * 32;
-          drawParticleFrame(ctx, primaryImg, targetX + spreadX, targetY + 18 - riseY, scale, frameTick + i, spec, 1 - lt * 0.4);
+          const sx = ((i / (count - 1 || 1)) - 0.5) * 120;
+          const ry = Math.sin(lt * Math.PI) * 38;
+          drawGlowOrb(ctx, targetX + sx, targetY + 18 - ry, 18, spec.color, spec.accent, 0.85 * (1 - lt * 0.35));
         }
+        drawShockwaveRing(ctx, targetX, targetY, 15 + t * 65, spec.color, spec.accent, 4 * (1 - t), 1 - t);
       } else if (spec.pattern === 'burst_explosion') {
+        drawGlowOrb(ctx, targetX, targetY, 64 * Math.sin(t * Math.PI), spec.color, spec.accent, 1);
+        drawShockwaveRing(ctx, targetX, targetY, 10 + t * 76, spec.color, spec.accent, 5 * (1 - t), 1 - t);
         for (let i = 0; i < count; i++) {
-          const ang = (i * Math.PI * 2) / count + t * 1.4;
-          const dist = t * 56;
-          const px = targetX + Math.cos(ang) * dist;
-          const py = targetY + Math.sin(ang) * dist;
-          drawParticleFrame(ctx, primaryImg, px, py, scale * (1 - t * 0.2), frameTick + i, spec, 1 - t * 0.75);
-        }
-        if (secondaryImg && t < 0.7) {
-          drawParticleFrame(ctx, secondaryImg, targetX, targetY, scale * 1.2, frameTick, undefined, 1 - t / 0.7);
+          const ang = (i * Math.PI * 2) / count + t * 1.2;
+          const dist = t * 68;
+          drawGlowOrb(ctx, targetX + Math.cos(ang) * dist, targetY + Math.sin(ang) * dist, 14 * (1 - t * 0.5), spec.color, spec.accent, 1 - t);
         }
       } else {
         // orbit_aura
-        for (let i = 0; i < count; i++) {
-          const ang = (i * Math.PI * 2) / count + t * Math.PI * 2.2;
-          const radius = 32 - t * 8;
-          const rise = t * 28;
-          const px = targetX + Math.cos(ang) * radius;
-          const py = targetY + Math.sin(ang) * (radius * 0.55) - rise;
-          drawParticleFrame(ctx, primaryImg, px, py, scale, frameTick + i, spec, 1 - Math.max(0, t - 0.7) / 0.3);
-        }
-        if (secondaryImg) {
-          drawParticleFrame(ctx, secondaryImg, targetX, targetY - t * 14, scale * 0.9, frameTick, undefined, 1 - t * 0.6);
+        if (spec.style === 'shield') {
+          drawShockwaveRing(ctx, targetX, targetY, 44, spec.color, spec.accent, 4, Math.sin(t * Math.PI));
+          drawGlowOrb(ctx, targetX, targetY, 50, spec.color, spec.accent, 0.35 * Math.sin(t * Math.PI));
+        } else {
+          for (let i = 0; i < count; i++) {
+            const ang = (i * Math.PI * 2) / count + t * Math.PI * 2.4;
+            const radius = 36 - t * 8;
+            const rise = t * 32;
+            const px = targetX + Math.cos(ang) * radius;
+            const py = targetY + Math.sin(ang) * (radius * 0.55) - rise;
+            drawGlowOrb(ctx, px, py, 12, spec.color, spec.accent, 0.9 * (1 - Math.max(0, t - 0.7) / 0.3));
+          }
+          drawShockwaveRing(ctx, targetX, targetY - t * 18, 16 + t * 34, spec.color, spec.accent, 2.5, 1 - t);
         }
       }
 
       if (t < 1) {
-        rafId = requestAnimationFrame(animateGbaMove);
+        rafId = requestAnimationFrame(animateHdVfx);
       } else {
         ctx.clearRect(0, 0, 512, 288);
       }
     };
 
-    rafId = requestAnimationFrame(animateGbaMove);
+    rafId = requestAnimationFrame(animateHdVfx);
 
     return () => {
       cancelled = true;
@@ -363,7 +426,7 @@ export const BattleEffectOverlay: React.FC<BattleEffectOverlayProps> = ({ effect
       ref={canvasRef}
       width={512}
       height={288}
-      className="absolute left-0 top-0 pointer-events-none pixelated"
+      className="absolute left-0 top-0 pointer-events-none"
       style={{ zIndex: 25 }}
     />
   );

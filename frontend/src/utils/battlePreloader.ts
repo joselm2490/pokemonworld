@@ -1,6 +1,5 @@
 import { BattleState } from '../types/pokemon';
 import { SPRITE_CACHE } from '../components/battle/AnimatedPokemonSprite';
-import { resolveGbaMoveAnimation } from '../components/battle/gbaMoveAnimations';
 import { battleLogger } from './logger';
 import { getDuelSpriteMode, resolveLocal2DSpriteKey } from './battleSettings';
 import { toShowdownSlug } from './speciesToDex';
@@ -95,18 +94,6 @@ export async function preloadBattleAssets(
     }
   }
 
-  // 3. GBA particle sheets actually used by the moves of all 12 Pokémon
-  const allBattlers = [...playerSide.team, ...opponentSide.team];
-  for (const pk of allBattlers) {
-    for (const move of pk.moves || []) {
-      const spec = resolveGbaMoveAnimation(move.name, move.type, move.category);
-      animUrls.add(`/battle-ui/gba-particles/${spec.particleTag}.png`);
-      if (spec.secondaryTag) {
-        animUrls.add(`/battle-ui/gba-particles/${spec.secondaryTag}.png`);
-      }
-    }
-  }
-
   // Deduplicate sprite URLs
   const uniqueSprites = new Map<string, string | undefined>();
   for (const entry of spriteEntries) {
@@ -115,12 +102,12 @@ export async function preloadBattleAssets(
     }
   }
 
+  // 3. Pokéball throw/burst sprites (move VFX are procedural HD Canvas 2D with zero asset latency)
   battleLogger.battle(
-    `Precargando TODOS los recursos del duelo (${duelMode.toUpperCase()}): ${uniqueSprites.size} sprites (6 tuyos + 6 rival), ${iconUrls.size} iconos, ${animUrls.size} partículas GBA`,
+    `Precargando TODOS los recursos del duelo (${duelMode.toUpperCase()}): ${uniqueSprites.size} sprites (6 tuyos + 6 rival), ${iconUrls.size} iconos`,
     {
       mode: duelMode,
       sprites: Array.from(uniqueSprites.keys()),
-      animations: Array.from(animUrls),
     }
   );
 
