@@ -69,7 +69,8 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
   const cleanSpecies = resolveLocal2DSpriteKey(species);
   const use3dSprite = duelMode === '3d';
   const showdownSlug = toShowdownSlug(species);
-  const showdownPrimaryUrl = `https://play.pokemonshowdown.com/sprites/ani${isBack ? '-back' : ''}/${showdownSlug}.gif`;
+  const showdownPrimaryUrl = `/sprites-3d/${isBack ? 'back' : 'front'}/${showdownSlug}.gif`;
+  const showdownRemoteUrl = `https://play.pokemonshowdown.com/sprites/ani${isBack ? '-back' : ''}/${showdownSlug}.gif`;
   const showdownFallbackUrl = `https://play.pokemonshowdown.com/sprites/gen5${isBack ? '-back' : ''}/${showdownSlug}.png`;
   const [showdownSrc, setShowdownSrc] = useState(showdownPrimaryUrl);
 
@@ -285,7 +286,9 @@ export const AnimatedPokemonSprite: React.FC<AnimatedPokemonSpriteProps> = ({
           alt={species}
           draggable={false}
           onError={() => {
-            if (showdownSrc !== showdownFallbackUrl) {
+            if (showdownSrc === showdownPrimaryUrl) {
+              setShowdownSrc(showdownRemoteUrl);
+            } else if (showdownSrc === showdownRemoteUrl) {
               setShowdownSrc(showdownFallbackUrl);
             } else {
               setHasError(true);

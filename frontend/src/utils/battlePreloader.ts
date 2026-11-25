@@ -68,7 +68,7 @@ export async function preloadBattleAssets(
     const slug = toShowdownSlug(pk.species);
     if (duelMode === '3d') {
       spriteEntries.push({
-        url: `https://play.pokemonshowdown.com/sprites/ani-back/${slug}.gif`,
+        url: `/sprites-3d/back/${slug}.gif`,
         fallback: `https://play.pokemonshowdown.com/sprites/gen5-back/${slug}.png`,
       });
     } else {
@@ -85,7 +85,7 @@ export async function preloadBattleAssets(
     const slug = toShowdownSlug(pk.species);
     if (duelMode === '3d') {
       spriteEntries.push({
-        url: `https://play.pokemonshowdown.com/sprites/ani/${slug}.gif`,
+        url: `/sprites-3d/front/${slug}.gif`,
         fallback: `https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`,
       });
     } else {
