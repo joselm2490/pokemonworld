@@ -234,7 +234,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
     kind: ActiveEffect['kind'],
     sheet: string,
     targetIsPlayer: boolean,
-    moveMeta?: { moveName?: string; moveType?: string; category?: string }
+    moveMeta?: { moveName?: string; moveType?: string; category?: string; statLabel?: string }
   ) => {
     effectCounterRef.current += 1;
     setActiveEffect({
@@ -244,6 +244,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
       moveName: moveMeta?.moveName,
       moveType: moveMeta?.moveType,
       category: moveMeta?.category,
+      statLabel: moveMeta?.statLabel,
       targetIsPlayer,
     });
   };
@@ -291,10 +292,15 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
           ev.category === 'STATUS'
             ? 'burst'
             : (ev.move_type || 'NORMAL').toLowerCase();
-        const animTargetIsPlayer =
-          ev.category === 'STATUS'
-            ? ev.actor === playerRoleRef.current
-            : targetIsPlayer;
+        const moveNorm = (ev.move || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const isSelfStatus =
+          ev.category === 'STATUS' &&
+          /(dance|danza|calm|paz|bulk|corpulencia|iron defense|defensa ferrea|defense curl|rizo defensa|harden|fortaleza|withdraw|refugio|acid armor|armadura acida|amnesia|agility|agilidad|rock polish|pulimento|quiver|aleteo|shell smash|rompecoraza|coil|enrosque|nasty plot|maquinacion|work up|avivar|recover|recuperacion|roost|respiro|synthesis|sintesis|moonlight|luz lunar|morning sun|sol matinal|soft|amortiguador|slack|relajo|rest|descanso|protect|proteccion|detection|deteccion|screen|pantalla|reflect|reflejo|veil|velo|tailwind|viento afin)/.test(
+            moveNorm
+          );
+        const animTargetIsPlayer = isSelfStatus
+          ? ev.actor === playerRoleRef.current
+          : targetIsPlayer;
         triggerEffect('attack', sheetKey, animTargetIsPlayer, {
           moveName: ev.move,
           moveType: ev.move_type,
@@ -357,7 +363,21 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
       } else if (ev.type === 'STAT_CHANGE') {
         setCurrentMessage(ev.message || '');
         const isUp = (ev.delta ?? 1) >= 0;
-        triggerEffect(isUp ? 'stat_up' : 'stat_down', ev.animation || 'burst', targetIsPlayer);
+        const statShortMap: Record<string, string> = {
+          atk: 'ATK',
+          def: 'DEF',
+          spa: 'AT.ESP',
+          spd: 'DEF.ESP',
+          spe: 'VEL',
+          accuracy: 'PREC',
+          evasion: 'EVA',
+        };
+        const statKey = (ev.stat || '').toLowerCase();
+        const statText = `${statShortMap[statKey] || statKey.toUpperCase() || 'STAT'} ${isUp ? '▲' : '▼'}`;
+        battleAudio.playSE(isUp ? 'party_switch' : 'damage_weak', 0.55);
+        triggerEffect(isUp ? 'stat_up' : 'stat_down', ev.animation || 'burst', targetIsPlayer, {
+          statLabel: statText,
+        });
         await delay(720);
         setActiveEffect(null);
       } else if (ev.type === 'STATUS') {

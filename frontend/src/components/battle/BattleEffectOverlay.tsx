@@ -8,6 +8,7 @@ export interface ActiveEffect {
   moveName?: string;
   moveType?: string;
   category?: string;
+  statLabel?: string;
   targetIsPlayer: boolean;
 }
 
@@ -340,20 +341,33 @@ export const BattleEffectOverlay: React.FC<BattleEffectOverlayProps> = ({ effect
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
-        const chevrons = [-28, 0, 28];
+        const chevrons = [-30, 0, 30];
         chevrons.forEach((ox, idx) => {
-          const phase = (t * 1.4 + idx * 0.22) % 1;
+          const phase = (t * 1.5 + idx * 0.22) % 1;
           const cy = isUp
-            ? targetY + 22 - phase * 64
-            : targetY - 42 + phase * 64;
+            ? targetY + 24 - phase * 68
+            : targetY - 44 + phase * 68;
           const dir = isUp ? 1 : -1;
           ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.95;
           ctx.beginPath();
-          ctx.moveTo(targetX + ox - 9, cy + dir * 7);
+          ctx.moveTo(targetX + ox - 10, cy + dir * 8);
           ctx.lineTo(targetX + ox, cy);
-          ctx.lineTo(targetX + ox + 9, cy + dir * 7);
+          ctx.lineTo(targetX + ox + 10, cy + dir * 8);
           ctx.stroke();
         });
+
+        // Floating stat badge (e.g. "DEF ▲" or "ATK ▼")
+        if (effect.statLabel) {
+          const floatY = isUp ? targetY - 36 - t * 22 : targetY - 56 + t * 22;
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = Math.sin(t * Math.PI);
+          ctx.font = 'bold 13px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = isUp ? '#0f172a' : '#450a0a';
+          ctx.fillText(effect.statLabel, targetX + 1, floatY + 1);
+          ctx.fillStyle = accent;
+          ctx.fillText(effect.statLabel, targetX, floatY);
+        }
         ctx.restore();
 
         if (t < 1) {
