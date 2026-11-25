@@ -116,36 +116,40 @@ export const SwitchModal: React.FC<SwitchModalProps> = ({
               <div
                 className="grid items-center gap-1.5 px-2.5 py-1.5"
                 style={{
-                  gridTemplateColumns: '68px 1fr',
+                  gridTemplateColumns: '72px 1fr',
                   height: '84px',
                   background: innerBg,
                   clipPath: 'polygon(11px 0, 100% 0, 100% 100%, 0 100%, 0 11px)',
                   boxShadow: innerShadow,
                 }}
               >
-                {/* Left Column: Pokéball Watermark + 3D Icon + OUT + Level */}
+                {/* Left Column: Bright White Pokéball Circle + Larger 3D Icon + OUT + Level */}
                 <div className="relative flex flex-col items-center justify-between h-full">
                   <div
-                    className="absolute top-0.5 w-12 h-12 rounded-full pointer-events-none"
+                    className="relative w-[60px] h-[60px] rounded-full flex items-center justify-center -mt-0.5 shadow-inner overflow-hidden"
                     style={{
-                      background:
-                        'radial-gradient(circle, transparent 8px, rgba(255, 255, 255, 0.14) 9px, rgba(255, 255, 255, 0.14) 100%)',
+                      background: isFainted
+                        ? 'rgba(255, 225, 225, 0.72)'
+                        : 'rgba(255, 255, 255, 0.92)',
+                      border: '2px solid rgba(255, 255, 255, 0.98)',
                     }}
                   >
-                    <div className="absolute top-1/2 left-0 right-0 h-[3px] -translate-y-1/2 bg-black/15" />
-                  </div>
+                    {/* Subtle Pokéball horizontal belt & center ring */}
+                    <div className="absolute top-1/2 left-0 right-0 h-[3px] -translate-y-1/2 bg-slate-900/15 pointer-events-none" />
+                    <div className="absolute w-4 h-4 rounded-full border-2 border-slate-900/15 bg-white/80 pointer-events-none" />
 
-                  <div
-                    className="relative z-10 w-13 h-13 flex items-center justify-center -mt-0.5"
-                    style={{
-                      filter: isFainted ? 'grayscale(0.55) brightness(0.85)' : 'none',
-                    }}
-                  >
-                    <StaticPokemonImage
-                      species={pokemon.species}
-                      alt={pokemon.name}
-                      className="w-12 h-12 object-contain drop-shadow-sm"
-                    />
+                    <div
+                      className="relative z-10 w-[56px] h-[56px] flex items-center justify-center"
+                      style={{
+                        filter: isFainted ? 'grayscale(0.65) brightness(0.85)' : 'none',
+                      }}
+                    >
+                      <StaticPokemonImage
+                        species={pokemon.species}
+                        alt={pokemon.name}
+                        className="w-[54px] h-[54px] object-contain drop-shadow-sm"
+                      />
+                    </div>
                   </div>
 
                   {isActive && (
