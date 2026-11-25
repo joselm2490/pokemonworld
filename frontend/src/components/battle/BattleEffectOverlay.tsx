@@ -39,8 +39,10 @@ function drawParticleFrame(
   rotation = 0
 ) {
   if (!img.complete || img.naturalWidth === 0) return;
-  const fw = spec?.frameW || img.naturalWidth;
-  const fh = spec?.frameH || Math.min(img.naturalWidth, img.naturalHeight);
+  // All gba-particles/*.png are 4x Scale2x HD upscaled
+  const HD_FACTOR = 4;
+  const fw = spec?.frameW ? spec.frameW * HD_FACTOR : img.naturalWidth;
+  const fh = spec?.frameH ? spec.frameH * HD_FACTOR : Math.min(img.naturalWidth, img.naturalHeight);
   const cols = Math.max(1, Math.floor(img.naturalWidth / fw));
   const rows = Math.max(1, Math.floor(img.naturalHeight / fh));
   const totalFrames = spec?.frames || cols * rows;
@@ -48,12 +50,13 @@ function drawParticleFrame(
   const sx = (idx % cols) * fw;
   const sy = Math.floor(idx / cols) * fh;
 
-  const dw = fw * scale;
-  const dh = fh * scale;
+  const dw = (fw / HD_FACTOR) * scale;
+  const dh = (fh / HD_FACTOR) * scale;
 
   ctx.save();
   ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   ctx.translate(x, y);
   if (rotation !== 0) ctx.rotate(rotation);
   ctx.drawImage(img, sx, sy, fw, fh, -dw / 2, -dh / 2, dw, dh);

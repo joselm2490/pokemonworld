@@ -219,34 +219,126 @@ const TYPE_DEFAULTS: Record<string, { special: GbaMoveAnimSpec; physical: GbaMov
   },
 };
 
+const SPANISH_ALIASES: Record<string, string> = {
+  lanzallamas: 'flamethrower',
+  llamarada: 'fire blast',
+  ascuas: 'ember',
+  'envite igneo': 'flare blitz',
+  'puno fuego': 'fire punch',
+  'colmillo igneo': 'fire fang',
+  'fuego fatuo': 'will-o-wisp',
+  estallido: 'eruption',
+  'onda ignea': 'heat wave',
+  rayo: 'thunderbolt',
+  trueno: 'thunder',
+  'puno trueno': 'thunder punch',
+  'colmillo rayo': 'thunder fang',
+  'onda trueno': 'thunder wave',
+  chispa: 'spark',
+  hidrobomba: 'hydro pump',
+  'pistola agua': 'water gun',
+  escaldar: 'scald',
+  'rayo burbuja': 'bubble beam',
+  cascada: 'waterfall',
+  'rayo hielo': 'ice beam',
+  ventisca: 'blizzard',
+  'puno hielo': 'ice punch',
+  'colmillo hielo': 'ice fang',
+  'chuzos': 'icicle crash',
+  'canto helado': 'ice shard',
+  'rayo solar': 'solar beam',
+  energibola: 'energy ball',
+  'hoja afilada': 'razor leaf',
+  'hoja aguda': 'leaf blade',
+  gigadrenado: 'giga drain',
+  megadrenado: 'mega drain',
+  'danza petalo': 'petal dance',
+  'tormenta floral': 'petal blizzard',
+  sintesis: 'synthesis',
+  'bola sombra': 'shadow ball',
+  'garra umbria': 'shadow claw',
+  'pulso umbrio': 'dark pulse',
+  'tajo umbrio': 'night slash',
+  triturar: 'crunch',
+  mordisco: 'bite',
+  psiquico: 'psychic',
+  psicocarga: 'psyshock',
+  'paz mental': 'calm mind',
+  'fuerza lunar': 'moonblast',
+  'brillo magico': 'dazzling gleam',
+  carantona: 'play rough',
+  'cuerpo a cuerpo': 'close combat',
+  'esfera aural': 'aura sphere',
+  'onda certera': 'focus blast',
+  demolicion: 'brick break',
+  'ultrapuno': 'mach punch',
+  'espada santa': 'sacred sword',
+  'cometa draco': 'draco meteor',
+  'pulso dragon': 'dragon pulse',
+  'garra dragon': 'dragon claw',
+  'danza dragon': 'dragon dance',
+  terremoto: 'earthquake',
+  'tierra viva': 'earth power',
+  avalancha: 'rock slide',
+  'roca afilada': 'stone edge',
+  vendaval: 'hurricane',
+  'pajaro osado': 'brave bird',
+  'tajo aereo': 'air slash',
+  'tijera x': 'x-scissor',
+  'bomba lodo': 'sludge bomb',
+  lanzamugre: 'sludge bomb',
+  toxico: 'toxic',
+  'foco resplandor': 'flash cannon',
+  'danza espada': 'swords dance',
+  recuperacion: 'recover',
+  respiro: 'roost',
+  proteccion: 'protect',
+  'pantalla de luz': 'light screen',
+  reflejo: 'reflect',
+  hiperrayo: 'hyper beam',
+  rapidez: 'swift',
+  explosion: 'explosion',
+  cuchillada: 'slash',
+};
+
+function normalizeMoveKey(raw?: string): string {
+  return (raw || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ñ/g, 'n');
+}
+
 export function resolveGbaMoveAnimation(
   moveName?: string,
   moveType?: string,
   category?: string
 ): GbaMoveAnimSpec {
-  const name = (moveName || '').trim().toLowerCase();
+  const rawName = normalizeMoveKey(moveName);
+  const name = SPANISH_ALIASES[rawName] || rawName;
   if (name && ICONIC_MOVES[name]) {
     return ICONIC_MOVES[name];
   }
 
-  // Keyword heuristics for the rest of the 950+ moves
+  // Keyword heuristics for the rest of the 950+ moves (EN + ES)
   if (name) {
-    if (name.includes('punch') || name.includes('hammer') || name.includes('fist')) {
+    if (name.includes('punch') || name.includes('hammer') || name.includes('fist') || name.includes('puno') || name.includes('martillo')) {
       const base = TYPE_DEFAULTS[(moveType || 'NORMAL').toUpperCase()] || TYPE_DEFAULTS.NORMAL;
       return { ...base.physical, pattern: 'punch_impact', particleTag: 10055, secondaryTag: base.special.particleTag };
     }
-    if (name.includes('fang') || name.includes('bite') || name.includes('crunch')) {
+    if (name.includes('fang') || name.includes('bite') || name.includes('crunch') || name.includes('colmillo') || name.includes('mord')) {
       const base = TYPE_DEFAULTS[(moveType || 'NORMAL').toUpperCase()] || TYPE_DEFAULTS.NORMAL;
       return { pattern: 'bite_fang', particleTag: 10104, secondaryTag: base.special.particleTag, count: 6, scale: 1.9 };
     }
-    if (name.includes('claw') || name.includes('slash') || name.includes('cut') || name.includes('sword') || name.includes('blade')) {
-      return { pattern: 'slash_claw', particleTag: name.includes('sword') ? 10018 : 10215, secondaryTag: 10075, count: 6, scale: 2.0 };
+    if (name.includes('claw') || name.includes('slash') || name.includes('cut') || name.includes('sword') || name.includes('blade') || name.includes('garra') || name.includes('tajo') || name.includes('corte') || name.includes('espada')) {
+      return { pattern: 'slash_claw', particleTag: name.includes('sword') || name.includes('espada') ? 10018 : 10215, secondaryTag: 10075, count: 6, scale: 2.0 };
     }
-    if (name.includes('beam') || name.includes('pulse') || name.includes('ball') || name.includes('cannon') || name.includes('bomb')) {
+    if (name.includes('beam') || name.includes('pulse') || name.includes('ball') || name.includes('cannon') || name.includes('bomb') || name.includes('rayo') || name.includes('pulso') || name.includes('bola') || name.includes('canon') || name.includes('bomba')) {
       const base = TYPE_DEFAULTS[(moveType || 'NORMAL').toUpperCase()] || TYPE_DEFAULTS.NORMAL;
       return { ...base.special, pattern: 'stream' };
     }
-    if (name.includes('dance') || name.includes('heal') || name.includes('recover') || name.includes('wish') || name.includes('veil')) {
+    if (name.includes('dance') || name.includes('heal') || name.includes('recover') || name.includes('wish') || name.includes('veil') || name.includes('danza') || name.includes('cura') || name.includes('velo')) {
       return { pattern: 'orbit_aura', particleTag: 10031, secondaryTag: 10271, count: 10, scale: 1.6 };
     }
   }
