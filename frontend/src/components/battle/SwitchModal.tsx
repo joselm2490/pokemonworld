@@ -10,7 +10,17 @@ interface SwitchModalProps {
   onClose: () => void;
   onSelectPokemon: (index: number) => void;
   isForcedSwitch?: boolean;
+  apiBaseUrl?: string;
 }
+
+const STATUS_COLORS: Record<string, string> = {
+  PAR: 'bg-amber-400 text-zinc-950 border-amber-200',
+  BRN: 'bg-rose-600 text-white border-rose-300',
+  PSN: 'bg-purple-600 text-white border-purple-300',
+  TOX: 'bg-purple-700 text-white border-purple-300',
+  SLP: 'bg-slate-500 text-white border-slate-300',
+  FRZ: 'bg-cyan-400 text-zinc-950 border-cyan-200',
+};
 
 export const SwitchModal: React.FC<SwitchModalProps> = ({
   party,
@@ -20,271 +30,267 @@ export const SwitchModal: React.FC<SwitchModalProps> = ({
   onSelectPokemon,
   isForcedSwitch = false,
 }) => {
-  const [hoveredIdx, setHoveredIdx] = useState<number>(activeIndex);
-  const [cancelHover, setCancelHover] = useState(false);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   if (!isOpen) return null;
 
-  const apiBaseUrl = import.meta.env.VITE_BACKEND_API_URL || '';
-
   return (
     <div
-      className="absolute inset-0 select-none pixelated"
+      className="absolute inset-0 z-40 select-none overflow-hidden flex flex-col justify-between p-3"
       style={{
         width: '512px',
         height: '384px',
-        zIndex: 45,
-        backgroundImage: 'url(/battle-ui/party/bg.png)',
-        backgroundRepeat: 'no-repeat',
+        backgroundColor: '#125360',
+        backgroundImage:
+          'linear-gradient(180deg, rgba(13, 62, 74, 0.92) 0%, rgba(23, 118, 132, 0.92) 65%, rgba(36, 158, 170, 0.95) 100%), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)',
+        backgroundSize: '100% 100%, 24px 24px, 24px 24px',
       }}
     >
-      {/* 6 Official Party Panels (2 cols x 3 rows, right column offset +16px just like Essentials) */}
-      {Array.from({ length: 6 }).map((_, idx) => {
-        const col = idx % 2;
-        const row = Math.floor(idx / 2);
-        const left = col * 256;
-        const top = row * 96 + (col === 1 ? 16 : 0);
+      {/* 2-Column Staggered Party Grid */}
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 pt-0.5">
+        {party.slice(0, 6).map((pokemon, idx) => {
+          const isActive = idx === activeIndex;
+          const isFainted = pokemon.is_fainted || pokemon.current_hp <= 0;
+          const isHovered = hoveredIdx === idx && !isActive && !isFainted;
+          const isRightCol = idx % 2 === 1;
 
-        const pokemon = party[idx];
-        if (!pokemon) {
+          const hpRatio = Math.max(0, Math.min(1, pokemon.current_hp / Math.max(1, pokemon.max_hp)));
+          const hpPercent = Math.round(hpRatio * 100);
+          const hpGradient =
+            hpRatio <= 0.2
+              ? 'linear-gradient(180deg, #ff8787 0%, #e03131 100%)'
+              : hpRatio <= 0.5
+              ? 'linear-gradient(180deg, #ffd43b 0%, #f08c00 100%)'
+              : 'linear-gradient(180deg, #69db7c 0%, #37b24d 100%)';
+
+          const isFemale = pokemon.gender === 'F' || (!pokemon.gender && pokemon.name.length % 2 === 0);
+
+          const outerBg = isHovered
+            ? 'linear-gradient(180deg, #ffe066 0%, #f59f00 100%)'
+            : isFainted
+            ? '#3d0c0e'
+            : '#0a2e1a';
+
+          const innerBg = isFainted
+            ? 'linear-gradient(180deg, #7d1d22 0%, #a62b31 55%, #73181d 100%)'
+            : isHovered
+            ? 'linear-gradient(180deg, #209c5a 0%, #37c978 55%, #23a35e 100%)'
+            : isActive
+            ? 'linear-gradient(180deg, #105e3a 0%, #1b8552 55%, #11633d 100%)'
+            : 'linear-gradient(180deg, #167a48 0%, #24a862 55%, #19874e 100%)';
+
+          const innerShadow = isHovered
+            ? 'inset 0 0 0 2px #fff3bf'
+            : isFainted
+            ? 'inset 0 2px 0 rgba(255, 138, 143, 0.35)'
+            : 'inset 0 2px 0 rgba(126, 242, 178, 0.45)';
+
           return (
-            <div
+            <button
               key={idx}
-              className="absolute pixelated"
-              style={{
-                left: `${left}px`,
-                top: `${top}px`,
-                width: '256px',
-                height: '98px',
-                backgroundImage: 'url(/battle-ui/party/panel_blank.png)',
-                backgroundRepeat: 'no-repeat',
+              type="button"
+              disabled={isActive || isFainted}
+              onMouseEnter={() => {
+                if (hoveredIdx !== idx) {
+                  setHoveredIdx(idx);
+                  if (!isActive && !isFainted) {
+                    battleAudio.playSE('cursor', 0.45);
+                  }
+                }
               }}
-            />
-          );
-        }
-
-        const isActive = idx === activeIndex;
-        const isFainted = pokemon.is_fainted || pokemon.current_hp <= 0;
-        const isSelected = hoveredIdx === idx && !cancelHover;
-
-        const shape = idx === 0 ? 'round' : 'rect';
-        const panelFile = isFainted
-          ? isSelected
-            ? `panel_${shape}_faint_sel.png`
-            : `panel_${shape}_faint.png`
-          : isSelected
-          ? `panel_${shape}_sel.png`
-          : `panel_${shape}.png`;
-
-        const hpRatio = Math.max(0, Math.min(1, pokemon.current_hp / Math.max(1, pokemon.max_hp)));
-        const hpWidth = pokemon.current_hp > 0 ? Math.max(2, Math.round(96 * hpRatio)) : 0;
-        const hpRowOffset = hpRatio <= 0.2 ? -16 : hpRatio <= 0.5 ? -8 : 0;
-
-        const isFemale = pokemon.gender === 'F' || (!pokemon.gender && pokemon.name.length % 2 === 0);
-
-        return (
-          <button
-            key={idx}
-            type="button"
-            disabled={isActive || isFainted}
-            onMouseEnter={() => {
-              setCancelHover(false);
-              if (hoveredIdx !== idx) {
-                setHoveredIdx(idx);
-                battleAudio.playSE('cursor', 0.45);
-              }
-            }}
-            onClick={() => {
-              battleAudio.playSE('decision', 0.6);
-              onSelectPokemon(idx);
-              onClose();
-            }}
-            className="absolute border-0 p-0 text-left cursor-pointer pixelated disabled:cursor-not-allowed"
-            style={{
-              left: `${left}px`,
-              top: `${top}px`,
-              width: '256px',
-              height: '98px',
-              backgroundImage: `url(/battle-ui/party/${panelFile})`,
-              backgroundRepeat: 'no-repeat',
-            }}
-          >
-            {/* Official Pokéball indicator */}
-            <div
-              className="absolute pixelated"
-              style={{
-                left: '10px',
-                top: '10px',
-                width: '44px',
-                height: '56px',
-                backgroundImage: `url(/battle-ui/party/${isSelected ? 'icon_ball_sel.png' : 'icon_ball.png'})`,
-                backgroundRepeat: 'no-repeat',
-                opacity: 0.35,
+              onMouseLeave={() => setHoveredIdx(null)}
+              onClick={() => {
+                battleAudio.playSE('decision', 0.6);
+                onSelectPokemon(idx);
+                onClose();
               }}
-            />
-
-            {/* Lobby 3D Static Pokémon Icon */}
-            <div
-              className="absolute flex items-center justify-center"
+              className="relative p-[2.5px] text-left border-0 cursor-pointer disabled:cursor-not-allowed transition-all duration-150"
               style={{
-                left: '14px',
-                top: '6px',
-                width: '60px',
-                height: '60px',
-                filter: isFainted ? 'grayscale(1) opacity(0.6)' : 'none',
+                background: outerBg,
+                clipPath: 'polygon(13px 0, 100% 0, 100% 100%, 0 100%, 0 13px)',
+                transform: isRightCol ? 'translateY(10px)' : 'none',
+                filter: isHovered ? 'drop-shadow(0 0 8px rgba(255, 212, 59, 0.75))' : 'none',
+                zIndex: isHovered ? 5 : 1,
               }}
             >
-              <StaticPokemonImage
-                species={pokemon.species}
-                alt={pokemon.name}
-                className="w-14 h-14 object-contain drop-shadow-sm"
-              />
-            </div>
-
-            {/* Name */}
-            <span
-              className="absolute font-pkmn font-bold text-white truncate leading-none"
-              style={{
-                left: '96px',
-                top: '18px',
-                maxWidth: '120px',
-                fontSize: '20px',
-                textShadow: '2px 2px 0 #383838',
-              }}
-            >
-              {pokemon.name}
-            </span>
-
-            {/* Gender */}
-            <span
-              className="absolute font-pkmn font-bold leading-none"
-              style={{
-                right: '18px',
-                top: '18px',
-                fontSize: '18px',
-                color: isFemale ? '#ff8888' : '#88ccff',
-                textShadow: '1px 1px 0 #282828',
-              }}
-            >
-              {isFemale ? '♀' : '♂'}
-            </span>
-
-            {/* Active Tag */}
-            {isActive && (
-              <span
-                className="absolute font-pkmn font-bold leading-none px-1.5 py-0.5 rounded-xs bg-amber-400 text-zinc-900"
+              <div
+                className="grid items-center gap-1.5 px-2.5 py-1.5"
                 style={{
-                  left: '18px',
-                  top: '50px',
-                  fontSize: '11px',
+                  gridTemplateColumns: '68px 1fr',
+                  height: '84px',
+                  background: innerBg,
+                  clipPath: 'polygon(11px 0, 100% 0, 100% 100%, 0 100%, 0 11px)',
+                  boxShadow: innerShadow,
                 }}
               >
-                OUT
-              </span>
-            )}
+                {/* Left Column: Pokéball Watermark + 3D Icon + OUT + Level */}
+                <div className="relative flex flex-col items-center justify-between h-full">
+                  <div
+                    className="absolute top-0.5 w-12 h-12 rounded-full pointer-events-none"
+                    style={{
+                      background:
+                        'radial-gradient(circle, transparent 8px, rgba(255, 255, 255, 0.14) 9px, rgba(255, 255, 255, 0.14) 100%)',
+                    }}
+                  >
+                    <div className="absolute top-1/2 left-0 right-0 h-[3px] -translate-y-1/2 bg-black/15" />
+                  </div>
 
-            {/* Official HP Bar Back (138x14) */}
-            <div
-              className="absolute pixelated"
-              style={{
-                left: '96px',
-                top: '48px',
-                width: '138px',
-                height: '14px',
-                backgroundImage: `url(/battle-ui/party/${isFainted ? 'overlay_hp_back_faint.png' : 'overlay_hp_back.png'})`,
-                backgroundRepeat: 'no-repeat',
-              }}
-            >
-              {/* Official HP Fill (96x8 slice inside overlay_hp.png) */}
-              <div
-                className="absolute pixelated"
-                style={{
-                  left: '34px',
-                  top: '2px',
-                  width: `${hpWidth}px`,
-                  height: '8px',
-                  backgroundImage: 'url(/battle-ui/party/overlay_hp.png)',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: `0px ${hpRowOffset}px`,
-                }}
-              />
-            </div>
+                  <div
+                    className="relative z-10 w-13 h-13 flex items-center justify-center -mt-0.5"
+                    style={{
+                      filter: isFainted ? 'grayscale(0.55) brightness(0.85)' : 'none',
+                    }}
+                  >
+                    <StaticPokemonImage
+                      species={pokemon.species}
+                      alt={pokemon.name}
+                      className="w-12 h-12 object-contain drop-shadow-sm"
+                    />
+                  </div>
 
-            {/* Level (bottom-left) */}
-            <span
-              className="absolute font-pkmn font-bold text-white leading-none"
-              style={{
-                left: '20px',
-                top: '68px',
-                fontSize: '17px',
-                textShadow: '2px 2px 0 #383838',
-              }}
-            >
-              Lv.{pokemon.level}
-            </span>
+                  {isActive && (
+                    <span
+                      className="absolute bottom-4 z-20 px-1.5 py-[1px] rounded-[3px] bg-[#2b303a] text-[#f8f9fa] border border-[#adb5bd] font-pkmn font-bold leading-none tracking-wider"
+                      style={{ fontSize: '10px' }}
+                    >
+                      OUT
+                    </span>
+                  )}
 
-            {/* Numerical HP (bottom-right) */}
-            <span
-              className="absolute font-pkmn font-bold text-white leading-none"
-              style={{
-                right: '20px',
-                top: '68px',
-                fontSize: '17px',
-                textShadow: '2px 2px 0 #383838',
-              }}
-            >
-              {isFainted ? 'DEB' : `${pokemon.current_hp}/${pokemon.max_hp}`}
-            </span>
-          </button>
-        );
-      })}
+                  <span
+                    className="relative z-20 font-pkmn font-bold text-white leading-none"
+                    style={{
+                      fontSize: '15px',
+                      textShadow: isFainted ? '1.5px 1.5px 0 #3b090c' : '1.5px 1.5px 0 #0a2917',
+                    }}
+                  >
+                    Lv.{pokemon.level}
+                  </span>
+                </div>
 
-      {/* Bottom Prompt Box */}
-      <div
-        className="absolute bg-[#f8f8f8] border-4 border-[#383848] rounded-lg px-4 py-2 flex items-center"
-        style={{
-          left: '12px',
-          top: '322px',
-          width: isForcedSwitch ? '488px' : '372px',
-          height: '52px',
-        }}
-      >
-        <span className="font-pkmn pkmn-text-message leading-none" style={{ fontSize: '21px' }}>
-          {isForcedSwitch ? '¿A qué Pokémon deseas enviar?' : 'Elige un Pokémon para cambiar.'}
-        </span>
+                {/* Right Column: Name + Gender, HP Bar, Numbers / DEB */}
+                <div className="flex flex-col justify-between h-full py-0.5 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <span
+                      className="font-pkmn font-bold text-white truncate leading-none"
+                      style={{
+                        fontSize: '18px',
+                        textShadow: isFainted ? '1.5px 1.5px 0 #3b090c' : '1.5px 1.5px 0 #0b2e19',
+                      }}
+                    >
+                      {pokemon.name}
+                    </span>
+                    <span
+                      className="font-pkmn font-bold leading-none shrink-0"
+                      style={{
+                        fontSize: '17px',
+                        color: isFemale ? '#ff6b6b' : '#4dabf7',
+                        textShadow: '1.5px 1.5px 0 #092414',
+                      }}
+                    >
+                      {isFemale ? '♀' : '♂'}
+                    </span>
+                  </div>
+
+                  {/* Stylized HP Track */}
+                  <div
+                    className="flex items-center bg-[#141c24] border-2 border-[#090d12] rounded px-1 py-[2px]"
+                    style={{ boxShadow: '0 1.5px 0 rgba(255,255,255,0.15)' }}
+                  >
+                    <span
+                      className="font-pkmn font-bold text-[#ff922b] leading-none mr-1"
+                      style={{ fontSize: '11px' }}
+                    >
+                      HP
+                    </span>
+                    <div className="flex-1 h-[7px] bg-[#495057] rounded-[2px] overflow-hidden">
+                      <div
+                        className="h-full transition-all duration-300"
+                        style={{
+                          width: `${hpPercent}%`,
+                          background: hpGradient,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: Status / HP Numbers / DEB */}
+                  <div className="flex items-center justify-end gap-1.5 min-h-[18px]">
+                    {!isFainted && pokemon.status && (
+                      <span
+                        className={`px-1.5 py-[1px] rounded border font-pkmn font-bold leading-none ${
+                          STATUS_COLORS[pokemon.status] || 'bg-slate-700 text-white border-slate-400'
+                        }`}
+                        style={{ fontSize: '11px' }}
+                      >
+                        {pokemon.status}
+                      </span>
+                    )}
+                    {isFainted ? (
+                      <span
+                        className="px-2 py-[2px] rounded bg-[#2b090c] text-[#ff6b6b] border border-[#862e33] font-pkmn font-bold leading-none"
+                        style={{ fontSize: '13px', textShadow: '1px 1px 0 #000' }}
+                      >
+                        DEB
+                      </span>
+                    ) : (
+                      <span
+                        className="font-pkmn font-bold text-white leading-none"
+                        style={{ fontSize: '16px', textShadow: '1.5px 1.5px 0 #0b2e19' }}
+                      >
+                        {pokemon.current_hp}/{pokemon.max_hp}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Official Cancel Button (112x48) */}
-      {!isForcedSwitch && (
-        <button
-          type="button"
-          onMouseEnter={() => {
-            setCancelHover(true);
-            battleAudio.playSE('cursor', 0.45);
-          }}
-          onMouseLeave={() => setCancelHover(false)}
-          onClick={() => {
-            battleAudio.playSE('cancel', 0.55);
-            onClose();
-          }}
-          className="absolute border-0 p-0 cursor-pointer pixelated flex items-center justify-center"
+      {/* Bottom Dialogue Box & SALIR Button */}
+      <div
+        className="grid gap-3 items-stretch pt-2"
+        style={{
+          gridTemplateColumns: isForcedSwitch ? '1fr' : '1fr 116px',
+        }}
+      >
+        <div
+          className="flex items-center px-3.5 py-2 rounded-lg border-[3px] border-[#2b3545]"
           style={{
-            left: '392px',
-            top: '324px',
-            width: '112px',
             height: '48px',
-            backgroundImage: `url(/battle-ui/party/${cancelHover ? 'icon_cancel_sel.png' : 'icon_cancel.png'})`,
-            backgroundRepeat: 'no-repeat',
+            background: 'linear-gradient(180deg, #ffffff 0%, #e9ecef 100%)',
+            boxShadow: 'inset 0 0 0 2.5px #adb5bd, 0 3px 0 rgba(9, 43, 51, 0.6)',
           }}
         >
-          <span
-            className="font-pkmn font-bold text-white leading-none"
-            style={{ fontSize: '19px', textShadow: '2px 2px 0 #303030' }}
+          <span className="font-pkmn text-[#212529] leading-none" style={{ fontSize: '20px' }}>
+            {isForcedSwitch ? '¿A qué Pokémon deseas enviar?' : 'Elige un Pokémon para cambiar.'}
+          </span>
+        </div>
+
+        {!isForcedSwitch && (
+          <button
+            type="button"
+            onMouseEnter={() => battleAudio.playSE('cursor', 0.45)}
+            onClick={() => {
+              battleAudio.playSE('cancel', 0.55);
+              onClose();
+            }}
+            className="rounded-lg border-[3px] border-[#091d42] font-pkmn font-bold text-white cursor-pointer hover:brightness-110 active:translate-y-0.5 transition-all flex items-center justify-center"
+            style={{
+              height: '48px',
+              fontSize: '20px',
+              background: 'linear-gradient(180deg, #1c64d1 0%, #0f3d91 100%)',
+              textShadow: '2px 2px 0 #091d42',
+              boxShadow:
+                'inset 0 2px 0 rgba(116, 192, 252, 0.5), inset 0 -3px 0 #0a2966, 0 3px 0 rgba(9, 43, 51, 0.6)',
+            }}
           >
             SALIR
-          </span>
-        </button>
-      )}
+          </button>
+        )}
+      </div>
     </div>
   );
 };
