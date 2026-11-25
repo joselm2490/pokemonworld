@@ -469,11 +469,11 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
 
         {/* ================= CENTRAL CHAMFERED RIBBON (BLUE VS RED + PULSE WAVE) ================= */}
         <div
-          className="w-full h-11 bg-gradient-to-r from-[#32f59b] via-[#2fe894] to-[#25db89] border-2 border-[#19c778] shadow-md flex items-center justify-between px-5 font-sans overflow-hidden cursor-default"
+          className="w-full h-10 bg-gradient-to-r from-[#32f59b] via-[#2fe894] to-[#25db89] border-2 border-[#19c778] shadow-md flex items-center justify-between gap-2 px-6 font-sans overflow-hidden cursor-default"
           style={{ clipPath: 'polygon(4% 0%, 100% 0%, 96% 100%, 0% 100%)' }}
         >
           {/* Versus Text */}
-          <span className="text-xl sm:text-2xl font-black italic tracking-wider text-slate-950 uppercase font-sans drop-shadow-xs">
+          <span className="text-sm sm:text-base font-black italic tracking-wider text-slate-950 uppercase font-sans truncate whitespace-nowrap drop-shadow-xs">
             {versusText}
           </span>
 
@@ -491,82 +491,75 @@ export const BattleArena: React.FC<BattleArenaProps> = ({
         {/* ================= CARD 2: BOTTOM CARD (LIVE CHAT OR TACTICAL AI CARD) ================= */}
         <div className="w-full">
           {isAiMatch ? (
-            /* AI / Tutorial Match: Chat is omitted as requested, replaced with Tactical Status */
-            <div className="w-full bg-white rounded-2xl sm:rounded-3xl p-3 shadow-md border border-slate-200 flex flex-col justify-between h-[190px] sm:h-[220px]">
-              <div>
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <div className="flex items-center gap-1.5">
-                    <Bot className="w-4 h-4 text-purple-600" />
-                    <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                      ENTRENAMIENTO TÁCTICO VS IA
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-mono font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
-                    TURNO {battleState.turn}
+            /* AI / Tutorial Match: Compact Tactical Status */
+            <div className="w-full bg-white rounded-2xl sm:rounded-3xl p-3 shadow-md border border-slate-200 flex flex-col gap-2.5">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-1.5">
+                  <Bot className="w-4 h-4 text-purple-600" />
+                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                    ENTRENAMIENTO TÁCTICO VS IA
                   </span>
                 </div>
+                <span className="text-[10px] font-mono font-bold bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full">
+                  TURNO {battleState.turn}
+                </span>
+              </div>
 
-                {/* Team Pokéball Status Indicators */}
-                <div className="grid grid-cols-2 gap-2 mt-2.5">
-                  <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
-                    <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
-                      Tu Equipo ({playerSide.team.filter((p) => !p.is_fainted).length}/6)
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {playerSide.team.map((p, idx) => (
-                        <div
-                          key={idx}
-                          className={`w-3 h-3 rounded-full border ${
-                            p.is_fainted
-                              ? 'bg-slate-300 border-slate-400'
-                              : idx === playerSide.active_index
-                              ? 'bg-[#32f59b] border-emerald-600 ring-2 ring-emerald-300'
-                              : 'bg-emerald-500 border-emerald-700'
-                          }`}
-                          title={`${p.name || p.species} (${p.current_hp}/${p.max_hp} HP)`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
-                    <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
-                      Rival IA ({opponentSide.team.filter((p) => !p.is_fainted).length}/6)
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {opponentSide.team.map((p, idx) => (
-                        <div
-                          key={idx}
-                          className={`w-3 h-3 rounded-full border ${
-                            p.is_fainted
-                              ? 'bg-slate-300 border-slate-400'
-                              : idx === opponentSide.active_index
-                              ? 'bg-rose-500 border-rose-700 ring-2 ring-rose-300'
-                              : 'bg-rose-400 border-rose-600'
-                          }`}
-                          title={p.is_fainted ? 'Debilitado' : 'En combate'}
-                        />
-                      ))}
-                    </div>
+              {/* Team Pokéball Status Indicators */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-slate-50 px-2.5 py-2 rounded-xl border border-slate-200">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
+                    Tu Equipo ({playerSide.team.filter((p) => !p.is_fainted).length}/6)
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {playerSide.team.map((p, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-3 h-3 rounded-full border ${
+                          p.is_fainted
+                            ? 'bg-slate-300 border-slate-400'
+                            : idx === playerSide.active_index
+                            ? 'bg-[#32f59b] border-emerald-600 ring-2 ring-emerald-300'
+                            : 'bg-emerald-500 border-emerald-700'
+                        }`}
+                        title={`${p.name || p.species} (${p.current_hp}/${p.max_hp} HP)`}
+                      />
+                    ))}
                   </div>
                 </div>
 
-                {/* Turn / Action Announcement */}
-                <div className="mt-2.5 p-2 bg-slate-900 text-white rounded-xl text-xs font-mono flex items-center gap-2">
-                  {isWaitingForTurn ? (
-                    <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
-                  ) : (
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  )}
-                  <span className="truncate text-[11px] text-slate-200">
-                    {currentMessage || '¡Elige tu próximo movimiento táctico!'}
+                <div className="bg-slate-50 px-2.5 py-2 rounded-xl border border-slate-200">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
+                    Rival IA ({opponentSide.team.filter((p) => !p.is_fainted).length}/6)
                   </span>
+                  <div className="flex items-center gap-1">
+                    {opponentSide.team.map((p, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-3 h-3 rounded-full border ${
+                          p.is_fainted
+                            ? 'bg-slate-300 border-slate-400'
+                            : idx === opponentSide.active_index
+                            ? 'bg-rose-500 border-rose-700 ring-2 ring-rose-300'
+                            : 'bg-rose-400 border-rose-600'
+                        }`}
+                        title={p.is_fainted ? 'Debilitado' : 'En combate'}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Tactical Tip */}
-              <div className="text-[9px] text-slate-400 text-center font-sans">
-                💡 Pulsa <kbd className="font-bold text-slate-600 bg-slate-200 px-1 rounded">A</kbd> para ver estadísticas o <kbd className="font-bold text-slate-600 bg-slate-200 px-1 rounded">S</kbd> para detalles de ataques.
+              {/* Turn / Action Announcement */}
+              <div className="p-2.5 bg-slate-900 text-white rounded-xl text-xs font-mono flex items-center gap-2">
+                {isWaitingForTurn ? (
+                  <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                )}
+                <span className="truncate text-[11px] text-slate-200">
+                  {currentMessage || '¡Elige tu próximo movimiento táctico!'}
+                </span>
               </div>
             </div>
           ) : (
