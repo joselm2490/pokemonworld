@@ -13,6 +13,7 @@ import { PokedexService } from '../../services/pokedexService';
 import { RoomSummary } from '../../types/stadium';
 import { CreateRoomModal } from './CreateRoomModal';
 import { RoomLobbyModal } from './RoomLobbyModal';
+import { PokeballLoader } from '../common/PokeballLoader';
 import { BattleArena } from '../battle/BattleArena';
 import { useBattle } from '../../hooks/useBattle';
 import { PokeBallGraphic } from '../common/PokeBallGraphic';
@@ -145,6 +146,23 @@ export const RoomSection: React.FC<RoomSectionProps> = ({
     playerRole: activeMatch?.role || 'p1',
     customTeam: selectedTeam,
   });
+
+  if (activeMatch && !battle.battleState) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#f2f4f7] flex flex-col items-center justify-center p-4 text-slate-800 font-sans">
+        <div className="flex flex-col items-center gap-4">
+          <PokeballLoader size="lg" text="CARGANDO..." />
+          <button
+            type="button"
+            onClick={() => setActiveMatch(null)}
+            className="mt-2 px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold uppercase rounded-xl transition-colors flex items-center gap-2 border border-slate-300 shadow-sm cursor-pointer"
+          >
+            <span>Cancelar y Volver</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (activeMatch && battle.battleState) {
     return (

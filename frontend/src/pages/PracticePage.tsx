@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BattleArena } from '../components/battle/BattleArena';
 import { useBattle } from '../hooks/useBattle';
 import { AuthService } from '../services/authService';
-import { Bot, ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { PokeballLoader } from '../components/common/PokeballLoader';
 
 const PracticeBattleView: React.FC<{ team: string[]; trainerName: string }> = ({ team, trainerName }) => {
@@ -28,17 +28,11 @@ const PracticeBattleView: React.FC<{ team: string[]; trainerName: string }> = ({
   if (!battle.battleState) {
     return (
       <div className="min-h-screen bg-[#f2f4f7] flex flex-col items-center justify-center p-4 text-slate-800 font-sans">
-        <div className="flex flex-col items-center gap-3">
-          <Bot className="w-12 h-12 text-emerald-600 animate-bounce" />
-          <h2 className="text-xl font-black uppercase tracking-wider text-slate-900">
-            Iniciando Combate 6 vs 6 (IA)
-          </h2>
-          <p className="text-xs text-slate-500">
-            Cargando la Arena de Entrenamiento con tu equipo líder...
-          </p>
+        <div className="flex flex-col items-center gap-4">
+          <PokeballLoader size="lg" text="CARGANDO..." />
           <button
             onClick={() => navigate('/')}
-            className="mt-4 px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold uppercase rounded-xl transition-colors flex items-center gap-2 border border-slate-300 shadow-sm cursor-pointer"
+            className="mt-2 px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold uppercase rounded-xl transition-colors flex items-center gap-2 border border-slate-300 shadow-sm cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Cancelar y Volver</span>
