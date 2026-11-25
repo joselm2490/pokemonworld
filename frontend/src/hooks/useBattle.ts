@@ -231,7 +231,7 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
   }, [roomCode, isAi, playerRole]);
 
   const triggerEffect = (
-    kind: 'attack' | 'pokeball',
+    kind: ActiveEffect['kind'],
     sheet: string,
     targetIsPlayer: boolean,
     moveMeta?: { moveName?: string; moveType?: string; category?: string }
@@ -338,7 +338,10 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
       } else if (ev.type === 'HEAL') {
         setCurrentMessage(ev.message || '');
         battleAudio.playSE('party_switch', 0.6);
-        triggerEffect('attack', 'heal', targetIsPlayer);
+        const isDrainHeal =
+          (ev.message || '').toLowerCase().includes('absorbi') ||
+          (ev.message || '').toLowerCase().includes('drenadoras');
+        triggerEffect(isDrainHeal ? 'drain' : 'heal', 'heal', targetIsPlayer);
         if (typeof ev.remaining_hp === 'number') {
           const newHp = ev.remaining_hp;
           patchLiveState((prev) => {
@@ -351,10 +354,27 @@ export const useBattle = ({ roomCode, isAi, playerRole, customTeam }: UseBattleP
         }
         await delay(700);
         setActiveEffect(null);
-      } else if (ev.type === 'STAT_CHANGE' || ev.type === 'STATUS') {
+      } else if (ev.type === 'STAT_CHANGE') {
         setCurrentMessage(ev.message || '');
-        triggerEffect('attack', ev.animation || 'burst', targetIsPlayer);
-        if (ev.type === 'STATUS' && ev.status) {
+        const isUp = (ev.delta ?? 1) >= 0;
+        triggerEffect(isUp ? 'stat_up' : 'stat_down', ev.animation || 'burst', targetIsPlayer);
+        await delay(720);
+        setActiveEffect(null);
+      } else if (ev.type === 'STATUS') {
+        setCurrentMessage(ev.message || '');
+        const statusTypeMap: Record<string, string> = {
+          PAR: 'ELECTRIC',
+          BRN: 'FIRE',
+          PSN: 'POISON',
+          TOX: 'POISON',
+          FRZ: 'ICE',
+          SLP: 'PSYCHIC',
+        };
+        triggerEffect('attack', ev.animation || 'burst', targetIsPlayer, {
+          moveType: statusTypeMap[ev.status || ''] || 'PSYCHIC',
+          category: 'STATUS',
+        });
+        if (ev.status) {
           const newStatus = ev.status;
           patchLiveState((prev) => {
             const side = prev[targetSide];

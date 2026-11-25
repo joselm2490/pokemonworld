@@ -3,7 +3,7 @@ import { resolveGbaMoveAnimation } from './gbaMoveAnimations';
 
 export interface ActiveEffect {
   id: number;
-  kind: 'attack' | 'pokeball';
+  kind: 'attack' | 'pokeball' | 'heal' | 'drain' | 'stat_up' | 'stat_down';
   sheet: string;
   moveName?: string;
   moveType?: string;
@@ -258,6 +258,116 @@ export const BattleEffectOverlay: React.FC<BattleEffectOverlayProps> = ({ effect
       return () => {
         cancelled = true;
         cancelAnimationFrame(rafId);
+      };
+    }
+
+    if (effect.kind === 'heal' || effect.kind === 'drain') {
+      const durationMs = 680;
+      const startTime = performance.now();
+      const isDrain = effect.kind === 'drain';
+
+      const animateHealOrDrain = (now: number) => {
+        if (cancelled) return;
+        const elapsed = now - startTime;
+        const t = Math.min(1, elapsed / durationMs);
+        ctx.clearRect(0, 0, 512, 288);
+
+        if (isDrain) {
+          // Energy orbs flowing smoothly from damaged foe (attackerX/Y) -> healed Pokémon (targetX/Y)
+          const count = 12;
+          for (let i = 0; i < count; i++) {
+            const lt = (t - (i / count) * 0.42) / 0.58;
+            if (lt < 0 || lt > 1) continue;
+            const arc = Math.sin(lt * Math.PI) * 32;
+            const px = attackerX + (targetX - attackerX) * lt;
+            const py = attackerY + (targetY - attackerY) * lt - arc;
+            drawGlowOrb(ctx, px, py, 13, '#22c55e', '#dcfce7', 0.92);
+          }
+        }
+
+        // Rising emerald/gold healing sparkles & soft aura on healed Pokémon
+        const healAlpha = isDrain ? Math.max(0, (t - 0.3) / 0.7) : Math.sin(t * Math.PI);
+        if (healAlpha > 0.01) {
+          drawGlowOrb(ctx, targetX, targetY - 8, 42 * healAlpha, '#22c55e', '#bbf7d0', 0.42 * healAlpha);
+          for (let i = 0; i < 10; i++) {
+            const ang = (i * Math.PI * 2) / 10 + t * 1.8;
+            const rx = Math.cos(ang) * 34;
+            const ry = targetY + 18 - ((t * 58 + i * 7) % 58);
+            const sparkAlpha = Math.sin(t * Math.PI) * 0.95;
+            drawGlowOrb(ctx, targetX + rx, ry, 7, '#4ade80', '#ffffff', sparkAlpha);
+          }
+          drawShockwaveRing(ctx, targetX, targetY - t * 24, 18 + t * 30, '#4ade80', '#dcfce7', 2.5, (1 - t) * 0.8);
+        }
+
+        if (t < 1) {
+          rafId = requestAnimationFrame(animateHealOrDrain);
+        } else {
+          ctx.clearRect(0, 0, 512, 288);
+        }
+      };
+
+      rafId = requestAnimationFrame(animateHealOrDrain);
+      return () => {
+        cancelled = true;
+        cancelAnimationFrame(rafId);
+        ctx.clearRect(0, 0, 512, 288);
+      };
+    }
+
+    if (effect.kind === 'stat_up' || effect.kind === 'stat_down') {
+      const isUp = effect.kind === 'stat_up';
+      const color = isUp ? '#38bdf8' : '#f43f5e';
+      const accent = isUp ? '#fef08a' : '#fecdd3';
+      const durationMs = 680;
+      const startTime = performance.now();
+
+      const animateStat = (now: number) => {
+        if (cancelled) return;
+        const elapsed = now - startTime;
+        const t = Math.min(1, elapsed / durationMs);
+        ctx.clearRect(0, 0, 512, 288);
+
+        const alpha = Math.sin(t * Math.PI);
+        drawGlowOrb(ctx, targetX, targetY, 44, color, accent, 0.38 * alpha);
+
+        // Draw crisp rising (stat_up) or descending (stat_down) chevrons around the Pokémon
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = accent;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const chevrons = [-28, 0, 28];
+        chevrons.forEach((ox, idx) => {
+          const phase = (t * 1.4 + idx * 0.22) % 1;
+          const cy = isUp
+            ? targetY + 22 - phase * 64
+            : targetY - 42 + phase * 64;
+          const dir = isUp ? 1 : -1;
+          ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.95;
+          ctx.beginPath();
+          ctx.moveTo(targetX + ox - 9, cy + dir * 7);
+          ctx.lineTo(targetX + ox, cy);
+          ctx.lineTo(targetX + ox + 9, cy + dir * 7);
+          ctx.stroke();
+        });
+        ctx.restore();
+
+        if (t < 1) {
+          rafId = requestAnimationFrame(animateStat);
+        } else {
+          ctx.clearRect(0, 0, 512, 288);
+        }
+      };
+
+      rafId = requestAnimationFrame(animateStat);
+      return () => {
+        cancelled = true;
+        cancelAnimationFrame(rafId);
+        ctx.clearRect(0, 0, 512, 288);
       };
     }
 
