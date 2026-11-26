@@ -539,6 +539,50 @@ export const BattleEffectOverlay: React.FC<BattleEffectOverlayProps> = ({ effect
             );
           }
         }
+      } else if (spec.pattern === 'field_weather') {
+        // Full-arena weather sweep (Blizzard, Sandstorm, Rain Dance, Hail, Sunny Day)
+        for (let i = 0; i < count; i++) {
+          const phase = (t * 1.4 + i / count) % 1;
+          const rowY = ((i * 53) % 270) + 10;
+          const isRainOrHail = spec.particleTag === 10107 || spec.particleTag === 10043;
+          const isSun = spec.particleTag === 10031;
+          let px = 0;
+          let py = 0;
+          if (isSun) {
+            px = ((i * 83) % 480) + 16;
+            py = 20 + phase * 180;
+          } else if (isRainOrHail) {
+            px = 520 - phase * 560 + ((i * 37) % 140) - 70;
+            py = -20 + phase * 320;
+          } else {
+            // Blizzard / Sandstorm horizontal-diagonal sweep across entire 512x288 arena
+            px = 540 - phase * 600;
+            py = rowY + Math.sin(phase * Math.PI * 3 + i) * 18;
+          }
+          drawParticleFrame(ctx, primaryImg, px, py, scale, frameTick + i, spec, Math.sin(t * Math.PI) * 0.95, 0, spec.color);
+          if (secondaryImg && i % 3 === 0) {
+            drawParticleFrame(ctx, secondaryImg, (px + 48) % 512, (py + 22) % 288, scale * 0.85, frameTick + i + 1, undefined, Math.sin(t * Math.PI) * 0.75, 0, spec.color);
+          }
+        }
+      } else if (spec.pattern === 'meteor_storm') {
+        // Draco Meteor: diagonal meteors streaking from upper-right across darkened field + impact bursts
+        for (let i = 0; i < count; i++) {
+          const lt = (t - (i / count) * 0.5) / 0.5;
+          if (lt < 0 || lt > 1) continue;
+          const endX = targetX + ((i % 5) - 2) * 28;
+          const endY = targetY + ((i % 3) - 1) * 16;
+          const startX = endX + 160;
+          const startY = endY - 170;
+          const px = startX + (endX - startX) * Math.min(1, lt * 1.15);
+          const py = startY + (endY - startY) * Math.min(1, lt * 1.15);
+          if (lt < 0.78) {
+            drawParticleFrame(ctx, primaryImg, px, py, scale, frameTick + i, spec, 1, 0, spec.color);
+          }
+          if (secondaryImg && lt >= 0.65) {
+            const bt = (lt - 0.65) / 0.35;
+            drawParticleFrame(ctx, secondaryImg, endX, endY, scale * (0.9 + bt * 0.5), frameTick + i, undefined, 1 - bt, 0, spec.accent);
+          }
+        }
       } else if (spec.pattern === 'wave_surge') {
         for (let i = 0; i < count; i++) {
           const lt = Math.min(1, Math.max(0, (t - (i / count) * 0.3) / 0.7));

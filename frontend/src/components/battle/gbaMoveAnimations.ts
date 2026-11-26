@@ -7,6 +7,8 @@ export type GbaAnimPattern =
   | 'orbit_aura'
   | 'burst_explosion'
   | 'wave_surge'
+  | 'field_weather'
+  | 'meteor_storm'
   | 'drain'
   | 'leech_seed'
   | 'spore_fall';
@@ -165,7 +167,13 @@ const ICONIC_MOVES: Record<string, GbaMoveAnimSpec> = {
 
   // Ice
   'ice beam': { pattern: 'stream', particleTag: 10043, secondaryTag: 10031, color: '#38bdf8', accent: '#ffffff', screenTint: 'rgba(130, 225, 255, 0.20)', count: 12, scale: 1.6 },
-  blizzard: { pattern: 'wave_surge', particleTag: 10093, secondaryTag: 10043, color: '#7dd3fc', accent: '#ffffff', screenTint: 'rgba(160, 235, 255, 0.24)', count: 12, scale: 1.5, frameW: 32, frameH: 32, frames: 4 },
+  // Weather & Full-Field Moves
+  blizzard: { pattern: 'field_weather', particleTag: 10093, secondaryTag: 10043, color: '#7dd3fc', accent: '#ffffff', screenTint: 'rgba(130, 215, 255, 0.32)', count: 22, scale: 1.6, frameW: 32, frameH: 32, frames: 4 },
+  sandstorm: { pattern: 'field_weather', particleTag: 10261, secondaryTag: 10114, color: '#d97706', accent: '#fde68a', screenTint: 'rgba(194, 138, 62, 0.38)', count: 20, scale: 1.8 },
+  'rain dance': { pattern: 'field_weather', particleTag: 10107, secondaryTag: 10298, color: '#38bdf8', accent: '#e0f2fe', screenTint: 'rgba(20, 90, 180, 0.30)', count: 24, scale: 1.6 },
+  'sunny day': { pattern: 'field_weather', particleTag: 10031, secondaryTag: 10135, color: '#facc15', accent: '#fef9c3', screenTint: 'rgba(255, 195, 45, 0.28)', count: 16, scale: 1.8 },
+  hail: { pattern: 'field_weather', particleTag: 10043, secondaryTag: 10093, color: '#7dd3fc', accent: '#ffffff', screenTint: 'rgba(150, 225, 255, 0.26)', count: 20, scale: 1.5 },
+  snowscape: { pattern: 'field_weather', particleTag: 10093, secondaryTag: 10043, color: '#bae6fd', accent: '#ffffff', screenTint: 'rgba(165, 230, 255, 0.26)', count: 20, scale: 1.5, frameW: 32, frameH: 32, frames: 4 },
   'ice punch': { pattern: 'punch_impact', particleTag: 10055, secondaryTag: 10043, color: '#38bdf8', accent: '#f0f9ff', count: 8, scale: 1.8 },
   'ice fang': { pattern: 'bite_fang', particleTag: 10104, secondaryTag: 10043, color: '#38bdf8', accent: '#f0f9ff', count: 6, scale: 1.8 },
   'icicle crash': { pattern: 'sky_strike', particleTag: 10262, secondaryTag: 10043, color: '#38bdf8', accent: '#ffffff', count: 10, scale: 1.9 },
@@ -205,7 +213,7 @@ const ICONIC_MOVES: Record<string, GbaMoveAnimSpec> = {
   'sacred sword': { pattern: 'slash_claw', particleTag: 10018, secondaryTag: 10075, color: '#38bdf8', accent: '#ffffff', count: 6, scale: 2.1 },
 
   // Dragon
-  'draco meteor': { pattern: 'sky_strike', particleTag: 10256, secondaryTag: 10035, color: '#8b5cf6', accent: '#fde047', screenTint: 'rgba(90, 40, 180, 0.24)', count: 10, scale: 1.8 },
+  'draco meteor': { pattern: 'meteor_storm', particleTag: 10256, secondaryTag: 10035, color: '#8b5cf6', accent: '#fde047', screenTint: 'rgba(30, 12, 70, 0.42)', count: 10, scale: 1.7 },
   'dragon pulse': { pattern: 'stream', particleTag: 10128, secondaryTag: 10308, color: '#6366f1', accent: '#e0e7ff', screenTint: 'rgba(110, 60, 230, 0.20)', count: 10, scale: 1.8 },
   'dragon claw': { pattern: 'slash_claw', particleTag: 10215, secondaryTag: 10128, color: '#6366f1', accent: '#c7d2fe', count: 6, scale: 2.0 },
   'dragon dance': { pattern: 'orbit_aura', particleTag: 10128, secondaryTag: 10031, color: '#818cf8', accent: '#ffffff', count: 10, scale: 1.7 },
@@ -262,6 +270,12 @@ const SPANISH_ALIASES: Record<string, string> = {
   escaldar: 'scald',
   'rayo burbuja': 'bubble beam',
   cascada: 'waterfall',
+  'tormenta arena': 'sandstorm',
+  'tormenta de arena': 'sandstorm',
+  'danza lluvia': 'rain dance',
+  'dia soleado': 'sunny day',
+  granizo: 'hail',
+  'paisaje nevado': 'snowscape',
   'rayo hielo': 'ice beam',
   ventisca: 'blizzard',
   'puno hielo': 'ice punch',
